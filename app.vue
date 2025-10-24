@@ -43,17 +43,20 @@ const isPostPage = computed(() => route.path !== '/' && route.path !== '/about' 
       </div>
     </header>
 
-    <!-- 3-Column Layout -->
     <div class="app-layout">
-      <!-- Column 1: Left Sidebar -->
       <LeftSidebar />
 
-      <!-- Column 2: Main Content -->
       <main class="main-content">
         <NuxtPage />
+
+      <footer class="site-footer">
+        <a href="https://www.netlify.com">
+            <img src="https://www.netlify.com/assets/badges/netlify-badge-color-bg.svg" alt="Deploys by Netlify" />
+            <span>This site is powered by Netlify</span>
+        </a>
+      </footer>
       </main>
 
-      <!-- Column 3: Right Sidebar -->
       <RightSidebar :all-posts="allPosts" :is-post-page="isPostPage" :search-query="searchQuery" @update:search-query="searchQuery = $event" />
     </div>
   </div>
