@@ -54,9 +54,9 @@ const filteredPosts = computed(() => {
 
 // Active filter label for display
 const activeFilter = computed(() => {
-  if (tagFilter.value) return `Tag: ${tagFilter.value}`;
-  if (yearFilter.value) return `Year: ${yearFilter.value}`;
-  if (authorFilter.value) return `Author: ${authorFilter.value}`;
+  if (tagFilter.value) return `標籤：${tagFilter.value}`;
+  if (yearFilter.value) return `年份：${yearFilter.value}`;
+  if (authorFilter.value) return `作者：${authorFilter.value}`;
   return null;
 });
 
@@ -72,10 +72,10 @@ useSeoMeta({
     <section class="hero">
       <div class="hero-content">
         <h1 class="hero-title">
-          Hey there! This is <span class="highlight">Chinono</span>
+          嘿！歡迎來到 <span class="highlight">七糯糯的小站</span>
         </h1>
         <p class="hero-description">
-          This is where we share our daily adventures, cool discoveries, achievements, and fun moments. From work stuff to gaming wins - it's all here!
+          我們是一群認識的小夥伴。這是我們分享日常冒險、酷炫發現、成就和有趣時刻的地方。歡迎你的到來！
         </p>
       </div>
     </section>
@@ -85,7 +85,7 @@ useSeoMeta({
       <div class="section-header">
         <h2 class="section-heading">
           <Icon name="heroicons:newspaper" size="28" />
-          Recent Updates
+          最近更新
         </h2>
         
         <!-- Active Filter Badge -->
@@ -125,7 +125,7 @@ useSeoMeta({
 
       <div v-else class="no-results">
         <Icon name="heroicons:magnifying-glass-circle" size="48" />
-        <p>Nothing found. Try a different search!</p>
+        <p>找不到相關內容。試試其他搜尋！</p>
       </div>
     </section>
   </div>

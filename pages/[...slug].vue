@@ -55,7 +55,7 @@ const readingTime = computed(() => {
           </span>
           <span class="meta-item">
             <Icon name="heroicons:clock" size="16" />
-            {{ readingTime }} min read
+            {{ readingTime }} 分鐘閱讀
           </span>
         </div>
       </div>
@@ -86,7 +86,7 @@ const readingTime = computed(() => {
       <div class="back-link">
         <NuxtLink to="/">
           <Icon name="heroicons:arrow-left" size="20" />
-          Back to all articles
+          返回所有文章
         </NuxtLink>
       </div>
     </footer>
@@ -94,11 +94,11 @@ const readingTime = computed(() => {
   
   <div v-else class="not-found">
     <Icon name="heroicons:document-magnifying-glass" size="64" />
-    <h1>Post not found</h1>
-    <p>The article you're looking for doesn't exist.</p>
+    <h1>找不到文章</h1>
+    <p>您尋找的文章不存在。</p>
     <NuxtLink to="/" class="back-button">
       <Icon name="heroicons:home" size="20" />
-      Go to Homepage
+      返回首頁
     </NuxtLink>
   </div>
 </template>

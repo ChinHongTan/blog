@@ -27,16 +27,16 @@ const topTags = computed(() => {
   <aside class="left-sidebar">
     <div class="sidebar-section author-info">
       <img src="public/images/uploads/103467998_p0 copy.png" alt="Author Avatar" class="avatar">
-      <h3 class="author-name">Chinono</h3>
+      <h3 class="author-name">七糯糯</h3>
       <p class="author-bio">
-        A blog where we share what came to mind.
+        分享生活點滴的小小天地。
       </p>
     </div>
 
     <div class="sidebar-section">
       <h4 class="section-title">
         <Icon name="heroicons:tag" size="18" />
-        Popular Tags
+        熱門標籤
       </h4>
       <div v-if="topTags.length > 0" class="tags">
         <NuxtLink 
@@ -48,13 +48,13 @@ const topTags = computed(() => {
           {{ tag }} <span class="tag-count">({{ count }})</span>
         </NuxtLink>
       </div>
-      <p v-else class="empty-state">No tags yet</p>
+      <p v-else class="empty-state">尚無標籤</p>
     </div>
 
     <div class="sidebar-section">
       <h4 class="section-title">
         <Icon name="heroicons:link" size="18" />
-        Links
+        連結
       </h4>
       <nav class="sidebar-links">
         <a href="https://github.com" target="_blank" rel="noopener noreferrer">
@@ -104,7 +104,7 @@ const topTags = computed(() => {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  margin: 0 auto 1rem;
+  margin: 0 auto 0.5rem;
   border: 3px solid var(--color-primary-light);
   box-shadow: var(--shadow-md);
 }
@@ -131,6 +131,8 @@ const topTags = computed(() => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--color-primary-light);
 }
 
 .tags {
@@ -179,12 +181,15 @@ const topTags = computed(() => {
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
-  padding: 0.5rem 0;
-  transition: color 0.2s ease;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
 }
 
 .sidebar-links a:hover {
   color: var(--color-primary-dark);
+  background: var(--color-bg-blue-tint);
+  padding-left: 1rem;
 }
 
 /* Scrollbar styling */

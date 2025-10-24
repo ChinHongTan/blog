@@ -23,21 +23,21 @@ const isPostPage = computed(() => route.path !== '/' && route.path !== '/about' 
       <div class="header-content">
         <NuxtLink to="/" class="logo">
           <Icon name="heroicons:academic-cap" size="28" />
-          <span>Chinono's Blog</span>
+          <span>七糯糯的小站</span>
         </NuxtLink>
         
         <nav class="main-nav">
           <NuxtLink to="/">
             <Icon name="heroicons:home" size="20" />
-            Home
+            首頁
           </NuxtLink>
           <NuxtLink to="/about">
             <Icon name="heroicons:information-circle" size="20" />
-            About
+            關於
           </NuxtLink>
           <NuxtLink to="/authors">
             <Icon name="heroicons:users" size="20" />
-            Authors
+            作者
           </NuxtLink>
         </nav>
       </div>

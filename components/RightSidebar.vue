@@ -61,7 +61,7 @@ const authors = computed(() => {
         <input 
           v-model="localSearchQuery"
           type="text" 
-          placeholder="Search posts..."
+          placeholder="搜尋文章..."
           class="search-input"
         >
       </div>
@@ -71,12 +71,12 @@ const authors = computed(() => {
     <div v-if="isPostPage" class="sidebar-section toc-section">
       <h4 class="section-title">
         <Icon name="heroicons:list-bullet" size="18" />
-        On This Page
+        本頁內容
       </h4>
       <nav class="toc-links">
-        <a href="#introduction">Introduction</a>
-        <a href="#main-content">Main Content</a>
-        <a href="#conclusion">Conclusion</a>
+        <a href="#introduction">引言</a>
+        <a href="#main-content">主要內容</a>
+        <a href="#conclusion">結論</a>
       </nav>
     </div>
 
@@ -84,7 +84,7 @@ const authors = computed(() => {
     <div v-if="postsByYear.length > 0" class="sidebar-section">
       <h4 class="section-title">
         <Icon name="heroicons:calendar" size="18" />
-        Archive
+        文章存檔
       </h4>
       <nav class="archive-links">
         <NuxtLink 
@@ -104,7 +104,7 @@ const authors = computed(() => {
     <div v-if="authors.length > 0" class="sidebar-section">
       <h4 class="section-title">
         <Icon name="heroicons:users" size="18" />
-        Authors
+        作者
       </h4>
       <nav class="author-links">
         <NuxtLink 
@@ -124,20 +124,20 @@ const authors = computed(() => {
     <div class="sidebar-section">
       <h4 class="section-title">
         <Icon name="heroicons:squares-2x2" size="18" />
-        Quick Links
+        快速連結
       </h4>
       <nav class="quick-links">
         <NuxtLink to="/">
           <Icon name="heroicons:home" size="16" />
-          Home
+          首頁
         </NuxtLink>
         <NuxtLink to="/about">
           <Icon name="heroicons:information-circle" size="16" />
-          About
+          關於
         </NuxtLink>
         <NuxtLink to="/authors">
           <Icon name="heroicons:users" size="16" />
-          Authors
+          作者
         </NuxtLink>
       </nav>
     </div>
