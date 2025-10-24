@@ -1,6 +1,41 @@
 <script setup lang="ts">
+// Props for dynamic author display
+const props = defineProps<{
+  currentAuthor?: string | null;
+}>();
+
 // Get all posts from parent
 const allPosts = inject<{ value: unknown[] | null }>('allPosts', ref(null));
+
+// Fetch author profile based on currentAuthor prop
+const authorProfile = ref<{ name?: string; bio?: string; avatar?: string; social?: { github?: string; twitter?: string; website?: string } } | null>(null);
+
+// Watch for changes in currentAuthor and fetch profile
+watch(() => props.currentAuthor, async (authorName) => {
+  if (authorName) {
+    const profile = await useAuthor(authorName);
+    authorProfile.value = profile?.value || null;
+  } else {
+    // Default to main site info when on homepage
+    authorProfile.value = {
+      name: '七糯糯的小站',
+      bio: '分享生活點滴的小小天地。',
+      avatar: '/images/uploads/103467998_p0 copy.png'
+    };
+  }
+}, { immediate: true });
+
+// Check if we're on a post page (showing specific author)
+const isShowingAuthor = computed(() => !!props.currentAuthor);
+
+// Computed properties for display
+const displayName = computed(() => authorProfile.value?.name || '七糯糯');
+const displayBio = computed(() => authorProfile.value?.bio || '分享生活點滴的小小天地。');
+const displayAvatar = computed(() => {
+  if (authorProfile.value?.avatar) return authorProfile.value.avatar;
+  const firstLetter = displayName.value[0] || '七';
+  return `https://placehold.co/100x100/38bdf8/ffffff?text=${firstLetter}`;
+});
 
 // Extract top 8 tags with counts
 const topTags = computed(() => {
@@ -26,10 +61,10 @@ const topTags = computed(() => {
 <template>
   <aside class="left-sidebar">
     <div class="sidebar-section author-info">
-      <img src="public/images/uploads/103467998_p0 copy.png" alt="Author Avatar" class="avatar">
-      <h3 class="author-name">七糯糯</h3>
+      <img :src="displayAvatar" :alt="`${displayName} Avatar`" class="avatar">
+      <h3 class="author-name">{{ displayName }}</h3>
       <p class="author-bio">
-        分享生活點滴的小小天地。
+        {{ displayBio }}
       </p>
     </div>
 
@@ -51,23 +86,49 @@ const topTags = computed(() => {
       <p v-else class="empty-state">尚無標籤</p>
     </div>
 
-    <div class="sidebar-section">
+    <div v-if="isShowingAuthor && authorProfile?.social" class="sidebar-section">
       <h4 class="section-title">
         <Icon name="heroicons:link" size="18" />
-        連結
+        作者連結
       </h4>
       <nav class="sidebar-links">
-        <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+        <a v-if="authorProfile.social.github" :href="authorProfile.social.github" target="_blank" rel="noopener noreferrer">
           <Icon name="simple-icons:github" size="16" />
           GitHub
         </a>
-        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+        <a v-if="authorProfile.social.twitter" :href="authorProfile.social.twitter" target="_blank" rel="noopener noreferrer">
           <Icon name="simple-icons:x" size="16" />
           Twitter
         </a>
-        <a href="mailto:contact@example.com">
-          <Icon name="heroicons:envelope" size="16" />
-          Email
+        <a v-if="authorProfile.social.website" :href="authorProfile.social.website" target="_blank" rel="noopener noreferrer">
+          <Icon name="heroicons:globe-alt" size="16" />
+          個人網站
+        </a>
+      </nav>
+    </div>
+
+    <!-- Show site navigation links when on homepage -->
+    <div v-if="!isShowingAuthor" class="sidebar-section">
+      <h4 class="section-title">
+        <Icon name="heroicons:link" size="18" />
+        站內連結
+      </h4>
+      <nav class="sidebar-links">
+        <NuxtLink to="/about">
+          <Icon name="heroicons:information-circle" size="16" />
+          關於本站
+        </NuxtLink>
+        <NuxtLink to="/authors">
+          <Icon name="heroicons:users" size="16" />
+          所有作者
+        </NuxtLink>
+        <NuxtLink to="/code-of-conduct">
+          <Icon name="heroicons:document-text" size="16" />
+          行為準則
+        </NuxtLink>
+        <a href="https://github.com/ChinHongTan/blog" target="_blank" rel="noopener noreferrer">
+          <Icon name="simple-icons:github" size="16" />
+          網站原始碼
         </a>
       </nav>
     </div>

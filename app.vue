@@ -13,7 +13,25 @@ provide('allPosts', allPosts);
 
 // Current route to determine context
 const route = useRoute();
-const isPostPage = computed(() => route.path !== '/' && route.path !== '/about' && route.path !== '/authors');
+const isPostPage = computed(() => route.path !== '/' && route.path !== '/about' && route.path !== '/authors' && route.path !== '/code-of-conduct');
+
+// Get current page data to determine author
+const { data: currentPage } = await useAsyncData('current-page', async () => {
+  if (isPostPage.value && route.path !== '/') {
+    return await queryCollection('blog').path(route.path).first();
+  }
+  return Promise.resolve(null);
+}, {
+  watch: [() => route.path]
+});
+
+const currentAuthor = computed(() => {
+  if (currentPage.value) {
+    const page = currentPage.value as { author?: string };
+    return page.author || null;
+  }
+  return null;
+});
 </script>
 
 <template>
@@ -22,7 +40,15 @@ const isPostPage = computed(() => route.path !== '/' && route.path !== '/about' 
     <header class="main-header">
       <div class="header-content">
         <NuxtLink to="/" class="logo">
+          <!-- Option 1: Profile Picture (Current) -->
+          <img src="/images/uploads/103467998_p0 copy.png" alt="Logo" class="logo-image">
+          
+          <!-- Option 2: Remove icon completely - just delete the img/Icon line above -->
+          
+          <!-- Option 3: Use an icon instead:
           <Icon name="heroicons:academic-cap" size="28" />
+          -->
+          
           <span>七糯糯的小站</span>
         </NuxtLink>
         
@@ -44,12 +70,17 @@ const isPostPage = computed(() => route.path !== '/' && route.path !== '/about' 
     </header>
 
     <div class="app-layout">
-      <LeftSidebar />
+      <LeftSidebar :current-author="currentAuthor" />
 
       <main class="main-content">
         <NuxtPage />
 
         <footer class="site-footer">
+          <div class="footer-links">
+            <NuxtLink to="/code-of-conduct">行為準則</NuxtLink>
+            <span class="separator">•</span>
+            <a href="https://github.com/ChinHongTan/blog" target="_blank" rel="noopener">GitHub</a>
+          </div>
           <a href="https://www.netlify.com" class="netlify-badge" target="_blank" rel="noopener">
             <img src="https://www.netlify.com/v3/img/components/netlify-color-bg.svg" alt="Deploys by Netlify">
           </a>
@@ -94,8 +125,22 @@ const isPostPage = computed(() => route.path !== '/' && route.path !== '/about' 
   transition: color 0.2s ease;
 }
 
+.logo-image {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-primary-light);
+  transition: all 0.2s ease;
+}
+
 .logo:hover {
   color: var(--color-primary-dark);
+}
+
+.logo:hover .logo-image {
+  border-color: var(--color-primary);
+  transform: scale(1.05);
 }
 
 .main-nav {
@@ -142,6 +187,31 @@ const isPostPage = computed(() => route.path !== '/' && route.path !== '/about' 
   padding-top: 2rem;
   border-top: 1px solid var(--color-border-light);
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.9rem;
+}
+
+.footer-links a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+  color: var(--color-primary-dark);
+}
+
+.footer-links .separator {
+  color: var(--color-border-medium);
 }
 
 .netlify-badge {

@@ -51,6 +51,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 100px; /* Account for sticky header */
 }
 
 body {
