@@ -14,6 +14,99 @@ const localSearchQuery = computed({
   set: (value) => emit('update:search-query', value)
 });
 
+// TOC state
+const toc = ref<{ id: string; text: string; level: number }[]>([]);
+const activeId = ref('');
+
+// Extract TOC from DOM
+const extractTOC = () => {
+  if (!props.isPostPage) {
+    toc.value = [];
+    return;
+  }
+
+  const headings = document.querySelectorAll('.post-content h2, .post-content h3');
+  const links: { id: string; text: string; level: number }[] = [];
+  
+  headings.forEach((heading) => {
+    const level = parseInt(heading.tagName[1]);
+    const text = heading.textContent?.trim() || '';
+    let id = heading.id;
+    
+    // If no ID, create one
+    if (!id) {
+      id = text.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
+      heading.id = id;
+    }
+    
+    links.push({ id, text, level });
+  });
+  
+  toc.value = links;
+};
+
+// Smooth scroll to heading
+const scrollToHeading = (id: string) => {
+  const element = document.getElementById(id);
+  if (element) {
+    const headerOffset = 100; // Account for fixed header
+    const elementPosition = element.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth'
+    });
+    
+    // Update active ID
+    activeId.value = id;
+  }
+};
+
+// Update active heading based on scroll position
+const setupScrollObserver = () => {
+  if (typeof window === 'undefined' || !props.isPostPage) return;
+  
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          activeId.value = entry.target.id;
+        }
+      });
+    },
+    {
+      rootMargin: '-80px 0px -80% 0px'
+    }
+  );
+
+  // Observe all h2 and h3 elements
+  const headings = document.querySelectorAll('.post-content h2, .post-content h3');
+  headings.forEach((heading) => observer.observe(heading));
+
+  onUnmounted(() => {
+    headings.forEach((heading) => observer.unobserve(heading));
+  });
+};
+
+// Watch for route changes and extract TOC
+const route = useRoute();
+watch(() => route.path, () => {
+  // Wait for content to render
+  nextTick(() => {
+    extractTOC();
+    setupScrollObserver();
+  });
+}, { immediate: false });
+
+// Extract TOC on mount
+onMounted(() => {
+  nextTick(() => {
+    extractTOC();
+    setupScrollObserver();
+  });
+});
+
 // Group posts by year
 const postsByYear = computed(() => {
   if (!props.allPosts) return [];
@@ -68,15 +161,21 @@ const authors = computed(() => {
     </div>
 
     <!-- Table of Contents - Only show on post pages -->
-    <div v-if="isPostPage" class="sidebar-section toc-section">
+    <div v-if="isPostPage && toc.length > 0" class="sidebar-section toc-section">
       <h4 class="section-title">
         <Icon name="heroicons:list-bullet" size="18" />
         本頁內容
       </h4>
       <nav class="toc-links">
-        <a href="#introduction">引言</a>
-        <a href="#main-content">主要內容</a>
-        <a href="#conclusion">結論</a>
+        <a 
+          v-for="link in toc" 
+          :key="link.id"
+          :href="`#${link.id}`"
+          :class="['toc-link', `level-${link.level}`, { active: activeId === link.id }]"
+          @click.prevent="scrollToHeading(link.id)"
+        >
+          {{ link.text }}
+        </a>
       </nav>
     </div>
 
@@ -241,11 +340,27 @@ const authors = computed(() => {
   transition: all 0.2s ease;
 }
 
+.toc-links a.level-3 {
+  padding-left: 1.5rem;
+  font-size: 0.85rem;
+}
+
+.toc-links a.active {
+  color: var(--color-primary-dark);
+  background: var(--color-bg-blue-tint);
+  font-weight: 500;
+  border-left: 3px solid var(--color-primary);
+}
+
 .toc-links a:hover,
 .quick-links a:hover {
   color: var(--color-primary-dark);
   background: var(--color-bg-blue-tint);
   padding-left: 1rem;
+}
+
+.toc-links a.level-3:hover {
+  padding-left: 2rem;
 }
 
 /* Archive Links */

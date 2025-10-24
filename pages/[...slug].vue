@@ -232,6 +232,28 @@ const readingTime = computed(() => {
   margin-top: 2.5rem;
   margin-bottom: 1rem;
   color: var(--color-text-primary);
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--color-border-light);
+  position: relative;
+}
+
+.post-content :deep(h2)::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 60px;
+  height: 2px;
+  background: var(--color-primary);
+}
+
+.post-content :deep(h2 a) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.post-content :deep(h2 a:hover) {
+  color: var(--color-primary-dark);
 }
 
 .post-content :deep(h3) {
@@ -239,6 +261,15 @@ const readingTime = computed(() => {
   margin-top: 2rem;
   margin-bottom: 0.75rem;
   color: var(--color-text-primary);
+}
+
+.post-content :deep(h3 a) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.post-content :deep(h3 a:hover) {
+  color: var(--color-primary-dark);
 }
 
 .post-content :deep(p) {

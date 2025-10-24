@@ -49,12 +49,11 @@ const isPostPage = computed(() => route.path !== '/' && route.path !== '/about' 
       <main class="main-content">
         <NuxtPage />
 
-      <footer class="site-footer">
-        <a href="https://www.netlify.com">
-            <img src="https://www.netlify.com/assets/badges/netlify-badge-color-bg.svg" alt="Deploys by Netlify" />
-            <span>This site is powered by Netlify</span>
-        </a>
-      </footer>
+        <footer class="site-footer">
+          <a href="https://www.netlify.com" class="netlify-badge" target="_blank" rel="noopener">
+            <img src="https://www.netlify.com/v3/img/components/netlify-color-bg.svg" alt="Deploys by Netlify">
+          </a>
+        </footer>
       </main>
 
       <RightSidebar :all-posts="allPosts" :is-post-page="isPostPage" :search-query="searchQuery" @update:search-query="searchQuery = $event" />
@@ -135,6 +134,30 @@ const isPostPage = computed(() => route.path !== '/' && route.path !== '/about' 
   max-width: var(--content-max-width);
   margin: 0 auto;
   width: 100%;
+}
+
+/* Footer Styles */
+.site-footer {
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-border-light);
+  text-align: center;
+}
+
+.netlify-badge {
+  display: inline-block;
+  opacity: 0.7;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.netlify-badge:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.netlify-badge img {
+  height: 40px;
+  width: auto;
 }
 
 /* Responsive Design */
