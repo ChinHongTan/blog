@@ -1,0 +1,23 @@
+{
+  "name": "chinono-blog",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxt/content": "^3.7.1",
+    "@nuxt/eslint": "^1.9.0",
+    "@nuxt/icon": "^2.1.0",
+    "@nuxt/image": "^1.11.0",
+    "better-sqlite3": "^12.4.1",
+    "eslint": "^9.38.0",
+    "nuxt": "^3.19.3",
+    "vue": "^3.5.22",
+    "vue-router": "^4.6.3"
+  }
+}
