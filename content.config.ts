@@ -9,8 +9,11 @@ export default defineContentConfig({
 			schema: z.object({
 				title: z.string().optional(),
 				description: z.string().optional(),
+				author: z.string().optional(),
+				author_avatar: z.string().optional(),
 				date: z.string(),
 				featured_image: z.string().optional(),
+				tags: z.array(z.string()).optional(),
 			}),
 		}),
 	},
