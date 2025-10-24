@@ -5,6 +5,20 @@ const { data: page } = await useAsyncData(route.path, () => {
   return queryCollection('blog').path(route.path).first()
 });
 
+// Fetch author profile if author name exists
+const authorProfile = page.value?.author ? await useAuthor(page.value.author) : null;
+
+// Get author avatar - prioritize from author profile, then fallback to placeholder
+const authorAvatar = computed(() => {
+  if (authorProfile?.value) {
+    const profile = authorProfile.value as { avatar?: string };
+    if (profile.avatar) return profile.avatar;
+  }
+  // Fallback to placeholder
+  const firstLetter = page.value?.author?.[0] || 'A';
+  return `https://placehold.co/40x40/38bdf8/ffffff?text=${firstLetter}`;
+});
+
 // Calculate reading time (assuming average reading speed of 200 words per minute)
 const readingTime = computed(() => {
   if (!page.value?.body) return 1;
@@ -25,7 +39,7 @@ const readingTime = computed(() => {
       <div class="post-meta-bar">
         <div class="author-info">
           <img 
-            :src="page.author_avatar || 'https://placehold.co/40x40/38bdf8/ffffff?text=' + (page.author?.[0] || 'A')" 
+            :src="authorAvatar" 
             :alt="page.author || 'Author'"
             class="author-avatar"
           >

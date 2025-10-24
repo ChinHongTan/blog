@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const props = defineProps<{
-  recentPosts?: unknown[] | null;
+  allPosts?: unknown[] | null;
+  isPostPage?: boolean;
   searchQuery?: string;
 }>();
 
@@ -11,6 +12,43 @@ const emit = defineEmits<{
 const localSearchQuery = computed({
   get: () => props.searchQuery || '',
   set: (value) => emit('update:search-query', value)
+});
+
+// Group posts by year
+const postsByYear = computed(() => {
+  if (!props.allPosts) return [];
+  const yearMap = new Map<string, unknown[]>();
+  
+  props.allPosts.forEach((post: unknown) => {
+    const postData = post as { date: string };
+    const year = new Date(postData.date).getFullYear().toString();
+    if (!yearMap.has(year)) {
+      yearMap.set(year, []);
+    }
+    yearMap.get(year)?.push(post);
+  });
+  
+  // Convert to array and sort by year descending
+  return Array.from(yearMap.entries())
+    .map(([year, posts]) => ({ year, count: posts.length }))
+    .sort((a, b) => Number(b.year) - Number(a.year));
+});
+
+// Get unique authors
+const authors = computed(() => {
+  if (!props.allPosts) return [];
+  const authorMap = new Map<string, number>();
+  
+  props.allPosts.forEach((post: unknown) => {
+    const postData = post as { author?: string };
+    if (postData.author) {
+      authorMap.set(postData.author, (authorMap.get(postData.author) || 0) + 1);
+    }
+  });
+  
+  return Array.from(authorMap.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
 });
 </script>
 
@@ -29,8 +67,8 @@ const localSearchQuery = computed({
       </div>
     </div>
 
-    <!-- Table of Contents -->
-    <div class="sidebar-section toc-section">
+    <!-- Table of Contents - Only show on post pages -->
+    <div v-if="isPostPage" class="sidebar-section toc-section">
       <h4 class="section-title">
         <Icon name="heroicons:list-bullet" size="18" />
         On This Page
@@ -42,6 +80,46 @@ const localSearchQuery = computed({
       </nav>
     </div>
 
+    <!-- Posts by Year -->
+    <div v-if="postsByYear.length > 0" class="sidebar-section">
+      <h4 class="section-title">
+        <Icon name="heroicons:calendar" size="18" />
+        Archive
+      </h4>
+      <nav class="archive-links">
+        <NuxtLink 
+          v-for="{ year, count } in postsByYear" 
+          :key="year"
+          :to="`/?year=${year}`"
+          class="archive-item"
+        >
+          <Icon name="heroicons:chevron-right" size="16" />
+          <span>{{ year }}</span>
+          <span class="count">({{ count }})</span>
+        </NuxtLink>
+      </nav>
+    </div>
+
+    <!-- Authors -->
+    <div v-if="authors.length > 0" class="sidebar-section">
+      <h4 class="section-title">
+        <Icon name="heroicons:users" size="18" />
+        Authors
+      </h4>
+      <nav class="author-links">
+        <NuxtLink 
+          v-for="{ name, count } in authors" 
+          :key="name"
+          :to="`/?author=${encodeURIComponent(name)}`"
+          class="author-item"
+        >
+          <Icon name="heroicons:user-circle" size="16" />
+          <span>{{ name }}</span>
+          <span class="count">({{ count }})</span>
+        </NuxtLink>
+      </nav>
+    </div>
+
     <!-- Quick Navigation -->
     <div class="sidebar-section">
       <h4 class="section-title">
@@ -49,41 +127,19 @@ const localSearchQuery = computed({
         Quick Links
       </h4>
       <nav class="quick-links">
-        <a href="/">
+        <NuxtLink to="/">
           <Icon name="heroicons:home" size="16" />
           Home
-        </a>
-        <a href="/about">
+        </NuxtLink>
+        <NuxtLink to="/about">
           <Icon name="heroicons:information-circle" size="16" />
           About
-        </a>
-        <a href="/archive">
-          <Icon name="heroicons:archive-box" size="16" />
-          Archive
-        </a>
-      </nav>
-    </div>
-
-    <!-- Recent Posts -->
-    <div class="sidebar-section">
-      <h4 class="section-title">
-        <Icon name="heroicons:clock" size="18" />
-        Recent Posts
-      </h4>
-      <div class="recent-posts">
-        <NuxtLink 
-          v-for="post in recentPosts" 
-          :key="(post as any).id" 
-          :to="(post as any).path"
-          class="recent-post-item"
-        >
-          <div class="post-title">{{ (post as any).title }}</div>
-          <div class="post-date">
-            <Icon name="heroicons:calendar" size="14" />
-            {{ new Date((post as any).date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }}
-          </div>
         </NuxtLink>
-      </div>
+        <NuxtLink to="/authors">
+          <Icon name="heroicons:users" size="16" />
+          Authors
+        </NuxtLink>
+      </nav>
     </div>
   </aside>
 </template>
@@ -192,42 +248,38 @@ const localSearchQuery = computed({
   padding-left: 1rem;
 }
 
-.recent-posts {
+/* Archive Links */
+.archive-links,
+.author-links {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
-.recent-post-item {
+.archive-item,
+.author-item {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.75rem;
-  background: var(--color-bg-secondary);
-  border-radius: 8px;
-  border: 1px solid var(--color-border-light);
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-secondary);
   text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
   transition: all 0.2s ease;
 }
 
-.recent-post-item:hover {
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
-  transform: translateY(-1px);
+.archive-item:hover,
+.author-item:hover {
+  color: var(--color-primary-dark);
+  background: var(--color-bg-blue-tint);
+  padding-left: 1rem;
 }
 
-.post-title {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--color-text-primary);
-  line-height: 1.4;
-}
-
-.post-date {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.75rem;
+.archive-item .count,
+.author-item .count {
+  margin-left: auto;
+  font-size: 0.8rem;
   color: var(--color-text-tertiary);
 }
 

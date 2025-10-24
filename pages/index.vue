@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const route = useRoute();
+
 const { data: posts } = await useAsyncData("posts", () =>
   queryCollection('blog').order('date', 'DESC').all()
 );
@@ -6,12 +8,56 @@ const { data: posts } = await useAsyncData("posts", () =>
 // Get search query from app.vue
 const searchQuery = inject('searchQuery', ref(''));
 
+// Get filter parameters from URL
+const tagFilter = computed(() => route.query.tag as string | undefined);
+const yearFilter = computed(() => route.query.year as string | undefined);
+const authorFilter = computed(() => route.query.author as string | undefined);
+
+// Filter posts based on search, tag, year, and author
 const filteredPosts = computed(() => {
-  if (!searchQuery.value) return posts.value;
-  return posts.value?.filter(post => 
-    post.title?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    post.description?.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
+  let filtered = posts.value || [];
+  
+  // Filter by search query
+  if (searchQuery.value) {
+    filtered = filtered.filter(post => 
+      post.title?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      post.description?.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
+  }
+  
+  // Filter by tag
+  if (tagFilter.value) {
+    filtered = filtered.filter((post: unknown) => {
+      const postData = post as { tags?: string[] };
+      return postData.tags && Array.isArray(postData.tags) && postData.tags.includes(tagFilter.value as string);
+    });
+  }
+  
+  // Filter by year
+  if (yearFilter.value) {
+    filtered = filtered.filter((post: unknown) => {
+      const postData = post as { date: string };
+      return new Date(postData.date).getFullYear().toString() === yearFilter.value;
+    });
+  }
+  
+  // Filter by author
+  if (authorFilter.value) {
+    filtered = filtered.filter((post: unknown) => {
+      const postData = post as { author?: string };
+      return postData.author === authorFilter.value;
+    });
+  }
+  
+  return filtered;
+});
+
+// Active filter label for display
+const activeFilter = computed(() => {
+  if (tagFilter.value) return `Tag: ${tagFilter.value}`;
+  if (yearFilter.value) return `Year: ${yearFilter.value}`;
+  if (authorFilter.value) return `Author: ${authorFilter.value}`;
+  return null;
 });
 
 useSeoMeta({
@@ -36,10 +82,20 @@ useSeoMeta({
 
     <!-- Blog Posts List -->
     <section class="posts-section">
-      <h2 class="section-heading">
-        <Icon name="heroicons:newspaper" size="28" />
-        Recent Updates
-      </h2>
+      <div class="section-header">
+        <h2 class="section-heading">
+          <Icon name="heroicons:newspaper" size="28" />
+          Recent Updates
+        </h2>
+        
+        <!-- Active Filter Badge -->
+        <div v-if="activeFilter" class="filter-badge">
+          <span>{{ activeFilter }}</span>
+          <NuxtLink to="/" class="clear-filter">
+            <Icon name="heroicons:x-mark" size="16" />
+          </NuxtLink>
+        </div>
+      </div>
 
       <div v-if="filteredPosts && filteredPosts.length > 0" class="posts-grid">
         <article v-for="post in filteredPosts" :key="post.id" class="post-card">
@@ -121,17 +177,57 @@ useSeoMeta({
 }
 
 /* Posts Section */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
 .section-heading {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   font-size: 1.75rem;
   color: var(--color-text-primary);
-  margin-bottom: 1.5rem;
+  margin: 0;
 }
 
 .section-heading :deep(svg) {
   color: var(--color-primary);
+}
+
+.filter-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-bg-blue-tint);
+  border: 1px solid var(--color-primary-light);
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: var(--color-primary-dark);
+  font-weight: 500;
+}
+
+.clear-filter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.clear-filter:hover {
+  background: var(--color-primary-dark);
+  transform: scale(1.1);
 }
 
 .posts-grid {

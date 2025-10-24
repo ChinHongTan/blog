@@ -1,14 +1,19 @@
 <script setup lang="ts">
-// Fetch recent posts for the sidebar
-const { data: recentPosts } = await useAsyncData('recent-posts', () =>
-  queryCollection('blog').order('date', 'DESC').limit(5).all()
+// Fetch all posts for tag extraction and sidebar data
+const { data: allPosts } = await useAsyncData('all-posts', () =>
+  queryCollection('blog').order('date', 'DESC').all()
 );
 
 // Search query state
 const searchQuery = ref('');
 
-// Provide search query to child components
+// Provide search query and posts to child components
 provide('searchQuery', searchQuery);
+provide('allPosts', allPosts);
+
+// Current route to determine context
+const route = useRoute();
+const isPostPage = computed(() => route.path !== '/' && route.path !== '/about' && route.path !== '/authors');
 </script>
 
 <template>
@@ -49,7 +54,7 @@ provide('searchQuery', searchQuery);
       </main>
 
       <!-- Column 3: Right Sidebar -->
-      <RightSidebar :recent-posts="recentPosts" :search-query="searchQuery" @update:search-query="searchQuery = $event" />
+      <RightSidebar :all-posts="allPosts" :is-post-page="isPostPage" :search-query="searchQuery" @update:search-query="searchQuery = $event" />
     </div>
   </div>
 </template>

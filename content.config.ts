@@ -16,5 +16,20 @@ export default defineContentConfig({
 				tags: z.array(z.string()).optional(),
 			}),
 		}),
+		authors: defineCollection({
+			type: "page",
+			source: "authors/**/*.md",
+			schema: z.object({
+				name: z.string(),
+				email: z.string().optional(),
+				bio: z.string().optional(),
+				avatar: z.string().optional(),
+				social: z.object({
+					github: z.string().optional(),
+					twitter: z.string().optional(),
+					website: z.string().optional(),
+				}).optional(),
+			}),
+		}),
 	},
 });

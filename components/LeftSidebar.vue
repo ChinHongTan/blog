@@ -1,3 +1,28 @@
+<script setup lang="ts">
+// Get all posts from parent
+const allPosts = inject<{ value: unknown[] | null }>('allPosts', ref(null));
+
+// Extract top 8 tags with counts
+const topTags = computed(() => {
+  if (!allPosts.value) return [];
+  const tagCounts = new Map<string, number>();
+  
+  allPosts.value.forEach((post: unknown) => {
+    const postData = post as { tags?: string[] };
+    if (postData.tags && Array.isArray(postData.tags)) {
+      postData.tags.forEach((tag: string) => {
+        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+      });
+    }
+  });
+  
+  return Array.from(tagCounts.entries())
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8); // Top 8 tags
+});
+</script>
+
 <template>
   <aside class="left-sidebar">
     <div class="sidebar-section author-info">
@@ -13,13 +38,17 @@
         <Icon name="heroicons:tag" size="18" />
         Popular Tags
       </h4>
-      <div class="tags">
-        <a href="#" class="tag">Photography</a>
-        <a href="#" class="tag">Mathematics</a>
-        <a href="#" class="tag">Gaming</a>
-        <a href="#" class="tag">Research</a>
-        <a href="#" class="tag">Technology</a>
+      <div v-if="topTags.length > 0" class="tags">
+        <NuxtLink 
+          v-for="{ tag, count } in topTags" 
+          :key="tag"
+          :to="`/?tag=${encodeURIComponent(tag)}`" 
+          class="tag"
+        >
+          {{ tag }} <span class="tag-count">({{ count }})</span>
+        </NuxtLink>
       </div>
+      <p v-else class="empty-state">No tags yet</p>
     </div>
 
     <div class="sidebar-section">
@@ -128,6 +157,12 @@
   color: white;
   border-color: var(--color-primary);
   transform: translateY(-1px);
+}
+
+.tag-count {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-left: 0.2rem;
 }
 
 .sidebar-links {

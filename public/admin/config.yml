@@ -7,6 +7,25 @@ media_folder: "public/images/uploads"
 public_folder: "/images/uploads"
 
 collections:
+  # Authors Collection - Manage author profiles
+  - name: "authors"
+    label: "Authors"
+    folder: "content/authors"
+    create: true
+    identifier_field: "name"
+    slug: "{{slug}}"
+    fields:
+      - { label: "Name", name: "name", widget: "string", hint: "Your display name" }
+      - { label: "Email", name: "email", widget: "string", required: false }
+      - { label: "Bio", name: "bio", widget: "text", required: false, hint: "Short description about yourself" }
+      - { label: "Profile Picture", name: "avatar", widget: "image", required: false, hint: "Your profile photo" }
+      - { label: "Social Links", name: "social", widget: "object", required: false, fields: [
+          { label: "GitHub", name: "github", widget: "string", required: false },
+          { label: "Twitter/X", name: "twitter", widget: "string", required: false },
+          { label: "Website", name: "website", widget: "string", required: false }
+        ]}
+
+  # Blog Posts Collection
   - name: "blog"
     label: "Blog Posts"
     folder: "content/blog"
@@ -14,7 +33,9 @@ collections:
     slug: "{{slug}}"
     fields:
       - { label: "Title", name: "title", widget: "string" }
+      - { label: "Description", name: "description", widget: "text", required: false, hint: "Brief summary of the post" }
       - { label: "Date", name: "date", widget: "datetime" }
-      - { label: "Author", name: "author", widget: "hidden", default: "{{name}}" }
-      - { label: "Featured Image", name: "featured_image", widget: "image" }
+      - { label: "Author", name: "author", widget: "relation", collection: "authors", search_fields: ["name"], value_field: "name", display_fields: ["name"], hint: "Select the post author" }
+      - { label: "Tags", name: "tags", widget: "list", required: false, hint: "Add tags for this post (e.g., Gaming, Photography)" }
+      - { label: "Featured Image", name: "featured_image", widget: "image", required: false }
       - { label: "Body", name: "body", widget: "markdown" }
