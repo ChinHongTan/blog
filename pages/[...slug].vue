@@ -43,10 +43,50 @@ const authorAvatar = computed(() => {
 // Calculate reading time (assuming average reading speed of 200 words per minute)
 const readingTime = computed(() => {
   if (!page.value?.body) return 1;
-  // Convert markdown body to text and count words
-  const bodyText = typeof page.value.body === 'string' ? page.value.body : JSON.stringify(page.value.body);
-  const words = bodyText.split(/\s+/).length;
-  return Math.ceil(words / 200);
+  
+  // Extract text content from minimark format
+  // Minimark structure: ['tagName', attributes, ...content]
+  const extractText = (node: unknown): string => {
+    if (!node) return '';
+    
+    // If it's a string, return it directly
+    if (typeof node === 'string') {
+      return node;
+    }
+    
+    // If it's an array (minimark element: [tag, attrs, ...children])
+    if (Array.isArray(node)) {
+      // Skip the first two elements (tag name and attributes) and process the rest
+      return node.slice(2).map(item => extractText(item)).join(' ');
+    }
+    
+    // If it's an object with type 'minimark' and value array
+    if (typeof node === 'object' && node !== null && 'type' in node && 'value' in node) {
+      const obj = node as { type: string; value: unknown };
+      if (obj.type === 'minimark' && Array.isArray(obj.value)) {
+        return obj.value.map(item => extractText(item)).join(' ');
+      }
+    }
+    
+    return '';
+  };
+  
+  const bodyText = extractText(page.value.body);
+  
+  // For CJK (Chinese, Japanese, Korean) text, count characters instead of words
+  // For mixed content, count both CJK characters and non-CJK words
+  const cjkRegex = /[\u4E00-\u9FFF\u3400-\u4DBF\u3040-\u309F\u30A0-\u30FF\uAC00-\uD7AF]/g;
+  const cjkCharacters = (bodyText.match(cjkRegex) || []).length;
+  
+  // Remove CJK characters and count remaining words
+  const nonCjkText = bodyText.replace(cjkRegex, ' ');
+  const nonCjkWords = nonCjkText.trim().split(/\s+/).filter(w => w.length > 0).length;
+  
+  // Average reading speed: 200 words/min for English, 400-500 characters/min for Chinese
+  // We'll use 400 characters/min for Chinese
+  const readingMinutes = Math.ceil((cjkCharacters / 400) + (nonCjkWords / 200));
+  
+  return Math.max(1, readingMinutes); // At least 1 minute
 });
 </script>
 
