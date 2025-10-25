@@ -118,6 +118,10 @@ const topTags = computed(() => {
           <Icon name="heroicons:information-circle" size="16" />
           關於本站
         </NuxtLink>
+        <NuxtLink to="/writing-guide">
+          <Icon name="heroicons:pencil-square" size="16" />
+          撰寫指南
+        </NuxtLink>
         <NuxtLink to="/authors">
           <Icon name="heroicons:users" size="16" />
           所有作者

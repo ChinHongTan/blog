@@ -4,11 +4,1054 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
-    <title>Content Manager</title>
+    <title>七糯糯的小站 - 內容管理</title>
     <!-- Tell Decap CMS where to find the config file -->
     <link href="config.yml" type="text/yaml" rel="cms-config-url">
+    
+    <!-- Custom Styling -->
+    <style>
+      :root {
+        /* Match your blog's color scheme */
+        --primary-color: #0ea5e9;
+        --primary-dark: #0284c7;
+        --primary-light: #7dd3fc;
+      }
+
+      /* Keep default light theme - just add subtle customizations */
+      
+      /* Primary button color */
+      button[class*="Button"][class*="primary"] {
+        background-color: var(--primary-color) !important;
+      }
+
+      button[class*="Button"][class*="primary"]:hover {
+        background-color: var(--primary-dark) !important;
+      }
+
+      /* Active navigation links */
+      [class*="NavLink"][class*="active"] {
+        color: var(--primary-color) !important;
+      }
+
+      /* Focus states for inputs */
+      input:focus,
+      textarea:focus,
+      select:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 1px var(--primary-color) !important;
+      }
+
+      /* Links */
+      a {
+        color: var(--primary-color);
+      }
+
+      a:hover {
+        color: var(--primary-dark);
+      }
+
+      /* Preview content styling */
+      .blog-preview-content h2 {
+        font-size: 2rem;
+        margin-top: 2.5rem;
+        margin-bottom: 1rem;
+        color: #1e293b;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #e2e8f0;
+        position: relative;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+
+      .blog-preview-content h2::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 60px;
+        height: 2px;
+        background: #0ea5e9;
+      }
+
+      .blog-preview-content h3 {
+        font-size: 1.5rem;
+        margin-top: 2rem;
+        margin-bottom: 0.75rem;
+        color: #1e293b;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+
+      .blog-preview-content p {
+        margin-bottom: 1.25rem;
+      }
+
+      .blog-preview-content a {
+        color: #0ea5e9;
+        text-decoration: underline;
+        text-decoration-color: #7dd3fc;
+        text-underline-offset: 3px;
+      }
+
+      .blog-preview-content a:hover {
+        color: #38bdf8;
+        text-decoration-color: #38bdf8;
+      }
+
+      .blog-preview-content ul,
+      .blog-preview-content ol {
+        margin-bottom: 1.5rem;
+        padding-left: 2rem;
+      }
+
+      .blog-preview-content li {
+        margin-bottom: 0.5rem;
+      }
+
+      .blog-preview-content blockquote {
+        border-left: 4px solid #fbbf24;
+        padding: 1rem 1.5rem;
+        margin: 1.5rem 0;
+        font-style: italic;
+        color: #475569;
+        background: #f8fafc;
+        border-radius: 0 8px 8px 0;
+      }
+
+      .blog-preview-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      }
+
+      .blog-preview-content pre {
+        margin: 1.5rem 0;
+        background: #1e293b;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        padding: 1.5rem;
+        overflow-x: auto;
+      }
+
+      .blog-preview-content code {
+        font-family: 'JetBrains Mono', 'Courier New', monospace;
+        font-size: 0.9em;
+      }
+
+      .blog-preview-content :not(pre) > code {
+        background: #f1f5f9;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+      }
+    </style>
   </head>
   <body>
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+    
+    <!-- Cropper.js for image cropping -->
+    <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.css">
+    <script src="https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.js"></script>
+    
+    <!-- Custom widgets and initialization -->
+    <script>
+      // Wait for CMS to be available
+      if (window.CMS) {
+        const ImageCropperControl = window.createClass({
+          getInitialState() {
+            return {
+              imageUrl: this.props.value || '',
+              showCropper: false,
+              cropper: null
+            };
+          },
+
+          componentWillUnmount() {
+            if (this.state.cropper) {
+              this.state.cropper.destroy();
+            }
+          },
+
+          handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              this.setState({ 
+                imageUrl: event.target.result,
+                showCropper: true 
+              }, () => {
+                this.initCropper();
+              });
+            };
+            reader.readAsDataURL(file);
+          },
+
+          initCropper() {
+            const image = document.getElementById('crop-image-preview');
+            if (!image || !window.Cropper) return;
+
+            if (this.state.cropper) {
+              this.state.cropper.destroy();
+            }
+
+            const cropper = new Cropper(image, {
+              aspectRatio: 1, // Square for avatar
+              viewMode: 1,
+              dragMode: 'move',
+              autoCropArea: 1,
+              restore: false,
+              guides: true,
+              center: true,
+              highlight: false,
+              cropBoxMovable: true,
+              cropBoxResizable: true,
+              toggleDragModeOnDblclick: false,
+            });
+
+            this.setState({ cropper });
+          },
+
+          handleCrop() {
+            if (!this.state.cropper) return;
+
+            const canvas = this.state.cropper.getCroppedCanvas({
+              width: 400,
+              height: 400,
+              imageSmoothingEnabled: true,
+              imageSmoothingQuality: 'high',
+            });
+
+            canvas.toBlob((blob) => {
+              const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+              
+              // Upload the cropped image
+              this.props.onAddAsset([file]);
+              
+              // Update the field value
+              const url = URL.createObjectURL(blob);
+              this.setState({ 
+                imageUrl: url,
+                showCropper: false 
+              });
+              
+              this.props.onChange(url);
+            }, 'image/jpeg', 0.9);
+          },
+
+          handleCancel() {
+            if (this.state.cropper) {
+              this.state.cropper.destroy();
+            }
+            this.setState({ showCropper: false });
+          },
+
+          handleUrlInput() {
+            const url = prompt('輸入圖片網址：');
+            if (url) {
+              this.setState({ imageUrl: url });
+              this.props.onChange(url);
+            }
+          },
+
+          render() {
+            const { imageUrl, showCropper } = this.state;
+            const { forID } = this.props;
+
+            return window.h('div', { className: 'image-cropper-widget' },
+              // Current image preview
+              imageUrl && !showCropper ? window.h('div', { style: { marginBottom: '1rem' } },
+                window.h('img', {
+                  src: imageUrl,
+                  alt: 'Preview',
+                  style: {
+                    width: '150px',
+                    height: '150px',
+                    objectFit: 'cover',
+                    borderRadius: '50%',
+                    border: '3px solid #7dd3fc',
+                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                  }
+                })
+              ) : null,
+
+              // File input button (hidden, styled button triggers it)
+              window.h('input', {
+                id: forID,
+                type: 'file',
+                accept: 'image/*',
+                onChange: this.handleFileSelect,
+                style: { display: 'none' }
+              }),
+
+              // Upload button
+              !showCropper ? window.h('div', {
+                style: {
+                  display: 'flex',
+                  gap: '0.5rem',
+                  flexWrap: 'wrap'
+                }
+              },
+                window.h('button', {
+                  type: 'button',
+                  onClick: () => document.getElementById(forID).click(),
+                  style: {
+                    padding: '0.5rem 1rem',
+                    background: '#0ea5e9',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }
+                }, imageUrl ? '更換圖片' : '上傳圖片'),
+                window.h('button', {
+                  type: 'button',
+                  onClick: this.handleUrlInput,
+                  style: {
+                    padding: '0.5rem 1rem',
+                    background: '#64748b',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }
+                }, '從網址新增')
+              ) : null,
+
+              // Cropper modal
+              showCropper ? window.h('div', {
+                style: {
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'rgba(0, 0, 0, 0.8)',
+                  zIndex: 9999,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  padding: '2rem'
+                }
+              },
+                window.h('div', { 
+                  style: { 
+                    flex: 1, 
+                    marginBottom: '1rem',
+                    maxHeight: '70vh',
+                    overflow: 'hidden'
+                  }
+                },
+                  window.h('img', {
+                    id: 'crop-image-preview',
+                    src: imageUrl,
+                    style: { maxWidth: '100%', display: 'block' }
+                  })
+                ),
+                window.h('div', { 
+                  style: { 
+                    display: 'flex', 
+                    gap: '1rem', 
+                    justifyContent: 'center' 
+                  }
+                },
+                  window.h('button', {
+                    onClick: this.handleCrop,
+                    style: {
+                      padding: '0.75rem 1.5rem',
+                      background: '#10b981',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontSize: '1rem'
+                    }
+                  }, '裁切並儲存'),
+                  window.h('button', {
+                    onClick: this.handleCancel,
+                    style: {
+                      padding: '0.75rem 1.5rem',
+                      background: '#ef4444',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontSize: '1rem'
+                    }
+                  }, '取消')
+                )
+              ) : null
+            );
+          }
+        });
+
+        const ImageCropperPreview = window.createClass({
+          render() {
+            const { value } = this.props;
+            if (!value) return null;
+
+            return window.h('div', { style: { textAlign: 'center', padding: '1rem' } },
+              window.h('img', {
+                src: value,
+                alt: 'Avatar Preview',
+                style: {
+                  width: '120px',
+                  height: '120px',
+                  objectFit: 'cover',
+                  borderRadius: '50%',
+                  border: '3px solid #0ea5e9',
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                }
+              })
+            );
+          }
+        });
+
+        // Register the custom widget
+        window.CMS.registerWidget('image-cropper', ImageCropperControl, ImageCropperPreview);
+
+        // Blog Post Preview Template
+        const BlogPostPreview = window.createClass({
+          render() {
+            const { entry, widgetFor, getAsset } = this.props;
+            const title = entry.getIn(['data', 'title']);
+            const description = entry.getIn(['data', 'description']);
+            const date = entry.getIn(['data', 'date']);
+            const author = entry.getIn(['data', 'author']);
+            const tags = entry.getIn(['data', 'tags']);
+            const featuredImage = entry.getIn(['data', 'featured_image']);
+            const body = widgetFor('body');
+
+            const imageUrl = featuredImage ? getAsset(featuredImage)?.toString() : null;
+
+            return window.h('div', { 
+              style: { 
+                maxWidth: '900px', 
+                margin: '0 auto',
+                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
+              } 
+            },
+              // Card Preview (how it looks on homepage)
+              title ? window.h('div', {
+                style: {
+                  marginBottom: '2rem',
+                  padding: '1.5rem',
+                  background: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0'
+                }
+              },
+                window.h('div', {
+                  style: {
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    color: '#64748b',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    marginBottom: '1rem',
+                    fontFamily: 'DM Sans, -apple-system, BlinkMacSystemFont, sans-serif'
+                  }
+                }, '文章卡片預覽 (首頁顯示)'),
+                window.h('div', {
+                  style: {
+                    background: '#ffffff',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    border: '1px solid #e2e8f0',
+                    boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                    transition: 'all 0.2s ease'
+                  }
+                },
+                  imageUrl ? window.h('div', {
+                    style: {
+                      width: '100%',
+                      height: '200px',
+                      background: `url(${imageUrl}) center/cover`,
+                      borderBottom: '1px solid #e2e8f0'
+                    }
+                  }) : window.h('div', {
+                    style: {
+                      width: '100%',
+                      height: '200px',
+                      background: '#f1f5f9',
+                      borderBottom: '1px solid #e2e8f0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#94a3b8',
+                      fontSize: '0.9rem',
+                      fontWeight: '500',
+                      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
+                    }
+                  }, '圖片預覽'),
+                  window.h('div', { style: { padding: '1.5rem' } },
+                    window.h('h3', {
+                      style: {
+                        fontFamily: 'DM Sans, -apple-system, BlinkMacSystemFont, sans-serif',
+                        fontSize: '1.25rem',
+                        fontWeight: '600',
+                        color: '#1e293b',
+                        marginBottom: '0.5rem',
+                        lineHeight: '1.4'
+                      }
+                    }, title),
+                    description ? window.h('p', {
+                      style: {
+                        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+                        fontSize: '0.9rem',
+                        color: '#64748b',
+                        lineHeight: '1.6',
+                        marginBottom: '1rem'
+                      }
+                    }, description.length > 100 ? description.substring(0, 100) + '...' : description) : null,
+                    window.h('div', {
+                      style: {
+                        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        fontSize: '0.85rem',
+                        color: '#64748b'
+                      }
+                    },
+                      window.h('span', {}, `${author || 'Anonymous'}`),
+                      date ? window.h('span', {}, `${new Date(date).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' })}`) : null
+                    )
+                  )
+                )
+              ) : null,
+
+              // Full Post Preview
+              window.h('div', {
+              style: {
+                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+                maxWidth: '720px',
+                margin: '0 auto',
+                padding: '3rem',
+                background: '#ffffff',
+                borderRadius: '12px',
+                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                border: '1px solid #e2e8f0'
+              }
+            },
+              // Post Header
+              window.h('div', {
+                style: {
+                  marginBottom: '2rem',
+                  paddingBottom: '1rem',
+                  borderBottom: '2px solid #e2e8f0'
+                }
+              },
+                // Title
+                window.h('h1', {
+                  style: {
+                    fontFamily: 'DM Sans, -apple-system, BlinkMacSystemFont, sans-serif',
+                    fontSize: '2.5rem',
+                    fontWeight: '700',
+                    color: '#1e293b',
+                    lineHeight: '1.2',
+                    marginBottom: '0.75rem'
+                  }
+                }, title),
+
+                // Meta bar
+                window.h('div', {
+                  style: {
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1.5rem',
+                    flexWrap: 'wrap',
+                    marginBottom: '1rem'
+                  }
+                },
+                  // Author info (placeholder)
+                  window.h('div', {
+                    style: {
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem'
+                    }
+                  },
+                    window.h('div', {
+                      style: {
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        background: '#7dd3fc',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: '600',
+                        color: '#0284c7',
+                        border: '2px solid #7dd3fc'
+                      }
+                    }, author ? author.charAt(0) : 'A'),
+                    window.h('span', {
+                      style: {
+                        fontWeight: '600',
+                        color: '#1e293b',
+                        fontSize: '0.95rem'
+                      }
+                    }, author || 'Anonymous')
+                  ),
+                  // Divider
+                  window.h('div', {
+                    style: {
+                      width: '1px',
+                      height: '24px',
+                      background: '#cbd5e1'
+                    }
+                  }),
+                  // Date
+                  window.h('div', {
+                    style: {
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      fontSize: '0.9rem',
+                      color: '#64748b'
+                    }
+                  }, 
+                    date ? new Date(date).toLocaleDateString('zh-TW', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    }) : ''
+                  )
+                ),
+
+                // Tags
+                tags && tags.size > 0 ? window.h('div', {
+                  style: {
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    marginTop: '1rem'
+                  }
+                },
+                  window.h('div', {
+                    style: {
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '0.5rem'
+                    }
+                  }, tags.map(tag => 
+                    window.h('span', {
+                      key: tag,
+                      style: {
+                        padding: '0.35rem 0.75rem',
+                        background: '#f0f9ff',
+                        color: '#0ea5e9',
+                        borderRadius: '16px',
+                        fontSize: '0.85rem',
+                        fontWeight: '500',
+                        border: '1px solid #7dd3fc'
+                      }
+                    }, tag)
+                  ).toArray())
+                ) : null
+              ),
+
+              // Featured image
+              imageUrl ? window.h('div', {
+                style: {
+                  marginBottom: '2.5rem',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                }
+              }, window.h('img', {
+                src: imageUrl,
+                alt: title,
+                style: {
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block'
+                }
+              })) : null,
+
+              // Body content
+              window.h('div', {
+                style: {
+                  fontSize: '1.05rem',
+                  lineHeight: '1.8',
+                  color: '#1e293b'
+                },
+                className: 'blog-preview-content'
+              }, body)
+            )
+            );
+          }
+        });
+
+        // Author Preview Template
+        const AuthorPreview = window.createClass({
+          render() {
+            const { entry, getAsset } = this.props;
+            const name = entry.getIn(['data', 'name']);
+            const bio = entry.getIn(['data', 'bio']);
+            const email = entry.getIn(['data', 'email']);
+            const avatar = entry.getIn(['data', 'avatar']);
+            const social = entry.getIn(['data', 'social']);
+
+            const avatarUrl = avatar ? getAsset(avatar)?.toString() : null;
+
+            return window.h('div', {
+              style: {
+                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+                maxWidth: '400px',
+                margin: '2rem auto',
+                padding: '2.5rem 2rem',
+                background: '#ffffff',
+                borderRadius: '12px',
+                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                border: '1px solid #e2e8f0',
+                textAlign: 'center'
+              }
+            },
+              // Avatar
+              avatarUrl ? window.h('img', {
+                src: avatarUrl,
+                alt: name,
+                style: {
+                  width: '100px',
+                  height: '100px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '3px solid #7dd3fc',
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                  margin: '0 auto 0.5rem',
+                  display: 'block'
+                }
+              }) : window.h('div', {
+                style: {
+                  width: '100px',
+                  height: '100px',
+                  borderRadius: '50%',
+                  background: '#7dd3fc',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '2.5rem',
+                  fontWeight: '700',
+                  color: '#0ea5e9',
+                  border: '3px solid #7dd3fc',
+                  margin: '0 auto 0.5rem',
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                }
+              }, name ? name.charAt(0) : 'A'),
+
+              // Name
+              window.h('h3', {
+                style: {
+                  fontFamily: 'DM Sans, -apple-system, BlinkMacSystemFont, sans-serif',
+                  fontSize: '1.25rem',
+                  fontWeight: '600',
+                  color: '#1e293b',
+                  marginBottom: '0.5rem',
+                  lineHeight: '1.3'
+                }
+              }, name),
+
+              // Bio
+              bio ? window.h('p', {
+                style: {
+                  fontSize: '0.9rem',
+                  lineHeight: '1.6',
+                  color: '#64748b',
+                  marginTop: '0.5rem',
+                  marginBottom: '0'
+                }
+              }, bio) : null,
+
+              // Divider (only if social links exist)
+              social && social.size > 0 ? window.h('div', {
+                style: {
+                  marginTop: '2rem',
+                  paddingTop: '2rem',
+                  borderTop: '1px solid #e2e8f0'
+                }
+              },
+                // Section title
+                window.h('h4', {
+                  style: {
+                    fontSize: '0.95rem',
+                    fontWeight: '600',
+                    color: '#1e293b',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    marginBottom: '1rem',
+                    paddingBottom: '0.75rem',
+                    borderBottom: '2px solid #7dd3fc'
+                  }
+                }, '作者連結'),
+                // Links container
+                window.h('nav', {
+                  style: {
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem'
+                  }
+                },
+                  social.get('github') ? window.h('a', {
+                    href: social.get('github'),
+                    target: '_blank',
+                    style: {
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.5rem',
+                      color: '#0ea5e9',
+                      textDecoration: 'none',
+                      fontSize: '0.9rem',
+                      borderRadius: '6px',
+                      transition: 'all 0.2s ease'
+                    }
+                  }, 'GitHub') : null,
+                  social.get('twitter') ? window.h('a', {
+                    href: social.get('twitter'),
+                    target: '_blank',
+                    style: {
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.5rem',
+                      color: '#0ea5e9',
+                      textDecoration: 'none',
+                      fontSize: '0.9rem',
+                      borderRadius: '6px',
+                      transition: 'all 0.2s ease'
+                    }
+                  }, 'Twitter') : null,
+                  social.get('website') ? window.h('a', {
+                    href: social.get('website'),
+                    target: '_blank',
+                    style: {
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.5rem',
+                      color: '#0ea5e9',
+                      textDecoration: 'none',
+                      fontSize: '0.9rem',
+                      borderRadius: '6px',
+                      transition: 'all 0.2s ease'
+                    }
+                  }, '個人網站') : null
+                )
+              ) : null
+            );
+          }
+        });
+
+        // Register preview templates
+        window.CMS.registerPreviewTemplate('blog', BlogPostPreview);
+        window.CMS.registerPreviewTemplate('authors', AuthorPreview);
+
+        // Info Box Component
+        window.CMS.registerEditorComponent({
+          id: 'info-box',
+          label: '資訊框',
+          fields: [
+            {
+              name: 'type',
+              label: '類型',
+              widget: 'select',
+              options: ['info', 'success', 'warning', 'error']
+            },
+            {
+              name: 'title',
+              label: '標題',
+              widget: 'string'
+            },
+            {
+              name: 'content',
+              label: '內容',
+              widget: 'text'
+            }
+          ],
+          pattern: /^<div class="info-box info-box-(\w+)">\s*<strong>(.*?)<\/strong>\s*<p>(.*?)<\/p>\s*<\/div>$/ms,
+          fromBlock: function(match) {
+            return {
+              type: match[1],
+              title: match[2],
+              content: match[3]
+            };
+          },
+          toBlock: function(data) {
+            return `<div class="info-box info-box-${data.type}">
+  <strong>${data.title}</strong>
+  <p>${data.content}</p>
+</div>`;
+          },
+          toPreview: function(data) {
+            const colors = {
+              info: { bg: '#e0f2fe', border: '#0ea5e9', text: '#0284c7' },
+              success: { bg: '#d1fae5', border: '#10b981', text: '#059669' },
+              warning: { bg: '#fef3c7', border: '#f59e0b', text: '#d97706' },
+              error: { bg: '#fee2e2', border: '#ef4444', text: '#dc2626' }
+            };
+            const color = colors[data.type] || colors.info;
+            
+            return `<div style="background: ${color.bg}; border-left: 4px solid ${color.border}; padding: 1rem 1.5rem; border-radius: 8px; margin: 1.5rem 0;">
+  <strong style="color: ${color.text}; display: block; margin-bottom: 0.5rem; font-size: 1.1rem;">${data.title}</strong>
+  <p style="color: ${color.text}; margin: 0; line-height: 1.6;">${data.content}</p>
+</div>`;
+          }
+        });
+
+        // YouTube Video Component
+        window.CMS.registerEditorComponent({
+          id: 'youtube',
+          label: 'YouTube 影片',
+          fields: [
+            {
+              name: 'id',
+              label: 'YouTube 影片 ID',
+              widget: 'string'
+            }
+          ],
+          pattern: /^<div class="youtube-embed"><iframe src="https:\/\/www\.youtube\.com\/embed\/([\w-]+)".*?<\/iframe><\/div>$/,
+          fromBlock: function(match) {
+            return {
+              id: match[1]
+            };
+          },
+          toBlock: function(data) {
+            return `<div class="youtube-embed"><iframe src="https://www.youtube.com/embed/${data.id}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+          },
+          toPreview: function(data) {
+            return `<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; margin: 1.5rem 0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+  <iframe src="https://www.youtube.com/embed/${data.id}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
+</div>`;
+          }
+        });
+
+        // Code Block with Language
+        window.CMS.registerEditorComponent({
+          id: 'code-block',
+          label: '程式碼區塊',
+          fields: [
+            {
+              name: 'language',
+              label: '程式語言',
+              widget: 'select',
+              options: ['javascript', 'python', 'html', 'css', 'bash', 'json', 'yaml', 'markdown', 'typescript', 'vue', 'react']
+            },
+            {
+              name: 'code',
+              label: '程式碼',
+              widget: 'text'
+            }
+          ],
+          pattern: /^```(\w+)\n([\s\S]*?)\n```$/,
+          fromBlock: function(match) {
+            return {
+              language: match[1],
+              code: match[2]
+            };
+          },
+          toBlock: function(data) {
+            return `\`\`\`${data.language}\n${data.code}\n\`\`\``;
+          },
+          toPreview: function(data) {
+            return `<pre style="background: #1e293b; color: #e2e8f0; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);"><code>${data.code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>`;
+          }
+        });
+
+        // Image with Caption
+        window.CMS.registerEditorComponent({
+          id: 'image-caption',
+          label: '圖片（帶說明）',
+          fields: [
+            {
+              name: 'image',
+              label: '圖片',
+              widget: 'image'
+            },
+            {
+              name: 'alt',
+              label: '替代文字',
+              widget: 'string'
+            },
+            {
+              name: 'caption',
+              label: '圖片說明',
+              widget: 'string',
+              required: false
+            }
+          ],
+          pattern: /^<figure>\s*<img src="(.+?)" alt="(.+?)".*?>\s*(?:<figcaption>(.*?)<\/figcaption>)?\s*<\/figure>$/,
+          fromBlock: function(match) {
+            return {
+              image: match[1],
+              alt: match[2],
+              caption: match[3] || ''
+            };
+          },
+          toBlock: function(data) {
+            const caption = data.caption ? `\n  <figcaption>${data.caption}</figcaption>` : '';
+            return `<figure>
+  <img src="${data.image}" alt="${data.alt}">${caption}
+</figure>`;
+          },
+          toPreview: function(data) {
+            const caption = data.caption ? `<figcaption style="text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 0.5rem; font-style: italic;">${data.caption}</figcaption>` : '';
+            return `<figure style="margin: 1.5rem 0;">
+  <img src="${data.image}" alt="${data.alt}" style="width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+  ${caption}
+</figure>`;
+          }
+        });
+
+        // Quote with Author
+        window.CMS.registerEditorComponent({
+          id: 'quote-author',
+          label: '引言（帶作者）',
+          fields: [
+            {
+              name: 'quote',
+              label: '引言內容',
+              widget: 'text'
+            },
+            {
+              name: 'author',
+              label: '作者',
+              widget: 'string',
+              required: false
+            }
+          ],
+          pattern: /^<blockquote>\s*<p>(.*?)<\/p>\s*(?:<cite>— (.*?)<\/cite>)?\s*<\/blockquote>$/ms,
+          fromBlock: function(match) {
+            return {
+              quote: match[1],
+              author: match[2] || ''
+            };
+          },
+          toBlock: function(data) {
+            const author = data.author ? `\n  <cite>— ${data.author}</cite>` : '';
+            return `<blockquote>
+  <p>${data.quote}</p>${author}
+</blockquote>`;
+          },
+          toPreview: function(data) {
+            const author = data.author ? `<cite style="display: block; margin-top: 0.5rem; font-style: normal; color: #64748b;">— ${data.author}</cite>` : '';
+            return `<blockquote style="border-left: 4px solid #f97316; padding: 1rem 1.5rem; margin: 1.5rem 0; background: #f8fafc; border-radius: 0 8px 8px 0;">
+  <p style="font-style: italic; color: #1e293b; margin: 0; line-height: 1.6;">${data.quote}</p>
+  ${author}
+</blockquote>`;
+          }
+        });
+      }
+    </script>
   </body>
 </html>
