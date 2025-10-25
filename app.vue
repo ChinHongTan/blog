@@ -88,13 +88,13 @@ const currentAuthor = computed(() => {
             <span>使用以下工具建構：</span>
             <div class="service-badges">
               <a href="https://vercel.com" target="_blank" rel="noopener" class="service-link">
-                <img src="https://assets.vercel.com/image/upload/v1588805858/repositories/vercel/logo.png" alt="Vercel" class="service-logo">
+                <img src="/images/logos/vercel-logo-black.svg" alt="Vercel" class="service-logo">
               </a>
               <a href="https://nuxt.com" target="_blank" rel="noopener" class="service-link">
-                <svg viewBox="0 0 221 65" class="service-logo nuxt-logo" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M82.5 26.3h-8.1l-8 13.9-8-13.9h-8l12 20.9v.1c.5.8 1.5 1.3 2.5 1.3h3.1c1 0 2-.5 2.5-1.3v-.1l12-20.9ZM121.2 26.3h-23.4c-1.4 0-2.5 1.1-2.5 2.5v19.7c0 1.4 1.1 2.5 2.5 2.5h23.4v-6.2h-20.9V26.3Zm-20.9 13.7h13.7v-6.2h-13.7v6.2ZM146.6 26.3h-23.4c-1.4 0-2.5 1.1-2.5 2.5v19.7c0 1.4 1.1 2.5 2.5 2.5h23.4v-6.2h-20.9V26.3Zm-20.9 13.7h13.7v-6.2h-13.7v6.2ZM174 26.3h-7.2v24.7h27.8v-6.2H174V26.3Z"/><path fill="currentColor" d="m39.6 31.8 13.8 23.9a5 5 0 0 1-4.3 7.5H29.8a5 5 0 0 1-4.3-7.5l13.8-23.9a5 5 0 0 1 8.6 0Z"/><path fill="#80EEC0" d="m26.3 55.6 9.5-16.4a5 5 0 0 1 8.6 0l9.5 16.4H26.3Z"/><path fill="currentColor" d="M59.5 39.7a5 5 0 0 0-8.7 0l-3.6 6.2 13.1 22.7h9.9a5 5 0 0 0 4.3-7.5l-15-26Z"/></svg>
+                <img src="/images/logos/nuxt-logo-green-black.svg" alt="Nuxt" class="service-logo">
               </a>
               <a href="https://decapcms.org" target="_blank" rel="noopener" class="service-link">
-                <span class="service-text">Decap CMS</span>
+                <img src="/images/logos/decap-logo-black.svg" alt="Decap CMS" class="service-logo decap-logo">
               </a>
             </div>
           </div>
@@ -276,11 +276,6 @@ const currentAuthor = computed(() => {
 .service-logo {
   height: 24px;
   width: auto;
-}
-
-.nuxt-logo {
-  height: 20px;
-  color: var(--color-text-secondary);
 }
 
 .service-text {
