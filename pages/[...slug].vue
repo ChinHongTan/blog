@@ -1,6 +1,11 @@
 <script setup lang="ts">
 const route = useRoute();
 
+// Don't match /admin paths - let them be handled by static files
+if (route.path.startsWith('/admin')) {
+  throw createError({ statusCode: 404, statusMessage: 'Page Not Found', fatal: false });
+}
+
 const { data: page } = await useAsyncData(route.path, () => {
   return queryCollection('blog').path(route.path).first()
 });
