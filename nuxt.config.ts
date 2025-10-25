@@ -12,6 +12,15 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  app: {
+    head: {
+      title: '七糯糯的小站',
+      link: [
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+      ]
+    }
+  },
+
   routeRules: {
     // Ensure admin static files are served correctly
     '/admin/**': { ssr: false },

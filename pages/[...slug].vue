@@ -6,12 +6,28 @@ if (route.path.startsWith('/admin')) {
   throw createError({ statusCode: 404, statusMessage: 'Page Not Found', fatal: false });
 }
 
-const { data: page } = await useAsyncData(route.path, () => {
-  return queryCollection('blog').path(route.path).first()
+// Try to fetch from blog collection first, then pages collection
+const { data: page } = await useAsyncData(route.path, async () => {
+  // Try blog collection first
+  const blogResult = await queryCollection('blog').path(route.path).first();
+  if (blogResult) return blogResult;
+  
+  // If not found in blog, try pages collection
+  const pageResult = await queryCollection('pages').path(route.path).first();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return pageResult as any;
 });
 
-// Fetch author profile if author name exists
-const authorProfile = page.value?.author ? await useAuthor(page.value.author) : null;
+// Determine if this is a blog post (has date and author)
+const isBlogPost = computed(() => page.value && 'date' in page.value && 'author' in page.value);
+
+// Check if page has a date but is not a blog post (like static pages with last updated date)
+const hasDate = computed(() => page.value && 'date' in page.value);
+
+// Fetch author profile if author name exists and it's a blog post
+const authorProfile = (page.value && 'author' in page.value && page.value.author) 
+  ? await useAuthor(page.value.author) 
+  : null;
 
 // Get author avatar - prioritize from author profile, then fallback to placeholder
 const authorAvatar = computed(() => {
@@ -40,8 +56,16 @@ const readingTime = computed(() => {
     <header class="post-header">
       <h1 class="post-title">{{ page.title }}</h1>
       
-      <!-- Post Meta Information -->
-      <div class="post-meta-bar">
+      <!-- Simple date display for static pages (pages with date but no author) -->
+      <div v-if="hasDate && !isBlogPost" class="page-meta">
+        <span class="meta-item">
+          <Icon name="heroicons:calendar" size="16" />
+          最後更新：{{ new Date(page.date).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' }) }}
+        </span>
+      </div>
+      
+      <!-- Post Meta Information (only for blog posts) -->
+      <div v-if="isBlogPost" class="post-meta-bar">
         <div class="author-info">
           <img 
             :src="authorAvatar" 
@@ -65,8 +89,8 @@ const readingTime = computed(() => {
         </div>
       </div>
 
-      <!-- Tags -->
-      <div v-if="page.tags && page.tags.length" class="post-tags">
+      <!-- Tags (only for blog posts) -->
+      <div v-if="isBlogPost && page.tags && page.tags.length" class="post-tags">
         <Icon name="heroicons:tag" size="16" />
         <div class="tags-list">
           <span v-for="tag in page.tags" :key="tag" class="tag">
@@ -76,8 +100,8 @@ const readingTime = computed(() => {
       </div>
     </header>
 
-    <!-- Featured Image -->
-    <div v-if="page.featured_image" class="featured-image">
+    <!-- Featured Image (only for blog posts) -->
+    <div v-if="isBlogPost && page.featured_image" class="featured-image">
       <img :src="page.featured_image" :alt="page.title">
     </div>
 
@@ -119,8 +143,8 @@ const readingTime = computed(() => {
 
 /* Post Header */
 .post-header {
-  margin-bottom: 2.5rem;
-  padding-bottom: 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
   border-bottom: 2px solid var(--color-border-light);
 }
 
@@ -129,7 +153,19 @@ const readingTime = computed(() => {
   font-weight: 700;
   color: var(--color-text-primary);
   line-height: 1.2;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.page-meta {
+  margin-bottom: 1rem;
+}
+
+.page-meta .meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
 }
 
 .post-meta-bar {

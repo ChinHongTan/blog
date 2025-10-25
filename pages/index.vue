@@ -61,8 +61,8 @@ const activeFilter = computed(() => {
 });
 
 useSeoMeta({
-  title: 'Chinono',
-  description: 'test'
+  title: '七糯糯的小站',
+  description: '我們是一群認識的小夥伴。這是我們分享日常冒險、酷炫發現、成就和有趣時刻的地方。歡迎你的到來！',
 });
 </script>
 
