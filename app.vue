@@ -197,20 +197,21 @@ const currentAuthor = computed(() => {
 
 /* Footer Styles */
 .site-footer {
-  margin-top: 4rem;
-  padding: 2rem 0;
+  margin-top: 3rem;
+  padding: 1.5rem 0;
   border-top: 1px solid var(--color-border-light);
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.25rem;
   align-items: center;
 }
 
 .footer-info {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.2rem;
+  align-items: center;
 }
 
 .copyright {
@@ -243,7 +244,7 @@ const currentAuthor = computed(() => {
 .powered-by {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
   align-items: center;
 }
 
@@ -274,8 +275,10 @@ const currentAuthor = computed(() => {
 }
 
 .service-logo {
-  height: 24px;
+  height: 20px;
   width: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .service-text {
