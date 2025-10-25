@@ -478,33 +478,152 @@ const readingTime = computed(() => {
 /* Responsive */
 @media (max-width: 768px) {
   .blog-post {
-    padding: 2rem 1.5rem;
+    padding: 1.5rem 1rem;
+    border-radius: 8px;
+  }
+
+  .post-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
   }
 
   .post-title {
-    font-size: 2rem;
+    font-size: 1.75rem;
+    line-height: 1.3;
+    margin-bottom: 0.75rem;
   }
 
   .post-meta-bar {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 0.75rem;
+  }
+
+  .author-info {
+    gap: 0.5rem;
+  }
+
+  .author-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .author-name {
+    font-size: 0.9rem;
   }
 
   .meta-divider {
     display: none;
   }
 
+  .post-meta-items {
+    gap: 1rem;
+  }
+
+  .meta-item {
+    font-size: 0.85rem;
+  }
+
+  .post-tags {
+    margin-top: 0.75rem;
+  }
+
+  .tag {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .featured-image {
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+  }
+
   .post-content {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.7;
   }
 
   .post-content :deep(h2) {
     font-size: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
   }
 
   .post-content :deep(h3) {
     font-size: 1.25rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .post-content :deep(p) {
+    margin-bottom: 1rem;
+  }
+
+  .post-content :deep(ul),
+  .post-content :deep(ol) {
+    margin-bottom: 1.25rem;
+    padding-left: 1.5rem;
+  }
+
+  .post-content :deep(blockquote) {
+    padding: 0.75rem 1rem;
+    margin: 1.25rem 0;
+    font-size: 0.9rem;
+  }
+
+  .post-content :deep(img) {
+    margin: 1.25rem 0;
+    border-radius: 6px;
+  }
+
+  .post-content :deep(pre) {
+    margin: 1.25rem -1rem;
+    border-radius: 0;
+    font-size: 0.85rem;
+  }
+
+  .post-footer {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+  }
+
+  .back-link a {
+    font-size: 0.9rem;
+  }
+
+  .not-found {
+    padding: 3rem 1.5rem;
+  }
+
+  .not-found h1 {
+    font-size: 1.5rem;
+  }
+
+  .not-found p {
+    font-size: 0.9rem;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .blog-post {
+    padding: 1rem 0.75rem;
+  }
+
+  .post-title {
+    font-size: 1.5rem;
+  }
+
+  .post-content {
+    font-size: 0.9rem;
+  }
+
+  .post-content :deep(h2) {
+    font-size: 1.3rem;
+  }
+
+  .post-content :deep(h3) {
+    font-size: 1.1rem;
   }
 }
 </style>

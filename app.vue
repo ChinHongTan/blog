@@ -7,6 +7,9 @@ const { data: allPosts } = await useAsyncData("all-posts", () =>
 // Search query state
 const searchQuery = ref("");
 
+// Mobile menu state
+const isMobileMenuOpen = ref(false);
+
 // Provide search query and posts to child components
 provide("searchQuery", searchQuery);
 provide("allPosts", allPosts);
@@ -42,6 +45,11 @@ const currentAuthor = computed(() => {
 	}
 	return null;
 });
+
+// Close mobile menu when route changes
+watch(() => route.path, () => {
+	isMobileMenuOpen.value = false;
+});
 </script>
 
 <template>
@@ -55,7 +63,7 @@ const currentAuthor = computed(() => {
 						src="/images/uploads/103467998_p0 copy.png"
 						alt="Logo"
 						class="logo-image"
-					/>
+					>
 
 					<!-- Option 2: Remove icon completely - just delete the img/Icon line above -->
 
@@ -69,19 +77,59 @@ const currentAuthor = computed(() => {
 				<nav class="main-nav">
 					<NuxtLink to="/">
 						<Icon name="heroicons:home" size="20" />
-						首頁
+						<span>首頁</span>
 					</NuxtLink>
 					<NuxtLink to="/about">
 						<Icon name="heroicons:information-circle" size="20" />
-						關於
+						<span>關於</span>
 					</NuxtLink>
 					<NuxtLink to="/authors">
 						<Icon name="heroicons:users" size="20" />
-						作者
+						<span>作者</span>
 					</NuxtLink>
 				</nav>
+
+				<!-- Mobile menu button -->
+				<button 
+					:aria-label="isMobileMenuOpen ? '關閉選單' : '開啟選單'"
+					class="mobile-menu-button"
+					@click="isMobileMenuOpen = !isMobileMenuOpen"
+				>
+					<Icon v-if="!isMobileMenuOpen" name="heroicons:bars-3" size="24" />
+					<Icon v-else name="heroicons:x-mark" size="24" />
+				</button>
 			</div>
 		</header>
+
+		<!-- Mobile Menu Overlay -->
+		<Transition name="mobile-menu">
+			<div v-if="isMobileMenuOpen" class="mobile-menu-overlay" @click="isMobileMenuOpen = false">
+				<div class="mobile-menu" @click.stop>
+					<nav class="mobile-nav">
+						<NuxtLink to="/" class="mobile-nav-link">
+							<Icon name="heroicons:home" size="20" />
+							首頁
+						</NuxtLink>
+						<NuxtLink to="/about" class="mobile-nav-link">
+							<Icon name="heroicons:information-circle" size="20" />
+							關於
+						</NuxtLink>
+						<NuxtLink to="/authors" class="mobile-nav-link">
+							<Icon name="heroicons:users" size="20" />
+							作者
+						</NuxtLink>
+						<NuxtLink to="/code-of-conduct" class="mobile-nav-link">
+							<Icon name="heroicons:document-text" size="20" />
+							行為準則
+						</NuxtLink>
+						<a href="https://github.com/ChinHongTan/blog" target="_blank" rel="noopener" class="mobile-nav-link">
+							<Icon name="simple-icons:github" size="20" />
+							網站原始碼
+						</a>
+					</nav>
+				</div>
+			</div>
+		</Transition>
 
 		<div class="app-layout">
 			<LeftSidebar :current-author="currentAuthor" />
@@ -130,7 +178,7 @@ const currentAuthor = computed(() => {
 									src="/images/logos/vercel-logo-black.svg"
 									alt="Vercel"
 									class="service-logo"
-								/>
+								>
 							</a>
 							<a
 								href="https://nuxt.com"
@@ -142,7 +190,7 @@ const currentAuthor = computed(() => {
 									src="/images/logos/nuxt-logo-green-black.svg"
 									alt="Nuxt"
 									class="service-logo"
-								/>
+								>
 							</a>
 							<a
 								href="https://decapcms.org"
@@ -154,7 +202,7 @@ const currentAuthor = computed(() => {
 									src="/images/logos/decap-logo-black.svg"
 									alt="Decap CMS"
 									class="service-logo decap-logo"
-								/>
+								>
 							</a>
 						</div>
 					</div>
@@ -241,6 +289,99 @@ const currentAuthor = computed(() => {
 
 .main-nav a:hover {
 	color: var(--color-primary-dark);
+}
+
+/* Mobile menu button - hidden by default */
+.mobile-menu-button {
+	display: none;
+	background: none;
+	border: none;
+	color: var(--color-text-primary);
+	cursor: pointer;
+	padding: 0.5rem;
+	border-radius: 6px;
+	transition: all 0.2s ease;
+}
+
+.mobile-menu-button:hover {
+	background: var(--color-bg-secondary);
+	color: var(--color-primary);
+}
+
+.mobile-menu-button:active {
+	transform: scale(0.95);
+}
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+	position: fixed;
+	top: var(--header-height);
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5);
+	z-index: 90;
+	backdrop-filter: blur(2px);
+}
+
+.mobile-menu {
+	background: var(--color-bg-primary);
+	border-bottom: 1px solid var(--color-border-light);
+	box-shadow: var(--shadow-lg);
+	max-height: calc(100vh - var(--header-height));
+	overflow-y: auto;
+}
+
+.mobile-nav {
+	display: flex;
+	flex-direction: column;
+}
+
+.mobile-nav-link {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	padding: 1rem 1.5rem;
+	color: var(--color-text-primary);
+	text-decoration: none;
+	font-size: 1rem;
+	font-weight: 500;
+	border-bottom: 1px solid var(--color-border-light);
+	transition: all 0.2s ease;
+}
+
+.mobile-nav-link:hover {
+	background: var(--color-bg-blue-tint);
+	color: var(--color-primary-dark);
+	padding-left: 2rem;
+}
+
+.mobile-nav-link:active {
+	background: var(--color-primary-light);
+}
+
+/* Mobile menu transitions */
+.mobile-menu-enter-active,
+.mobile-menu-leave-active {
+	transition: opacity 0.3s ease;
+}
+
+.mobile-menu-enter-active .mobile-menu,
+.mobile-menu-leave-active .mobile-menu {
+	transition: transform 0.3s ease;
+}
+
+.mobile-menu-enter-from,
+.mobile-menu-leave-to {
+	opacity: 0;
+}
+
+.mobile-menu-enter-from .mobile-menu {
+	transform: translateY(-100%);
+}
+
+.mobile-menu-leave-to .mobile-menu {
+	transform: translateY(-100%);
 }
 
 /* 3-Column Grid Layout */
@@ -376,6 +517,15 @@ const currentAuthor = computed(() => {
 	.main-content {
 		max-width: 100%;
 	}
+
+	/* Show mobile menu button, hide desktop nav */
+	.mobile-menu-button {
+		display: block;
+	}
+
+	.main-nav {
+		display: none;
+	}
 }
 
 @media (max-width: 768px) {
@@ -383,16 +533,17 @@ const currentAuthor = computed(() => {
 		padding: 0 1rem;
 	}
 
+	.logo {
+		font-size: 1.1rem;
+	}
+
 	.logo span {
-		display: none;
+		display: inline; /* Keep the title visible */
 	}
 
-	.main-nav {
-		gap: 1rem;
-	}
-
-	.main-nav a span {
-		display: none;
+	.logo-image {
+		width: 32px;
+		height: 32px;
 	}
 
 	.app-layout {
@@ -400,7 +551,40 @@ const currentAuthor = computed(() => {
 	}
 
 	.main-content {
+		padding: 1.5rem 0;
+	}
+
+	.site-footer {
 		padding: 2rem 1rem;
+	}
+
+	.powered-by {
+		margin-top: 1.5rem;
+	}
+}
+
+@media (max-width: 480px) {
+	.header-content {
+		padding: 0 0.75rem;
+	}
+
+	.logo {
+		font-size: 1rem;
+		gap: 0.5rem;
+	}
+
+	.logo-image {
+		width: 28px;
+		height: 28px;
+	}
+
+	.app-layout {
+		padding: 0 0.5rem;
+	}
+
+	.mobile-nav-link {
+		padding: 0.875rem 1rem;
+		font-size: 0.95rem;
 	}
 }
 </style>

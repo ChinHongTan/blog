@@ -270,4 +270,11 @@ const topTags = computed(() => {
 .left-sidebar::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-tertiary);
 }
+
+/* Responsive - Hide sidebar on mobile/tablet */
+@media (max-width: 1200px) {
+  .left-sidebar {
+    display: none;
+  }
+}
 </style>

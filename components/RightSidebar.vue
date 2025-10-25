@@ -415,4 +415,11 @@ const authors = computed(() => {
 .right-sidebar::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-tertiary);
 }
+
+/* Responsive - Hide sidebar on mobile/tablet */
+@media (max-width: 1200px) {
+  .right-sidebar {
+    display: none;
+  }
+}
 </style>
