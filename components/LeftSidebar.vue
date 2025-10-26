@@ -141,16 +141,20 @@ const topTags = computed(() => {
 
 <style scoped>
 .left-sidebar {
-  background: var(--color-bg-primary);
-  border-right: 1px solid var(--color-border-light);
-  padding: 2rem 1.5rem;
+  background: var(--panel-bg);
+  border: 1px solid var(--color-border-light);
+  padding: 1.5rem 1.25rem;
   position: sticky;
-  top: calc(var(--header-height) + 2rem);
-  height: calc(100vh - var(--header-height) - 4rem);
+  top: calc(var(--header-height) + 1.5rem);
+  max-height: calc(100vh - var(--header-height) - 3rem);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
+  border-radius: 14px;
+  box-shadow: var(--shadow-md);
+  -webkit-backdrop-filter: saturate(1.2) blur(var(--glass-blur));
+  backdrop-filter: saturate(1.2) blur(var(--glass-blur));
 }
 
 .sidebar-section {
@@ -161,17 +165,17 @@ const topTags = computed(() => {
 
 .author-info {
   text-align: center;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: 1.25rem;
+  border-bottom: 2px solid var(--color-primary-light);
 }
 
 .avatar {
-  width: 100px;
-  height: 100px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
   margin: 0 auto 0.5rem;
   border: 3px solid var(--color-primary-light);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
 }
 
 .author-name {
@@ -192,11 +196,11 @@ const topTags = computed(() => {
   align-items: center;
   gap: 0.5rem;
   color: var(--color-text-primary);
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding-bottom: 0.75rem;
+  letter-spacing: 0.4px;
+  padding-bottom: 0.5rem;
   border-bottom: 2px solid var(--color-primary-light);
 }
 
@@ -208,11 +212,11 @@ const topTags = computed(() => {
 
 .tag {
   display: inline-block;
-  padding: 0.4rem 0.75rem;
+  padding: 0.35rem 0.7rem;
   background: var(--color-bg-blue-tint);
   color: var(--color-primary-dark);
-  border-radius: 20px;
-  font-size: 0.85rem;
+  border-radius: 999px;
+  font-size: 0.83rem;
   font-weight: 500;
   text-decoration: none;
   border: 1px solid var(--color-primary-light);
@@ -253,7 +257,7 @@ const topTags = computed(() => {
 
 .sidebar-links a:hover {
   color: var(--color-primary-dark);
-  background: var(--color-bg-blue-tint);
+  background: var(--color-bg-secondary);
   padding-left: 1rem;
 }
 
@@ -263,7 +267,7 @@ const topTags = computed(() => {
 }
 
 .left-sidebar::-webkit-scrollbar-track {
-  background: var(--color-bg-secondary);
+  background: transparent;
 }
 
 .left-sidebar::-webkit-scrollbar-thumb {

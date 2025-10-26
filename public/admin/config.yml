@@ -1,6 +1,6 @@
 # Use DecapBridge PKCE auth (required)
 backend:
-  name: test-repo
+  name: git-gateway
   repo: ChinHongTan/blog
   branch: main
   auth_type: pkce
@@ -32,8 +32,6 @@ logo_url: https://decapbridge.com/decapcms-with-bridge.svg
 site_url: https://blog.chinono.dev
 
 locale: "zh_Hant"
-
-local_backend: true
 
 media_folder: "public/images/uploads"
 public_folder: "/images/uploads"

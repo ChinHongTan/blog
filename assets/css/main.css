@@ -40,6 +40,43 @@
   --sidebar-left-width: 280px;
   --sidebar-right-width: 260px;
   --content-max-width: 720px;
+
+  /* Glass UI */
+  --panel-bg: rgba(255, 255, 255, 0.65);
+  --glass-blur: 12px;
+}
+
+/* Dark Theme Variables (applied when <html class="dark">) */
+html.dark {
+  /* Colors */
+  --color-primary: #38bdf8; /* keep brand */
+  --color-primary-dark: #0ea5e9;
+  --color-primary-light: #7dd3fc;
+  --color-accent: #fbbf24;
+  --color-accent-dark: #f59e0b;
+
+  /* Backgrounds */
+  --color-bg-primary: #0f172a; /* slate-900 */
+  --color-bg-secondary: #111827; /* gray-900 */
+  --color-bg-tertiary: #1f2937; /* gray-800 */
+  --color-bg-blue-tint: #082f49; /* cyan-950 */
+
+  /* Text */
+  --color-text-primary: #e5e7eb; /* gray-200 */
+  --color-text-secondary: #cbd5e1; /* slate-300 */
+  --color-text-tertiary: #94a3b8; /* slate-400 */
+
+  /* Borders */
+  --color-border-light: #334155; /* slate-700 */
+  --color-border-medium: #475569; /* slate-600 */
+
+  /* Shadows (slightly stronger in dark) */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
+
+  /* Glass UI */
+  --panel-bg: rgba(15, 23, 42, 0.6); /* slate-900 @ 0.6 */
 }
 
 /* Global styles */

@@ -74,30 +74,32 @@ watch(() => route.path, () => {
 					<span>七糯糯的小站</span>
 				</NuxtLink>
 
-				<nav class="main-nav">
-					<NuxtLink to="/">
-						<Icon name="heroicons:home" size="20" />
-						<span>首頁</span>
-					</NuxtLink>
-					<NuxtLink to="/about">
-						<Icon name="heroicons:information-circle" size="20" />
-						<span>關於</span>
-					</NuxtLink>
-					<NuxtLink to="/authors">
-						<Icon name="heroicons:users" size="20" />
-						<span>作者</span>
-					</NuxtLink>
-				</nav>
-
-				<!-- Mobile menu button -->
-				<button 
+				<!-- Header actions: nav + theme toggle + mobile menu button (nav moved to right) -->
+				<div class="header-actions">
+					<nav class="main-nav">
+						<NuxtLink to="/">
+							<Icon name="heroicons:home" size="20" />
+							<span>首頁</span>
+						</NuxtLink>
+						<NuxtLink to="/about">
+							<Icon name="heroicons:information-circle" size="20" />
+							<span>關於</span>
+						</NuxtLink>
+						<NuxtLink to="/authors">
+							<Icon name="heroicons:users" size="20" />
+							<span>作者</span>
+						</NuxtLink>
+					</nav>
+					<ThemeToggle />
+					<button 
 					:aria-label="isMobileMenuOpen ? '關閉選單' : '開啟選單'"
 					class="mobile-menu-button"
 					@click="isMobileMenuOpen = !isMobileMenuOpen"
-				>
-					<Icon v-if="!isMobileMenuOpen" name="heroicons:bars-3" size="24" />
-					<Icon v-else name="heroicons:x-mark" size="24" />
-				</button>
+					>
+						<Icon v-if="!isMobileMenuOpen" name="heroicons:bars-3" size="24" />
+						<Icon v-else name="heroicons:x-mark" size="24" />
+					</button>
+				</div>
 			</div>
 		</header>
 
@@ -126,6 +128,11 @@ watch(() => route.path, () => {
 							<Icon name="simple-icons:github" size="20" />
 							網站原始碼
 						</a>
+						<!-- Theme toggle in mobile menu -->
+						<div class="mobile-toggle-row">
+							<span class="mobile-toggle-label">主題</span>
+							<ThemeToggle size="md" />
+						</div>
 					</nav>
 				</div>
 			</div>
@@ -272,7 +279,7 @@ watch(() => route.path, () => {
 
 .main-nav {
 	display: flex;
-	gap: 2rem;
+	gap: 1.25rem;
 	align-items: center;
 }
 
@@ -289,6 +296,12 @@ watch(() => route.path, () => {
 
 .main-nav a:hover {
 	color: var(--color-primary-dark);
+}
+
+.header-actions {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
 }
 
 /* Mobile menu button - hidden by default */
@@ -358,6 +371,21 @@ watch(() => route.path, () => {
 
 .mobile-nav-link:active {
 	background: var(--color-primary-light);
+}
+
+/* Mobile theme toggle row */
+.mobile-toggle-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 1rem 1.5rem;
+	border-top: 1px solid var(--color-border-light);
+}
+
+.mobile-toggle-label {
+	color: var(--color-text-primary);
+	font-weight: 600;
 }
 
 /* Mobile menu transitions */
@@ -524,8 +552,12 @@ watch(() => route.path, () => {
 	}
 
 	.main-nav {
-		display: none;
+			display: none;
 	}
+
+		.header-actions {
+			gap: 0.5rem;
+		}
 }
 
 @media (max-width: 768px) {

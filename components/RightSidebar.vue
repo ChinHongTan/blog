@@ -245,16 +245,20 @@ const authors = computed(() => {
 
 <style scoped>
 .right-sidebar {
-  background: var(--color-bg-primary);
-  border-left: 1px solid var(--color-border-light);
-  padding: 2rem 1.5rem;
+  background: var(--panel-bg);
+  border: 1px solid var(--color-border-light);
+  padding: 1.5rem 1.25rem;
   position: sticky;
-  top: calc(var(--header-height) + 2rem);
-  height: calc(100vh - var(--header-height) - 4rem);
+  top: calc(var(--header-height) + 1.5rem);
+  max-height: calc(100vh - var(--header-height) - 3rem);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
+  border-radius: 14px;
+  box-shadow: var(--shadow-md);
+  -webkit-backdrop-filter: saturate(1.2) blur(var(--glass-blur));
+  backdrop-filter: saturate(1.2) blur(var(--glass-blur));
 }
 
 /* Search Bar */
@@ -268,10 +272,10 @@ const authors = computed(() => {
   align-items: center;
   gap: 0.75rem;
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.6rem 0.9rem;
   background: var(--color-bg-secondary);
-  border: 2px solid var(--color-border-light);
-  border-radius: 10px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 999px;
   transition: all 0.2s ease;
 }
 
@@ -312,11 +316,11 @@ const authors = computed(() => {
   align-items: center;
   gap: 0.5rem;
   color: var(--color-text-primary);
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
   border-bottom: 2px solid var(--color-primary-light);
 }
 
@@ -347,7 +351,7 @@ const authors = computed(() => {
 
 .toc-links a.active {
   color: var(--color-primary-dark);
-  background: var(--color-bg-blue-tint);
+  background: var(--color-bg-secondary);
   font-weight: 500;
   border-left: 3px solid var(--color-primary);
 }
@@ -379,7 +383,7 @@ const authors = computed(() => {
   color: var(--color-text-secondary);
   text-decoration: none;
   font-size: 0.9rem;
-  padding: 0.4rem 0.75rem;
+  padding: 0.35rem 0.7rem;
   border-radius: 6px;
   transition: all 0.2s ease;
 }
@@ -404,7 +408,7 @@ const authors = computed(() => {
 }
 
 .right-sidebar::-webkit-scrollbar-track {
-  background: var(--color-bg-secondary);
+  background: transparent;
 }
 
 .right-sidebar::-webkit-scrollbar-thumb {
