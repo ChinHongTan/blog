@@ -48,7 +48,7 @@ collections:
       - { label: "名稱", name: "name", widget: "string", hint: "顯示名稱" }
       - { label: "電子郵件", name: "email", widget: "string", required: false }
       - { label: "簡介", name: "bio", widget: "text", required: false, hint: "關於你的簡短描述" }
-      - { label: "大頭照", name: "avatar", widget: "image-cropper", required: false, hint: "你的個人照片（會自動裁切成正方形）" }
+      - { label: "大頭照", name: "avatar", widget: "image-cropper", required: false, hint: "可從媒體庫選擇或上傳，並可裁切為正方形" }
       - { label: "社群連結", name: "social", widget: "object", required: false, fields: [
           { label: "GitHub", name: "github", widget: "string", required: false },
           { label: "Twitter/X", name: "twitter", widget: "string", required: false },

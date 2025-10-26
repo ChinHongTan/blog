@@ -27,8 +27,35 @@
             return {
               imageUrl: this.props.value || '',
               showCropper: false,
-              cropper: null
+              cropper: null,
+              lastMediaPath: null
             };
+          },
+
+          componentDidUpdate(prevProps) {
+            // Detect selection from Decap Media Library
+            const getForIdPath = (props) => {
+              const mp = props.mediaPaths;
+              if (!mp) return null;
+              try {
+                if (typeof mp.get === 'function') return mp.get(props.forID) || null;
+                return mp[props.forID] || null;
+              } catch (e) { return null; }
+            };
+
+            const selectedPath = getForIdPath(this.props);
+            const prevPath = getForIdPath(prevProps);
+            if (selectedPath && selectedPath !== prevPath && selectedPath !== this.state.lastMediaPath) {
+              // Use the chosen asset immediately (persistent path), allow optional cropping
+              this.setState({ imageUrl: selectedPath, lastMediaPath: selectedPath, showCropper: false });
+              if (typeof this.props.onChange === 'function') {
+                this.props.onChange(selectedPath);
+              }
+              // Clear the selection so future picks are detected
+              if (typeof this.props.onClearMediaControl === 'function') {
+                this.props.onClearMediaControl(this.props.forID);
+              }
+            }
           },
 
           componentWillUnmount() {
@@ -88,20 +115,36 @@
               imageSmoothingQuality: 'high',
             });
 
-            canvas.toBlob((blob) => {
-              const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
-              
-              // Upload the cropped image
-              this.props.onAddAsset([file]);
-              
-              // Update the field value
-              const url = URL.createObjectURL(blob);
-              this.setState({ 
-                imageUrl: url,
-                showCropper: false 
-              });
-              
-              this.props.onChange(url);
+            canvas.toBlob(async (blob) => {
+              if (!blob) return;
+
+              // Create a unique filename to avoid collisions
+              const filename = `avatar-${Date.now()}.jpg`;
+              const file = new File([blob], filename, { type: 'image/jpeg' });
+
+              try {
+                // Upload to Decap CMS media library (configured via media_folder/public_folder)
+                const added = await this.props.onAddAsset(file);
+
+                // Determine a persistent URL/path for storing in the field
+                const value = (added && (added.url || added.path || (added.toString && added.toString()))) || null;
+
+                if (value) {
+                  this.setState({ 
+                    imageUrl: value,
+                    showCropper: false 
+                  });
+                  this.props.onChange(value);
+                } else {
+                  // Fallback to preview only if asset didn't return a path (shouldn't happen normally)
+                  const previewUrl = URL.createObjectURL(blob);
+                  this.setState({ imageUrl: previewUrl, showCropper: false });
+                }
+              } catch (e) {
+                console.error('Image upload failed:', e);
+                const previewUrl = URL.createObjectURL(blob);
+                this.setState({ imageUrl: previewUrl, showCropper: false });
+              }
             }, 'image/jpeg', 0.9);
           },
 
@@ -117,6 +160,12 @@
             if (url) {
               this.setState({ imageUrl: url });
               this.props.onChange(url);
+            }
+          },
+
+          openMediaLibrary() {
+            if (typeof this.props.onOpenMediaLibrary === 'function') {
+              this.props.onOpenMediaLibrary({ controlID: this.props.forID, forImage: true });
             }
           },
 
@@ -172,6 +221,34 @@
                     transition: 'all 0.2s ease'
                   }
                 }, imageUrl ? '更換圖片' : '上傳圖片'),
+                window.h('button', {
+                  type: 'button',
+                  onClick: this.openMediaLibrary,
+                  style: {
+                    padding: '0.5rem 1rem',
+                    background: '#38bdf8',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }
+                }, '從媒體庫選擇'),
+                imageUrl ? window.h('button', {
+                  type: 'button',
+                  onClick: () => this.setState({ showCropper: true }, () => this.initCropper()),
+                  style: {
+                    padding: '0.5rem 1rem',
+                    background: '#10b981',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }
+                }, '裁切這張圖片') : null,
                 window.h('button', {
                   type: 'button',
                   onClick: this.handleUrlInput,
