@@ -460,14 +460,15 @@ watch(() => route.path, () => {
 }
 
 /* Footer Styles */
+
 .site-footer {
-	margin-top: 3rem;
-	padding: 1.5rem 0;
+	margin-top: 2.25rem;
+	padding: 1rem 0;
 	border-top: 1px solid var(--color-border-light);
 	text-align: center;
 	display: flex;
 	flex-direction: column;
-	gap: 1.25rem;
+	gap: 0.75rem;
 	align-items: center;
 }
 
@@ -479,9 +480,9 @@ watch(() => route.path, () => {
 }
 
 .footer-info p {
-    margin: 0;
-    color: var(--color-text-secondary);
-    font-size: 0.9rem;
+	margin: 0;
+	color: var(--color-text-secondary);
+	font-size: 0.85rem;
 }
 
 .copyright {
@@ -493,8 +494,8 @@ watch(() => route.path, () => {
 .footer-links {
 	display: flex;
 	align-items: center;
-	gap: 1rem;
-	font-size: 0.9rem;
+	gap: 0.75rem;
+	font-size: 0.85rem;
 }
 
 .footer-links a {
@@ -514,19 +515,19 @@ watch(() => route.path, () => {
 .powered-by {
 	display: flex;
 	flex-direction: column;
-	gap: 0.5rem;
+	gap: 0.35rem;
 	align-items: center;
 }
 
 .powered-by > span {
-	font-size: 0.85rem;
+	font-size: 0.75rem;
 	color: var(--color-text-tertiary);
 }
 
 .service-badges {
 	display: flex;
 	align-items: center;
-	gap: 1.5rem;
+	gap: 1rem;
 	flex-wrap: wrap;
 	justify-content: center;
 }
@@ -547,7 +548,7 @@ watch(() => route.path, () => {
 }
 
 .service-logo {
-	height: 20px;
+	height: 16px;
 	width: auto;
 	object-fit: contain;
 	display: block;
@@ -627,11 +628,8 @@ html.dark .logo-dark {
 	}
 
 	.site-footer {
-		padding: 2rem 1rem;
-	}
-
-	.powered-by {
-		margin-top: 1.5rem;
+		padding: 1.5rem 1rem;
+		gap: 0.75rem;
 	}
 }
 

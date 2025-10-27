@@ -10,6 +10,7 @@ export default defineContentConfig({
 				title: z.string().optional(),
 				description: z.string().optional(),
 				author: z.string().optional(),
+				category: z.string().optional(),
 				author_avatar: z.string().optional(),
 				date: z.string(),
 				featured_image: z.string().optional(),

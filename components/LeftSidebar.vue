@@ -28,6 +28,55 @@ watch(() => props.currentAuthor, async (authorName) => {
 // Check if we're on a post page (showing specific author)
 const isShowingAuthor = computed(() => !!props.currentAuthor);
 
+const totalPosts = computed(() => {
+  const posts = allPosts.value;
+  return Array.isArray(posts) ? posts.length : 0;
+});
+
+const totalAuthors = computed(() => {
+  const posts = allPosts.value;
+  if (!Array.isArray(posts)) return 0;
+  const authors = new Set<string>();
+  posts.forEach((entry: unknown) => {
+    const post = entry as { author?: string };
+    if (post.author) {
+      authors.add(post.author);
+    }
+  });
+  return authors.size;
+});
+
+const totalCategories = computed(() => {
+  const posts = allPosts.value;
+  if (!Array.isArray(posts)) return 0;
+  const categories = new Set<string>();
+  posts.forEach((entry: unknown) => {
+    const post = entry as { category?: string | null };
+    if (post.category) {
+      categories.add(post.category);
+    }
+  });
+  return categories.size;
+});
+
+const postCategories = computed(() => {
+  const posts = allPosts.value;
+  if (!Array.isArray(posts)) return [];
+  const categoryCounts = new Map<string, number>();
+
+  posts.forEach((entry: unknown) => {
+    const post = entry as { category?: string | null };
+    if (post.category) {
+      categoryCounts.set(post.category, (categoryCounts.get(post.category) || 0) + 1);
+    }
+  });
+
+  return Array.from(categoryCounts.entries())
+    .map(([category, count]) => ({ category, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 6);
+});
+
 // Computed properties for display
 const displayName = computed(() => authorProfile.value?.name || '七糯糯');
 const displayBio = computed(() => authorProfile.value?.bio || '分享生活點滴的小小天地。');
@@ -66,6 +115,20 @@ const topTags = computed(() => {
       <p class="author-bio">
         {{ displayBio }}
       </p>
+      <div v-if="!isShowingAuthor" class="site-stats">
+        <div class="site-stat">
+          <span class="site-stat-value">{{ totalPosts }}</span>
+          <span class="site-stat-label">文章</span>
+        </div>
+        <div class="site-stat">
+          <span class="site-stat-value">{{ totalAuthors }}</span>
+          <span class="site-stat-label">作者</span>
+        </div>
+        <div class="site-stat">
+          <span class="site-stat-value">{{ totalCategories }}</span>
+          <span class="site-stat-label">分類</span>
+        </div>
+      </div>
     </div>
 
     <div class="sidebar-section">
@@ -84,6 +147,24 @@ const topTags = computed(() => {
         </NuxtLink>
       </div>
       <p v-else class="empty-state">尚無標籤</p>
+    </div>
+
+    <div v-if="postCategories.length > 0" class="sidebar-section">
+      <h4 class="section-title">
+        <Icon name="heroicons:rectangle-stack" size="18" />
+        文章分類
+      </h4>
+      <div class="categories">
+        <NuxtLink
+          v-for="{ category, count } in postCategories"
+          :key="category"
+          :to="`/?category=${encodeURIComponent(category)}`"
+          class="category-link"
+        >
+          <span>{{ category }}</span>
+          <span class="category-count">({{ count }})</span>
+        </NuxtLink>
+      </div>
     </div>
 
     <div v-if="isShowingAuthor && authorProfile?.social" class="sidebar-section">
@@ -107,35 +188,6 @@ const topTags = computed(() => {
       </nav>
     </div>
 
-    <!-- Show site navigation links when on homepage -->
-    <div v-if="!isShowingAuthor" class="sidebar-section">
-      <h4 class="section-title">
-        <Icon name="heroicons:link" size="18" />
-        站內連結
-      </h4>
-      <nav class="sidebar-links">
-        <NuxtLink to="/about">
-          <Icon name="heroicons:information-circle" size="16" />
-          關於本站
-        </NuxtLink>
-        <NuxtLink to="/writing-guide">
-          <Icon name="heroicons:pencil-square" size="16" />
-          撰寫指南
-        </NuxtLink>
-        <NuxtLink to="/authors">
-          <Icon name="heroicons:users" size="16" />
-          所有作者
-        </NuxtLink>
-        <NuxtLink to="/code-of-conduct">
-          <Icon name="heroicons:document-text" size="16" />
-          行為準則
-        </NuxtLink>
-        <a href="https://github.com/ChinHongTan/blog" target="_blank" rel="noopener noreferrer">
-          <Icon name="simple-icons:github" size="16" />
-          網站原始碼
-        </a>
-      </nav>
-    </div>
   </aside>
 </template>
 
@@ -191,6 +243,37 @@ const topTags = computed(() => {
   color: var(--color-text-secondary);
 }
 
+.site-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.site-stat {
+  background: color-mix(in srgb, var(--color-bg-primary) 94%, transparent);
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  padding: 0.45rem 0.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.site-stat-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.site-stat-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
 .section-title {
   display: flex;
   align-items: center;
@@ -234,6 +317,39 @@ const topTags = computed(() => {
   font-size: 0.8rem;
   opacity: 0.8;
   margin-left: 0.2rem;
+}
+
+.categories {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.category-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  background: color-mix(in srgb, var(--color-bg-primary) 96%, transparent);
+  border: 1px solid var(--color-border-light);
+  transition: all 0.2s ease;
+}
+
+.category-link:hover {
+  color: var(--color-primary-dark);
+  background: var(--color-bg-blue-tint);
+  border-color: var(--color-primary-light);
+  transform: translateX(4px);
+}
+
+.category-count {
+  font-size: 0.8rem;
+  color: var(--color-text-tertiary);
 }
 
 .sidebar-links {

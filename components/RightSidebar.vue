@@ -1,4 +1,10 @@
 <script setup lang="ts">
+type AuthorCollectionItem = {
+  name?: string;
+  avatar?: string;
+  [key: string]: unknown;
+};
+
 const props = defineProps<{
   allPosts?: unknown[] | null;
   isPostPage?: boolean;
@@ -12,6 +18,27 @@ const emit = defineEmits<{
 const localSearchQuery = computed({
   get: () => props.searchQuery || '',
   set: (value) => emit('update:search-query', value)
+});
+
+function fallbackAvatar(label: string, size = 48) {
+  const safeLabel = label?.trim();
+  const initial = (safeLabel ? safeLabel[0] : 'A')?.toUpperCase() ?? 'A';
+  return `https://placehold.co/${size}x${size}/38bdf8/ffffff?text=${initial}`;
+}
+
+const { data: authorEntries } = await useAsyncData('sidebar-authors', () =>
+  queryCollection('authors').all()
+);
+
+const authorDirectory = computed<Record<string, AuthorCollectionItem>>(() => {
+  const directory: Record<string, AuthorCollectionItem> = {};
+  const records = (authorEntries.value ?? []) as unknown as AuthorCollectionItem[];
+  records.forEach((entry) => {
+    if (entry?.name) {
+      directory[entry.name] = entry;
+    }
+  });
+  return directory;
 });
 
 // TOC state
@@ -140,7 +167,11 @@ const authors = computed(() => {
   });
   
   return Array.from(authorMap.entries())
-    .map(([name, count]) => ({ name, count }))
+    .map(([name, count]) => ({
+      name,
+      count,
+      avatar: authorDirectory.value[name]?.avatar ?? fallbackAvatar(name, 40),
+    }))
     .sort((a, b) => b.count - a.count);
 });
 </script>
@@ -207,36 +238,16 @@ const authors = computed(() => {
       </h4>
       <nav class="author-links">
         <NuxtLink 
-          v-for="{ name, count } in authors" 
+          v-for="{ name, count, avatar } in authors" 
           :key="name"
           :to="`/?author=${encodeURIComponent(name)}`"
           class="author-item"
         >
-          <Icon name="heroicons:user-circle" size="16" />
-          <span>{{ name }}</span>
-          <span class="count">({{ count }})</span>
-        </NuxtLink>
-      </nav>
-    </div>
-
-    <!-- Quick Navigation -->
-    <div class="sidebar-section">
-      <h4 class="section-title">
-        <Icon name="heroicons:squares-2x2" size="18" />
-        快速連結
-      </h4>
-      <nav class="quick-links">
-        <NuxtLink to="/">
-          <Icon name="heroicons:home" size="16" />
-          首頁
-        </NuxtLink>
-        <NuxtLink to="/about">
-          <Icon name="heroicons:information-circle" size="16" />
-          關於
-        </NuxtLink>
-        <NuxtLink to="/authors">
-          <Icon name="heroicons:users" size="16" />
-          作者
+          <img :src="avatar" :alt="`${name} Avatar`" class="author-avatar">
+          <div class="author-meta">
+            <span class="author-name">{{ name }}</span>
+            <span class="author-count">({{ count }})</span>
+          </div>
         </NuxtLink>
       </nav>
     </div>
@@ -324,15 +335,13 @@ const authors = computed(() => {
   border-bottom: 2px solid var(--color-primary-light);
 }
 
-.toc-links,
-.quick-links {
+.toc-links {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.toc-links a,
-.quick-links a {
+.toc-links a {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -356,8 +365,7 @@ const authors = computed(() => {
   border-left: 3px solid var(--color-primary);
 }
 
-.toc-links a:hover,
-.quick-links a:hover {
+.toc-links a:hover {
   color: var(--color-primary-dark);
   background: var(--color-bg-blue-tint);
   padding-left: 1rem;
@@ -379,7 +387,7 @@ const authors = computed(() => {
 .author-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   color: var(--color-text-secondary);
   text-decoration: none;
   font-size: 0.9rem;
@@ -395,13 +403,41 @@ const authors = computed(() => {
   padding-left: 1rem;
 }
 
-.archive-item .count,
-.author-item .count {
+.archive-item .count {
   margin-left: auto;
   font-size: 0.8rem;
   color: var(--color-text-tertiary);
 }
 
+.author-item {
+  gap: 0.55rem;
+}
+
+.author-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-border-light);
+  flex-shrink: 0;
+}
+
+.author-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  color: var(--color-text-secondary);
+}
+
+.author-name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.author-count {
+  font-size: 0.8rem;
+  color: var(--color-text-tertiary);
+}
 /* Scrollbar styling */
 .right-sidebar::-webkit-scrollbar {
   width: 6px;

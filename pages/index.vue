@@ -1,36 +1,73 @@
 <script setup lang="ts">
 import type { BlogCollectionItem } from '@nuxt/content';
 
+type AuthorCollectionItem = {
+  name?: string;
+  bio?: string;
+  avatar?: string;
+  [key: string]: unknown;
+};
+
+type DisplayPost = BlogCollectionItem & {
+  path: string;
+  authorAvatar?: string;
+  authorBio?: string;
+};
+
 const route = useRoute();
 
-const { data: posts } = await useAsyncData<BlogCollectionItem[]>("posts", () =>
+const { data: posts } = await useAsyncData<BlogCollectionItem[]>('posts', () =>
   queryCollection('blog').order('date', 'DESC').all()
 );
 
-// Ensure each post has a stable path for routing
-const normalizedPosts = computed<BlogCollectionItem[]>(() => {
+const { data: authors } = await useAsyncData('authors', () =>
+  queryCollection('authors').all()
+);
+
+const authorDirectory = computed<Record<string, AuthorCollectionItem>>(() => {
+  const directory: Record<string, AuthorCollectionItem> = {};
+  const records = (authors.value ?? []) as unknown as AuthorCollectionItem[];
+  records.forEach((entry) => {
+    if (entry?.name) {
+      directory[entry.name] = entry;
+    }
+  });
+  return directory;
+});
+
+function fallbackAvatar(label: string, size = 64) {
+  const safeLabel = label?.trim();
+  const initial = (safeLabel ? safeLabel[0] : 'A')?.toUpperCase() ?? 'A';
+  return `https://placehold.co/${size}x${size}/38bdf8/ffffff?text=${initial}`;
+}
+
+function enrichPost(post: BlogCollectionItem, path: string): DisplayPost {
+  const profile = post.author ? authorDirectory.value[post.author] : undefined;
+  return {
+    ...post,
+    path,
+    authorAvatar: profile?.avatar ?? (post.author ? fallbackAvatar(post.author, 56) : undefined),
+    authorBio: profile?.bio,
+  };
+}
+
+const preparedPosts = computed<DisplayPost[]>(() => {
   const rawPosts = posts.value ?? [];
   return rawPosts.map((post) => {
     if (post.path && post.path !== '/blog') {
-      return post;
+      return enrichPost(post, post.path);
     }
 
     if (post.stem) {
-      return {
-        ...post,
-        path: `/${post.stem}`,
-      } satisfies BlogCollectionItem;
+      return enrichPost(post, `/${post.stem}`);
     }
 
     if (post.id) {
       const derivedStem = post.id.replace(/^blog\//, '').replace(/\.md$/, '');
-      return {
-        ...post,
-        path: `/${derivedStem}`,
-      } satisfies BlogCollectionItem;
+      return enrichPost(post, `/${derivedStem}`);
     }
 
-    return post;
+    return enrichPost(post, post.path ?? '/blog');
   });
 });
 
@@ -41,43 +78,41 @@ const searchQuery = inject('searchQuery', ref(''));
 const tagFilter = computed(() => route.query.tag as string | undefined);
 const yearFilter = computed(() => route.query.year as string | undefined);
 const authorFilter = computed(() => route.query.author as string | undefined);
+const categoryFilter = computed(() => route.query.category as string | undefined);
 
 // Filter posts based on search, tag, year, and author
-const filteredPosts = computed(() => {
-  let filtered = normalizedPosts.value || [];
-  
-  // Filter by search query
+const filteredPosts = computed<DisplayPost[]>(() => {
+  let filtered = preparedPosts.value || [];
+
   if (searchQuery.value) {
-    filtered = filtered.filter(post => 
-      post.title?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      post.description?.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const query = searchQuery.value.toLowerCase();
+    filtered = filtered.filter((post) =>
+      post.title?.toLowerCase().includes(query) ||
+      post.description?.toLowerCase().includes(query)
     );
   }
-  
-  // Filter by tag
+
   if (tagFilter.value) {
-    filtered = filtered.filter((post: unknown) => {
-      const postData = post as { tags?: string[] };
-      return postData.tags && Array.isArray(postData.tags) && postData.tags.includes(tagFilter.value as string);
-    });
+    filtered = filtered.filter((post) =>
+      Array.isArray(post.tags) && post.tags.includes(tagFilter.value as string)
+    );
   }
-  
-  // Filter by year
+
   if (yearFilter.value) {
-    filtered = filtered.filter((post: unknown) => {
-      const postData = post as { date: string };
-      return new Date(postData.date).getFullYear().toString() === yearFilter.value;
+    filtered = filtered.filter((post) => {
+      const year = new Date(post.date).getFullYear().toString();
+      return year === yearFilter.value;
     });
   }
-  
-  // Filter by author
+
   if (authorFilter.value) {
-    filtered = filtered.filter((post: unknown) => {
-      const postData = post as { author?: string };
-      return postData.author === authorFilter.value;
-    });
+    filtered = filtered.filter((post) => post.author === authorFilter.value);
   }
-  
+
+  if (categoryFilter.value) {
+    filtered = filtered.filter((post) => post.category === categoryFilter.value);
+  }
+
   return filtered;
 });
 
@@ -86,6 +121,7 @@ const activeFilter = computed(() => {
   if (tagFilter.value) return `標籤：${tagFilter.value}`;
   if (yearFilter.value) return `年份：${yearFilter.value}`;
   if (authorFilter.value) return `作者：${authorFilter.value}`;
+  if (categoryFilter.value) return `分類：${categoryFilter.value}`;
   return null;
 });
 
@@ -97,27 +133,24 @@ useSeoMeta({
 
 <template>
   <div class="home-page">
-    <!-- Hero Section -->
     <section class="hero">
       <div class="hero-content">
         <h1 class="hero-title">
           嘿！歡迎來到 <span class="highlight">七糯糯的小站</span>
         </h1>
         <p class="hero-description">
-          我們是一群認識的小夥伴。這是我們分享日常冒險、酷炫發現、成就和有趣時刻的地方。歡迎你的到來！
+          我們是一群認識的小夥伴。這裡收錄大家的日常冒險、靈感筆記和生活記錄。
         </p>
       </div>
     </section>
 
-    <!-- Blog Posts List -->
     <section class="posts-section">
       <div class="section-header">
         <h2 class="section-heading">
           <Icon name="heroicons:newspaper" size="28" />
           最近更新
         </h2>
-        
-        <!-- Active Filter Badge -->
+
         <div v-if="activeFilter" class="filter-badge">
           <span>{{ activeFilter }}</span>
           <NuxtLink to="/" class="clear-filter">
@@ -126,7 +159,7 @@ useSeoMeta({
         </div>
       </div>
 
-      <div v-if="filteredPosts && filteredPosts.length > 0" class="posts-grid">
+      <div v-if="filteredPosts.length > 0" class="posts-grid">
         <article v-for="post in filteredPosts" :key="post.id" class="post-card">
           <NuxtLink :to="post.path" class="post-link">
             <div v-if="post.featured_image" class="post-image">
@@ -137,15 +170,27 @@ useSeoMeta({
               <p v-if="post.description" class="post-description">
                 {{ post.description }}
               </p>
-              <div class="post-meta">
-                <span class="meta-item">
-                  <Icon name="heroicons:calendar" size="16" />
-                  {{ new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }}
-                </span>
-                <span v-if="post.author" class="meta-item">
-                  <Icon name="heroicons:user" size="16" />
-                  {{ post.author }}
-                </span>
+              <div class="post-meta-row">
+                <template v-if="post.author">
+                  <img
+                    :src="post.authorAvatar || fallbackAvatar(post.author, 32)"
+                    :alt="post.author"
+                    class="post-author-avatar"
+                  >
+                </template>
+                <div class="post-meta-text">
+                  <template v-if="post.author">
+                    <span class="post-author-name">{{ post.author }}</span>
+                    <span class="meta-separator">•</span>
+                  </template>
+                  <span class="post-date">
+                    {{ new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }}
+                  </span>
+                  <template v-if="Array.isArray(post.tags) && post.tags.length">
+                    <span class="meta-separator">•</span>
+                    <span class="post-tags-inline">{{ post.tags.map(tag => `#${tag}`).join(' ') }}</span>
+                  </template>
+                </div>
               </div>
             </div>
           </NuxtLink>
@@ -167,11 +212,10 @@ useSeoMeta({
   gap: 3rem;
 }
 
-/* Hero Section */
 .hero {
   background: linear-gradient(135deg, var(--color-bg-blue-tint) 0%, var(--color-bg-primary) 100%);
   border-radius: 16px;
-  padding: 2.5rem 2rem;
+  padding: 2.4rem 2rem;
   border: 1px solid var(--color-border-light);
   box-shadow: var(--shadow-lg);
 }
@@ -181,13 +225,15 @@ useSeoMeta({
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  align-items: center;
 }
 
 .hero-title {
-  font-size: 2.5rem;
+  font-size: 2.4rem;
   font-weight: 700;
   color: var(--color-text-primary);
   line-height: 1.2;
+  margin: 0;
 }
 
 .highlight {
@@ -198,21 +244,25 @@ useSeoMeta({
 }
 
 .hero-description {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   color: var(--color-text-secondary);
-  max-width: 650px;
+  max-width: 580px;
   margin: 0 auto;
   line-height: 1.7;
 }
 
-/* Posts Section */
+.posts-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
-  margin-bottom: 1.5rem;
 }
 
 .section-heading {
@@ -325,26 +375,51 @@ useSeoMeta({
   margin: 0;
 }
 
-.post-meta {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  margin-top: 0.5rem;
+.post-author-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-border-light);
 }
 
-.meta-item {
+.post-author-name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+}
+
+.post-meta-row {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.post-meta-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
   color: var(--color-text-tertiary);
 }
 
-.meta-item :deep(svg) {
-  color: var(--color-primary);
+.meta-separator {
+  color: var(--color-border-medium);
 }
 
-/* No Results */
+.post-date {
+  color: var(--color-text-secondary);
+}
+
+.post-tags-inline {
+  color: var(--color-text-tertiary);
+  font-size: 0.8rem;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
 .no-results {
   text-align: center;
   padding: 3rem 1rem;
@@ -356,18 +431,31 @@ useSeoMeta({
   margin-bottom: 1rem;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .hero {
-    padding: 2rem 1.5rem;
+    padding: 2.1rem 1.85rem;
   }
 
   .hero-title {
-    font-size: 1.85rem;
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 1.8rem 1.4rem;
+  }
+
+  .hero-content {
+    gap: 1.5rem;
+  }
+
+  .hero-title {
+    font-size: 1.95rem;
   }
 
   .hero-description {
-    font-size: 1rem;
+    font-size: 0.98rem;
   }
 }
 </style>
