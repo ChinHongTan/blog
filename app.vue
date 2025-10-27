@@ -29,9 +29,22 @@ const { data: currentPage } = await useAsyncData(
 	"current-page",
 	async () => {
 		if (isPostPage.value && route.path !== "/") {
-			return await queryCollection("blog").path(route.path).first();
+			const blogPage = await queryCollection("blog").path(route.path).first();
+			if (blogPage) {
+				return blogPage;
+			}
+
+			const normalizedStem = route.path.replace(/^\/+/, "");
+			if (normalizedStem) {
+				const fallbackBlogPage = await queryCollection("blog")
+					.where("stem", "=", normalizedStem)
+					.first();
+				if (fallbackBlogPage) {
+					return fallbackBlogPage;
+				}
+			}
 		}
-		return Promise.resolve(null);
+		return null;
 	},
 	{
 		watch: [() => route.path],
