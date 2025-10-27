@@ -98,7 +98,7 @@ useSeoMeta({
       </div>
 
       <div v-if="filteredPosts && filteredPosts.length > 0" class="posts-grid">
-        <article v-for="post in filteredPosts" :key="post.id" class="post-card">
+        <article v-for="post in filteredPosts" :key="post.path" class="post-card">
           <NuxtLink :to="post.path" class="post-link">
             <div v-if="post.featured_image" class="post-image">
               <img :src="post.featured_image" :alt="post.title">
