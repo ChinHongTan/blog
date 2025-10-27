@@ -1,9 +1,38 @@
 <script setup lang="ts">
+import type { BlogCollectionItem } from '@nuxt/content';
+
 const route = useRoute();
 
-const { data: posts } = await useAsyncData("posts", () =>
+const { data: posts } = await useAsyncData<BlogCollectionItem[]>("posts", () =>
   queryCollection('blog').order('date', 'DESC').all()
 );
+
+// Ensure each post has a stable path for routing
+const normalizedPosts = computed<BlogCollectionItem[]>(() => {
+  const rawPosts = posts.value ?? [];
+  return rawPosts.map((post) => {
+    if (post.path && post.path !== '/blog') {
+      return post;
+    }
+
+    if (post.stem) {
+      return {
+        ...post,
+        path: `/${post.stem}`,
+      } satisfies BlogCollectionItem;
+    }
+
+    if (post.id) {
+      const derivedStem = post.id.replace(/^blog\//, '').replace(/\.md$/, '');
+      return {
+        ...post,
+        path: `/${derivedStem}`,
+      } satisfies BlogCollectionItem;
+    }
+
+    return post;
+  });
+});
 
 // Get search query from app.vue
 const searchQuery = inject('searchQuery', ref(''));
@@ -15,7 +44,7 @@ const authorFilter = computed(() => route.query.author as string | undefined);
 
 // Filter posts based on search, tag, year, and author
 const filteredPosts = computed(() => {
-  let filtered = posts.value || [];
+  let filtered = normalizedPosts.value || [];
   
   // Filter by search query
   if (searchQuery.value) {

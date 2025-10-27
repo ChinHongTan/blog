@@ -8,11 +8,35 @@ if (route.path.startsWith('/admin')) {
 
 // Try to fetch from blog collection first, then pages collection
 const { data: page } = await useAsyncData(route.path, async () => {
-  // Try blog collection first
+  // Try blog collection first with exact path
   const blogResult = await queryCollection('blog').path(route.path).first();
-  if (blogResult) return blogResult;
-  
-  // If not found in blog, try pages collection
+  if (blogResult) {
+    return blogResult;
+  }
+
+  // Derive stem from catch-all slug params (e.g. ['blog', 'post-name'])
+  const slugParam = route.params.slug;
+  const slugSegments = Array.isArray(slugParam)
+    ? slugParam.filter((segment): segment is string => typeof segment === 'string' && segment.length > 0)
+    : typeof slugParam === 'string' && slugParam.length > 0
+      ? [slugParam]
+      : [];
+  const targetStem = slugSegments.join('/');
+
+  if (targetStem) {
+    const blogByStem = await queryCollection('blog').where('stem', '=', targetStem).first();
+    if (blogByStem) {
+      return blogByStem;
+    }
+
+    const pageByStem = await queryCollection('pages').where('stem', '=', targetStem).first();
+    if (pageByStem) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return pageByStem as any;
+    }
+  }
+
+  // Fallback: try pages collection by path
   const pageResult = await queryCollection('pages').path(route.path).first();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return pageResult as any;
