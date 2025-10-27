@@ -108,16 +108,18 @@ const { data: authors } = await useAsyncData('all-authors', () =>
 }
 
 .author-card {
-  background: white;
+  background: var(--color-bg-primary);
   border: 1px solid var(--color-border-light);
   border-radius: 12px;
   padding: 2rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 .author-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
+  background: color-mix(in srgb, var(--color-bg-secondary) 80%, transparent);
 }
 
 .author-avatar-large {
@@ -197,7 +199,7 @@ const { data: authors } = await useAsyncData('all-authors', () =>
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--color-background-secondary);
+  background: var(--color-bg-tertiary);
   color: var(--color-text-secondary);
   transition: all 0.2s ease;
 }
@@ -219,6 +221,7 @@ const { data: authors } = await useAsyncData('all-authors', () =>
   padding: 2rem;
   border-top: 1px solid var(--color-border-light);
   color: var(--color-text-secondary);
+  background: color-mix(in srgb, var(--color-bg-secondary) 60%, transparent);
 }
 
 @media (max-width: 768px) {

@@ -44,7 +44,7 @@ const { data: currentPage } = await useAsyncData(
 				}
 			}
 		}
-		return null;
+		return false;
 	},
 	{
 		watch: [() => route.path],
@@ -52,7 +52,7 @@ const { data: currentPage } = await useAsyncData(
 );
 
 const currentAuthor = computed(() => {
-	if (currentPage.value) {
+	if (currentPage.value && typeof currentPage.value === "object") {
 		const page = currentPage.value as { author?: string };
 		return page.author || null;
 	}
@@ -197,7 +197,12 @@ watch(() => route.path, () => {
 								<img
 									src="/images/logos/vercel-logo-black.svg"
 									alt="Vercel"
-									class="service-logo"
+									class="service-logo logo-light"
+								>
+								<img
+									src="/images/logos/vercel-logo-white.svg"
+									alt="Vercel"
+									class="service-logo logo-dark"
 								>
 							</a>
 							<a
@@ -209,7 +214,12 @@ watch(() => route.path, () => {
 								<img
 									src="/images/logos/nuxt-logo-green-black.svg"
 									alt="Nuxt"
-									class="service-logo"
+									class="service-logo logo-light"
+								>
+								<img
+									src="/images/logos/nuxt-logo-green-white.svg"
+									alt="Nuxt"
+									class="service-logo logo-dark"
 								>
 							</a>
 							<a
@@ -221,7 +231,12 @@ watch(() => route.path, () => {
 								<img
 									src="/images/logos/decap-logo-black.svg"
 									alt="Decap CMS"
-									class="service-logo decap-logo"
+									class="service-logo decap-logo logo-light"
+								>
+								<img
+									src="/images/logos/decap-logo-white.svg"
+									alt="Decap CMS"
+									class="service-logo decap-logo logo-dark"
 								>
 							</a>
 						</div>
@@ -535,6 +550,18 @@ watch(() => route.path, () => {
 	height: 20px;
 	width: auto;
 	object-fit: contain;
+	display: block;
+}
+
+.logo-dark {
+	display: none;
+}
+
+html.dark .logo-light {
+	display: none;
+}
+
+html.dark .logo-dark {
 	display: block;
 }
 
