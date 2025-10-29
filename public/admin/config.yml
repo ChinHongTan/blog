@@ -1,6 +1,6 @@
 # Use DecapBridge PKCE auth (required)
 backend:
-  name: git-gateway
+  name: test-repo
   repo: ChinHongTan/blog
   branch: main
   auth_type: pkce

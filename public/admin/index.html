@@ -17,11 +17,43 @@
     <!-- Cropper.js for image cropping -->
     <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.css">
     <script src="https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.js"></script>
+
+    <script type="module">
+        import Markdown from 'https://esm.sh/react-markdown@9?bundle'
+        import remarkMath from 'https://esm.sh/remark-math@6.0.0?bundle'
+        import rehypeMathjax from 'https://esm.sh/rehype-mathjax@5.0.0?bundle'
+
+        const renderMarkdownWithMath = (markdown) => {
+          // Use react-markdown with remark/rehype to display LaTeX in the preview pane.
+          return window.h(Markdown, {
+            remarkPlugins: [remarkMath],
+            rehypePlugins: [rehypeMathjax],
+            children: markdown || ''
+          });
+        };
+        window.renderMarkdownWithMath = renderMarkdownWithMath;
+        
+        var PostPreview = createClass({
+        render: function() {
+            var entryBody = (this.props.widgetFor('body') === null) ? ' ' : this.props.widgetFor('body').props.value;
+            return Markdown({
+            children: entryBody,
+            rehypePlugins: [rehypeMathjax],
+            remarkPlugins: [remarkMath]
+            });
+        }
+        });
+        CMS.registerPreviewTemplate("posts", PostPreview);
+    </script>
     
     <!-- Custom widgets and initialization -->
     <script>
       // Wait for CMS to be available
       if (window.CMS) {
+        if (typeof window.renderMarkdownWithMath !== 'function') {
+          // Provide a simple fallback until the math-enabled renderer is ready.
+          window.renderMarkdownWithMath = (markdown) => window.h('div', {}, markdown || '');
+        }
         const ImageCropperControl = window.createClass({
           getInitialState() {
             return {
@@ -368,7 +400,10 @@
             const author = entry.getIn(['data', 'author']);
             const tags = entry.getIn(['data', 'tags']);
             const featuredImage = entry.getIn(['data', 'featured_image']);
-            const body = widgetFor('body');
+            const bodyWidget = widgetFor('body');
+            const bodyMarkdown = bodyWidget && bodyWidget.props && typeof bodyWidget.props.value === 'string'
+              ? bodyWidget.props.value
+              : (entry.getIn(['data', 'body']) || '');
 
             const imageUrl = featuredImage ? getAsset(featuredImage)?.toString() : null;
 
@@ -626,7 +661,7 @@
                   color: '#1e293b'
                 },
                 className: 'blog-preview-content'
-              }, body)
+              }, window.renderMarkdownWithMath(bodyMarkdown))
             )
             );
           }
