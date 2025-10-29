@@ -479,6 +479,32 @@ const readingTime = computed(() => {
 	font-size: 0.9em;
 }
 
+/* MathJax Display Math - Center block equations */
+.post-content :deep(mjx-container[jax="SVG"][display="true"]) {
+	display: block !important;
+	text-align: center !important;
+	margin: 2rem auto !important;
+	overflow-x: auto;
+}
+
+.post-content :deep(mjx-container[jax="SVG"][display="true"] > svg) {
+	display: inline-block !important;
+	max-width: 100%;
+}
+
+/* Also handle PascalCase version if Nuxt Content converts it */
+.post-content :deep(MjxContainer[jax="SVG"][display="true"]) {
+	display: block !important;
+	text-align: center !important;
+	margin: 2rem auto !important;
+	overflow-x: auto;
+}
+
+.post-content :deep(MjxContainer[jax="SVG"][display="true"] > svg) {
+	display: inline-block !important;
+	max-width: 100%;
+}
+
 /* Post Footer */
 .post-footer {
 	margin-top: 3rem;
