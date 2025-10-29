@@ -1,461 +1,511 @@
 <script setup lang="ts">
-import type { BlogCollectionItem } from '@nuxt/content';
+import type { BlogCollectionItem } from "@nuxt/content";
 
 type AuthorCollectionItem = {
-  name?: string;
-  bio?: string;
-  avatar?: string;
-  [key: string]: unknown;
+	name?: string;
+	bio?: string;
+	avatar?: string;
+	[key: string]: unknown;
 };
 
 type DisplayPost = BlogCollectionItem & {
-  path: string;
-  authorAvatar?: string;
-  authorBio?: string;
+	path: string;
+	authorAvatar?: string;
+	authorBio?: string;
 };
 
 const route = useRoute();
 
-const { data: posts } = await useAsyncData<BlogCollectionItem[]>('posts', () =>
-  queryCollection('blog').order('date', 'DESC').all()
+const { data: posts } = await useAsyncData<BlogCollectionItem[]>("posts", () =>
+	queryCollection("blog").order("date", "DESC").all()
 );
 
-const { data: authors } = await useAsyncData('authors', () =>
-  queryCollection('authors').all()
+const { data: authors } = await useAsyncData("authors", () =>
+	queryCollection("authors").all()
 );
 
 const authorDirectory = computed<Record<string, AuthorCollectionItem>>(() => {
-  const directory: Record<string, AuthorCollectionItem> = {};
-  const records = (authors.value ?? []) as unknown as AuthorCollectionItem[];
-  records.forEach((entry) => {
-    if (entry?.name) {
-      directory[entry.name] = entry;
-    }
-  });
-  return directory;
+	const directory: Record<string, AuthorCollectionItem> = {};
+	const records = (authors.value ?? []) as unknown as AuthorCollectionItem[];
+	records.forEach((entry) => {
+		if (entry?.name) {
+			directory[entry.name] = entry;
+		}
+	});
+	return directory;
 });
 
 function fallbackAvatar(label: string, size = 64) {
-  const safeLabel = label?.trim();
-  const initial = (safeLabel ? safeLabel[0] : 'A')?.toUpperCase() ?? 'A';
-  return `https://placehold.co/${size}x${size}/38bdf8/ffffff?text=${initial}`;
+	const safeLabel = label?.trim();
+	const initial = (safeLabel ? safeLabel[0] : "A")?.toUpperCase() ?? "A";
+	return `https://placehold.co/${size}x${size}/38bdf8/ffffff?text=${initial}`;
 }
 
 function enrichPost(post: BlogCollectionItem, path: string): DisplayPost {
-  const profile = post.author ? authorDirectory.value[post.author] : undefined;
-  return {
-    ...post,
-    path,
-    authorAvatar: profile?.avatar ?? (post.author ? fallbackAvatar(post.author, 56) : undefined),
-    authorBio: profile?.bio,
-  };
+	const profile = post.author
+		? authorDirectory.value[post.author]
+		: undefined;
+	return {
+		...post,
+		path,
+		authorAvatar:
+			profile?.avatar ??
+			(post.author ? fallbackAvatar(post.author, 56) : undefined),
+		authorBio: profile?.bio,
+	};
 }
 
 const preparedPosts = computed<DisplayPost[]>(() => {
-  const rawPosts = posts.value ?? [];
-  return rawPosts.map((post) => {
-    if (post.path && post.path !== '/blog') {
-      return enrichPost(post, post.path);
-    }
+	const rawPosts = posts.value ?? [];
+	return rawPosts.map((post) => {
+		if (post.path && post.path !== "/blog") {
+			return enrichPost(post, post.path);
+		}
 
-    if (post.stem) {
-      return enrichPost(post, `/${post.stem}`);
-    }
+		if (post.stem) {
+			return enrichPost(post, `/${post.stem}`);
+		}
 
-    if (post.id) {
-      const derivedStem = post.id.replace(/^blog\//, '').replace(/\.md$/, '');
-      return enrichPost(post, `/${derivedStem}`);
-    }
+		if (post.id) {
+			const derivedStem = post.id
+				.replace(/^blog\//, "")
+				.replace(/\.md$/, "");
+			return enrichPost(post, `/${derivedStem}`);
+		}
 
-    return enrichPost(post, post.path ?? '/blog');
-  });
+		return enrichPost(post, post.path ?? "/blog");
+	});
 });
 
 // Get search query from app.vue
-const searchQuery = inject('searchQuery', ref(''));
+const searchQuery = inject("searchQuery", ref(""));
 
 // Get filter parameters from URL
 const tagFilter = computed(() => route.query.tag as string | undefined);
 const yearFilter = computed(() => route.query.year as string | undefined);
 const authorFilter = computed(() => route.query.author as string | undefined);
-const categoryFilter = computed(() => route.query.category as string | undefined);
+const categoryFilter = computed(
+	() => route.query.category as string | undefined
+);
 
 // Filter posts based on search, tag, year, and author
 const filteredPosts = computed<DisplayPost[]>(() => {
-  let filtered = preparedPosts.value || [];
+	let filtered = preparedPosts.value || [];
 
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    filtered = filtered.filter((post) =>
-      post.title?.toLowerCase().includes(query) ||
-      post.description?.toLowerCase().includes(query)
-    );
-  }
+	if (searchQuery.value) {
+		const query = searchQuery.value.toLowerCase();
+		filtered = filtered.filter(
+			(post) =>
+				post.title?.toLowerCase().includes(query) ||
+				post.description?.toLowerCase().includes(query)
+		);
+	}
 
-  if (tagFilter.value) {
-    filtered = filtered.filter((post) =>
-      Array.isArray(post.tags) && post.tags.includes(tagFilter.value as string)
-    );
-  }
+	if (tagFilter.value) {
+		filtered = filtered.filter(
+			(post) =>
+				Array.isArray(post.tags) &&
+				post.tags.includes(tagFilter.value as string)
+		);
+	}
 
-  if (yearFilter.value) {
-    filtered = filtered.filter((post) => {
-      const year = new Date(post.date).getFullYear().toString();
-      return year === yearFilter.value;
-    });
-  }
+	if (yearFilter.value) {
+		filtered = filtered.filter((post) => {
+			const year = new Date(post.date).getFullYear().toString();
+			return year === yearFilter.value;
+		});
+	}
 
-  if (authorFilter.value) {
-    filtered = filtered.filter((post) => post.author === authorFilter.value);
-  }
+	if (authorFilter.value) {
+		filtered = filtered.filter(
+			(post) => post.author === authorFilter.value
+		);
+	}
 
-  if (categoryFilter.value) {
-    filtered = filtered.filter((post) => post.category === categoryFilter.value);
-  }
+	if (categoryFilter.value) {
+		filtered = filtered.filter(
+			(post) => post.category === categoryFilter.value
+		);
+	}
 
-  return filtered;
+	return filtered;
 });
 
 // Active filter label for display
 const activeFilter = computed(() => {
-  if (tagFilter.value) return `標籤：${tagFilter.value}`;
-  if (yearFilter.value) return `年份：${yearFilter.value}`;
-  if (authorFilter.value) return `作者：${authorFilter.value}`;
-  if (categoryFilter.value) return `分類：${categoryFilter.value}`;
-  return null;
+	if (tagFilter.value) return `標籤：${tagFilter.value}`;
+	if (yearFilter.value) return `年份：${yearFilter.value}`;
+	if (authorFilter.value) return `作者：${authorFilter.value}`;
+	if (categoryFilter.value) return `分類：${categoryFilter.value}`;
+	return null;
 });
 
 useSeoMeta({
-  title: '七糯糯的小站',
-  description: '我們是一群認識的小夥伴。這是我們分享日常冒險、酷炫發現、成就和有趣時刻的地方。歡迎你的到來！',
+	title: "七糯糯的小站",
+	description:
+		"我們是一群認識的小夥伴。這是我們分享日常冒險、酷炫發現、成就和有趣時刻的地方。歡迎你的到來！",
 });
 </script>
 
 <template>
-  <div class="home-page">
-    <section class="hero">
-      <div class="hero-content">
-        <h1 class="hero-title">
-          嘿！歡迎來到 <span class="highlight">七糯糯的小站</span>
-        </h1>
-        <p class="hero-description">
-          我們是一群認識的小夥伴。這裡收錄大家的日常冒險、靈感筆記和生活記錄。
-        </p>
-      </div>
-    </section>
+	<div class="home-page">
+		<section class="hero">
+			<div class="hero-content">
+				<h1 class="hero-title">
+					嘿！歡迎來到 <span class="highlight">七糯糯的小站</span>
+				</h1>
+				<p class="hero-description">
+					我們是一群認識的小夥伴。這裡收錄大家的日常冒險、靈感筆記和生活記錄。
+				</p>
+			</div>
+		</section>
 
-    <section class="posts-section">
-      <div class="section-header">
-        <h2 class="section-heading">
-          <Icon name="heroicons:newspaper" size="28" />
-          最近更新
-        </h2>
+		<section class="posts-section">
+			<div class="section-header">
+				<h2 class="section-heading">
+					<Icon name="heroicons:newspaper" size="28" />
+					最近更新
+				</h2>
 
-        <div v-if="activeFilter" class="filter-badge">
-          <span>{{ activeFilter }}</span>
-          <NuxtLink to="/" class="clear-filter">
-            <Icon name="heroicons:x-mark" size="16" />
-          </NuxtLink>
-        </div>
-      </div>
+				<div v-if="activeFilter" class="filter-badge">
+					<span>{{ activeFilter }}</span>
+					<NuxtLink to="/" class="clear-filter">
+						<Icon name="heroicons:x-mark" size="16" />
+					</NuxtLink>
+				</div>
+			</div>
 
-      <div v-if="filteredPosts.length > 0" class="posts-grid">
-        <article v-for="post in filteredPosts" :key="post.id" class="post-card">
-          <NuxtLink :to="post.path" class="post-link">
-            <div v-if="post.featured_image" class="post-image">
-              <img :src="post.featured_image" :alt="post.title">
-            </div>
-            <div class="post-content">
-              <h3 class="post-title">{{ post.title }}</h3>
-              <p v-if="post.description" class="post-description">
-                {{ post.description }}
-              </p>
-              <div class="post-meta-row">
-                <template v-if="post.author">
-                  <img
-                    :src="post.authorAvatar || fallbackAvatar(post.author, 32)"
-                    :alt="post.author"
-                    class="post-author-avatar"
-                  >
-                </template>
-                <div class="post-meta-text">
-                  <template v-if="post.author">
-                    <span class="post-author-name">{{ post.author }}</span>
-                    <span class="meta-separator">•</span>
-                  </template>
-                  <span class="post-date">
-                    {{ new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }}
-                  </span>
-                  <template v-if="Array.isArray(post.tags) && post.tags.length">
-                    <span class="meta-separator">•</span>
-                    <span class="post-tags-inline">{{ post.tags.map(tag => `#${tag}`).join(' ') }}</span>
-                  </template>
-                </div>
-              </div>
-            </div>
-          </NuxtLink>
-        </article>
-      </div>
+			<div v-if="filteredPosts.length > 0" class="posts-grid">
+				<article
+					v-for="post in filteredPosts"
+					:key="post.id"
+					class="post-card"
+				>
+					<NuxtLink :to="post.path" class="post-link">
+						<div v-if="post.featured_image" class="post-image">
+							<img :src="post.featured_image" :alt="post.title" />
+						</div>
+						<div class="post-content">
+							<h3 class="post-title">{{ post.title }}</h3>
+							<p v-if="post.description" class="post-description">
+								{{ post.description }}
+							</p>
+							<div class="post-meta-row">
+								<template v-if="post.author">
+									<img
+										:src="
+											post.authorAvatar ||
+											fallbackAvatar(post.author, 32)
+										"
+										:alt="post.author"
+										class="post-author-avatar"
+									/>
+								</template>
+								<div class="post-meta-text">
+									<template v-if="post.author">
+										<span class="post-author-name">{{
+											post.author
+										}}</span>
+										<span class="meta-separator">•</span>
+									</template>
+									<span class="post-date">
+										{{
+											new Date(
+												post.date
+											).toLocaleDateString("en-US", {
+												month: "short",
+												day: "numeric",
+												year: "numeric",
+											})
+										}}
+									</span>
+									<template
+										v-if="
+											Array.isArray(post.tags) &&
+											post.tags.length
+										"
+									>
+										<span class="meta-separator">•</span>
+										<span class="post-tags-inline">{{
+											post.tags
+												.map((tag) => `#${tag}`)
+												.join(" ")
+										}}</span>
+									</template>
+								</div>
+							</div>
+						</div>
+					</NuxtLink>
+				</article>
+			</div>
 
-      <div v-else class="no-results">
-        <Icon name="heroicons:magnifying-glass-circle" size="48" />
-        <p>找不到相關內容。試試其他搜尋！</p>
-      </div>
-    </section>
-  </div>
+			<div v-else class="no-results">
+				<Icon name="heroicons:magnifying-glass-circle" size="48" />
+				<p>找不到相關內容。試試其他搜尋！</p>
+			</div>
+		</section>
+	</div>
 </template>
 
 <style scoped>
 .home-page {
-  display: flex;
-  flex-direction: column;
-  gap: 3rem;
+	display: flex;
+	flex-direction: column;
+	gap: 3rem;
 }
 
 .hero {
-  background: linear-gradient(135deg, var(--color-bg-blue-tint) 0%, var(--color-bg-primary) 100%);
-  border-radius: 16px;
-  padding: 2.4rem 2rem;
-  border: 1px solid var(--color-border-light);
-  box-shadow: var(--shadow-lg);
+	background: linear-gradient(
+		135deg,
+		var(--color-bg-blue-tint) 0%,
+		var(--color-bg-primary) 100%
+	);
+	border-radius: 16px;
+	padding: 2.4rem 2rem;
+	border: 1px solid var(--color-border-light);
+	box-shadow: var(--shadow-lg);
 }
 
 .hero-content {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  align-items: center;
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	align-items: center;
 }
 
 .hero-title {
-  font-size: 2.4rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  line-height: 1.2;
-  margin: 0;
+	font-size: 2.4rem;
+	font-weight: 700;
+	color: var(--color-text-primary);
+	line-height: 1.2;
+	margin: 0;
 }
 
 .highlight {
-  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+	background: linear-gradient(
+		135deg,
+		var(--color-primary-dark),
+		var(--color-primary)
+	);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
 }
 
 .hero-description {
-  font-size: 1.05rem;
-  color: var(--color-text-secondary);
-  max-width: 580px;
-  margin: 0 auto;
-  line-height: 1.7;
+	font-size: 1.05rem;
+	color: var(--color-text-secondary);
+	max-width: 580px;
+	margin: 0 auto;
+	line-height: 1.7;
 }
 
 .posts-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
 }
 
 .section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 1rem;
 }
 
 .section-heading {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 1.75rem;
-  color: var(--color-text-primary);
-  margin: 0;
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	font-size: 1.75rem;
+	color: var(--color-text-primary);
+	margin: 0;
 }
 
 .section-heading :deep(svg) {
-  color: var(--color-primary);
+	color: var(--color-primary);
 }
 
 .filter-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--color-bg-blue-tint);
-  border: 1px solid var(--color-primary-light);
-  border-radius: 20px;
-  font-size: 0.9rem;
-  color: var(--color-primary-dark);
-  font-weight: 500;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.5rem 1rem;
+	background: var(--color-bg-blue-tint);
+	border: 1px solid var(--color-primary-light);
+	border-radius: 20px;
+	font-size: 0.9rem;
+	color: var(--color-primary-dark);
+	font-weight: 500;
 }
 
 .clear-filter {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  background: var(--color-primary);
-  color: white;
-  border-radius: 50%;
-  text-decoration: none;
-  transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	background: var(--color-primary);
+	color: white;
+	border-radius: 50%;
+	text-decoration: none;
+	transition: all 0.2s ease;
 }
 
 .clear-filter:hover {
-  background: var(--color-primary-dark);
-  transform: scale(1.1);
+	background: var(--color-primary-dark);
+	transform: scale(1.1);
 }
 
 .posts-grid {
-  display: grid;
-  gap: 1.5rem;
+	display: grid;
+	gap: 1.5rem;
 }
 
 .post-card {
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-light);
-  border-radius: 12px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow-sm);
+	background: var(--color-bg-primary);
+	border: 1px solid var(--color-border-light);
+	border-radius: 12px;
+	overflow: hidden;
+	transition: all 0.3s ease;
+	box-shadow: var(--shadow-sm);
 }
 
 .post-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--color-primary-light);
+	transform: translateY(-4px);
+	box-shadow: var(--shadow-lg);
+	border-color: var(--color-primary-light);
 }
 
 .post-link {
-  text-decoration: none;
-  color: inherit;
-  display: block;
+	text-decoration: none;
+	color: inherit;
+	display: block;
 }
 
 .post-image {
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-  background: var(--color-bg-tertiary);
+	width: 100%;
+	height: 200px;
+	overflow: hidden;
+	background: var(--color-bg-tertiary);
 }
 
 .post-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform 0.3s ease;
 }
 
 .post-card:hover .post-image img {
-  transform: scale(1.05);
+	transform: scale(1.05);
 }
 
 .post-content {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+	padding: 1.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
 }
 
 .post-title {
-  font-size: 1.35rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  line-height: 1.4;
-  margin: 0;
+	font-size: 1.35rem;
+	font-weight: 600;
+	color: var(--color-text-primary);
+	line-height: 1.4;
+	margin: 0;
 }
 
 .post-description {
-  font-size: 0.95rem;
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-  margin: 0;
+	font-size: 0.95rem;
+	color: var(--color-text-secondary);
+	line-height: 1.6;
+	margin: 0;
 }
 
 .post-author-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid var(--color-border-light);
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	object-fit: cover;
+	border: 1px solid var(--color-border-light);
 }
 
 .post-author-name {
-  font-weight: 600;
-  color: var(--color-text-primary);
-  font-size: 0.9rem;
+	font-weight: 600;
+	color: var(--color-text-primary);
+	font-size: 0.9rem;
 }
 
 .post-meta-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.35rem;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-top: 0.35rem;
 }
 
 .post-meta-text {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.82rem;
-  color: var(--color-text-tertiary);
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.35rem;
+	font-size: 0.82rem;
+	color: var(--color-text-tertiary);
 }
 
 .meta-separator {
-  color: var(--color-border-medium);
+	color: var(--color-border-medium);
 }
 
 .post-date {
-  color: var(--color-text-secondary);
+	color: var(--color-text-secondary);
 }
 
 .post-tags-inline {
-  color: var(--color-text-tertiary);
-  font-size: 0.8rem;
-  text-transform: lowercase;
-  letter-spacing: 0.02em;
+	color: var(--color-text-tertiary);
+	font-size: 0.8rem;
+	text-transform: lowercase;
+	letter-spacing: 0.02em;
 }
 
 .no-results {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: var(--color-text-tertiary);
+	text-align: center;
+	padding: 3rem 1rem;
+	color: var(--color-text-tertiary);
 }
 
 .no-results :deep(svg) {
-  color: var(--color-border-medium);
-  margin-bottom: 1rem;
+	color: var(--color-border-medium);
+	margin-bottom: 1rem;
 }
 
 @media (max-width: 960px) {
-  .hero {
-    padding: 2.1rem 1.85rem;
-  }
+	.hero {
+		padding: 2.1rem 1.85rem;
+	}
 
-  .hero-title {
-    font-size: 2.2rem;
-  }
+	.hero-title {
+		font-size: 2.2rem;
+	}
 }
 
 @media (max-width: 768px) {
-  .hero {
-    padding: 1.8rem 1.4rem;
-  }
+	.hero {
+		padding: 1.8rem 1.4rem;
+	}
 
-  .hero-content {
-    gap: 1.5rem;
-  }
+	.hero-content {
+		gap: 1.5rem;
+	}
 
-  .hero-title {
-    font-size: 1.95rem;
-  }
+	.hero-title {
+		font-size: 1.95rem;
+	}
 
-  .hero-description {
-    font-size: 0.98rem;
-  }
+	.hero-description {
+		font-size: 0.98rem;
+	}
 }
 </style>
