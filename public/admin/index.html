@@ -22,12 +22,14 @@
         import Markdown from 'https://esm.sh/react-markdown@9?bundle'
         import remarkMath from 'https://esm.sh/remark-math@6.0.0?bundle'
         import rehypeMathjax from 'https://esm.sh/rehype-mathjax@5.0.0?bundle'
+        import rehypeRaw from 'https://esm.sh/rehype-raw@7.0.0?bundle'
 
         const renderMarkdownWithMath = (markdown) => {
           // Use react-markdown with remark/rehype to display LaTeX in the preview pane.
+          // rehypeRaw allows HTML to be rendered properly
           return window.h(Markdown, {
             remarkPlugins: [remarkMath],
-            rehypePlugins: [rehypeMathjax],
+            rehypePlugins: [rehypeRaw, rehypeMathjax],
             children: markdown || ''
           });
         };
@@ -38,7 +40,7 @@
             var entryBody = (this.props.widgetFor('body') === null) ? ' ' : this.props.widgetFor('body').props.value;
             return Markdown({
             children: entryBody,
-            rehypePlugins: [rehypeMathjax],
+            rehypePlugins: [rehypeRaw, rehypeMathjax],
             remarkPlugins: [remarkMath]
             });
         }
@@ -48,6 +50,21 @@
     
     <!-- Custom widgets and initialization -->
     <script>
+      const ensurePreviewStyles = () => {
+        if (!window.CMS) return;
+        try {
+          window.CMS.registerPreviewStyle('admin.css');
+        } catch (e) {
+          console.warn('Failed to register preview style', e);
+        }
+      };
+
+      if (window.CMS) {
+        ensurePreviewStyles();
+      } else {
+        document.addEventListener('CMSLoaded', ensurePreviewStyles);
+      }
+
       // Wait for CMS to be available
       if (window.CMS) {
         if (typeof window.renderMarkdownWithMath !== 'function') {

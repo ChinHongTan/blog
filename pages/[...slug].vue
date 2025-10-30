@@ -167,7 +167,7 @@ const readingTime = computed(() => {
 						:src="authorAvatar"
 						:alt="page.author || 'Author'"
 						class="author-avatar"
-					/>
+					>
 					<span class="author-name">{{
 						page.author || "Anonymous"
 					}}</span>
@@ -209,7 +209,7 @@ const readingTime = computed(() => {
 
 		<!-- Featured Image (only for blog posts) -->
 		<div v-if="isBlogPost && page.featured_image" class="featured-image">
-			<img :src="page.featured_image" :alt="page.title" />
+			<img :src="page.featured_image" :alt="page.title">
 		</div>
 
 		<!-- Post Content -->
@@ -463,9 +463,123 @@ const readingTime = computed(() => {
 .post-content :deep(img) {
 	max-width: 100%;
 	height: auto;
+	border-radius: 12px;
+	margin: 1.5rem 0;
+	box-shadow: var(--shadow-md);
+}
+
+.post-content :deep(figure) {
+	margin: 1.5rem 0;
+}
+
+.post-content :deep(figure img) {
+	display: block;
+	margin: 0;
+}
+
+.post-content :deep(figcaption) {
+	text-align: center;
+	color: var(--color-text-tertiary);
+	font-size: 0.9rem;
+	margin-top: 0.75rem;
+	font-style: italic;
+	line-height: 1.4;
+}
+
+.post-content :deep(.info-box) {
+	padding: 1rem 1.5rem;
 	border-radius: 8px;
 	margin: 1.5rem 0;
-	box-shadow: var(--shadow-sm);
+	border-left: 4px solid;
+}
+
+.post-content :deep(.info-box strong) {
+	display: block;
+	margin-bottom: 0.5rem;
+	font-size: 1.1rem;
+	font-weight: 600;
+}
+
+.post-content :deep(.info-box p) {
+	margin: 0;
+	line-height: 1.6;
+}
+
+.post-content :deep(.info-box-info) {
+	background: #e0f2fe;
+	border-color: var(--color-primary);
+	color: var(--color-primary-dark);
+}
+
+.post-content :deep(.info-box-success) {
+	background: #d1fae5;
+	border-color: #10b981;
+	color: #059669;
+}
+
+.post-content :deep(.info-box-warning) {
+	background: #fef3c7;
+	border-color: #f59e0b;
+	color: #d97706;
+}
+
+.post-content :deep(.info-box-error) {
+	background: #fee2e2;
+	border-color: #ef4444;
+	color: #dc2626;
+}
+
+html.dark .post-content :deep(.info-box-info) {
+	background: rgba(14, 165, 233, 0.18);
+	border-color: #38bdf8;
+	color: #bae6fd;
+}
+
+html.dark .post-content :deep(.info-box-success) {
+	background: rgba(16, 185, 129, 0.18);
+	border-color: #34d399;
+	color: #bbf7d0;
+}
+
+html.dark .post-content :deep(.info-box-warning) {
+	background: rgba(245, 158, 11, 0.18);
+	border-color: #fbbf24;
+	color: #fcd34d;
+}
+
+html.dark .post-content :deep(.info-box-error) {
+	background: rgba(239, 68, 68, 0.18);
+	border-color: #f87171;
+	color: #fecaca;
+}
+
+.post-content :deep(.youtube-embed) {
+	position: relative;
+	padding-bottom: 56.25%;
+	height: 0;
+	overflow: hidden;
+	max-width: 100%;
+	margin: 1.5rem 0;
+	border-radius: 12px;
+	box-shadow: var(--shadow-md);
+}
+
+.post-content :deep(.youtube-embed iframe) {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	border: none;
+}
+
+.post-content :deep(blockquote cite) {
+	display: block;
+	margin-top: 0.75rem;
+	font-style: normal;
+	color: var(--color-text-tertiary);
+	font-size: 0.9rem;
+	font-weight: 500;
 }
 
 .post-content :deep(pre) {
