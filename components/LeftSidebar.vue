@@ -228,6 +228,8 @@ const topTags = computed(() => {
   margin: 0 auto 0.5rem;
   border: 3px solid var(--color-primary-light);
   box-shadow: var(--shadow-sm);
+  object-fit: cover;
+  aspect-ratio: 1 / 1;
 }
 
 .author-name {

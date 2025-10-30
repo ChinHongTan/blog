@@ -294,6 +294,9 @@ const readingTime = computed(() => {
 	height: 40px;
 	border-radius: 50%;
 	border: 2px solid var(--color-primary-light);
+	object-fit: cover;
+	aspect-ratio: 1 / 1;
+	flex-shrink: 0;
 }
 
 .author-name {
