@@ -175,47 +175,26 @@ Evans 指出，1920年代的國防軍仍保留高度專業自豪感，並非納�
 ## Notes
 
 1. Richard J. Evans, *The Coming of the Third Reich* (New York: Penguin, 2004), 52–53, 80–84; Adam Tooze, *The Wages of Destruction: The Making and Breaking of the Nazi Economy* (London: Allen Lane, 2006), 2, 37–38, 43–44, 95–107, 189–190, 227–228, 249, 265.
-
 2. Richard J. Evans, *The Third Reich in Power, 1933–1939* (New York: Penguin, 2005), 18–21; Evans, *The Coming of the Third Reich*, 280–284; Tooze, *The Wages of Destruction*, 2, 173–174, 189–190, 227–228, 249, 265.
-
 3. Evans, *The Third Reich in Power, 1933–1939*, 18–21; Evans, *The Coming of the Third Reich*, 280–284.
-
 4. Margaret MacMillan, *Paris 1919: Six Months That Changed the World* (New York: Random House, 2001), 389–391, 404–406, 480; Evans, *The Coming of the Third Reich*, 13–17.
-
 5. MacMillan, *Paris 1919*, 389–391, 404–406, 480; Evans, *The Coming of the Third Reich*, 13–17.
-
 6. MacMillan, *Paris 1919*, 389–391, 404–406, 480; Evans, *The Coming of the Third Reich*, 13–17, 80–84, 88.
-
 7. Evans, *The Coming of the Third Reich*, 52–53, 80–84, 88; Tooze, *The Wages of Destruction*, 37–38, 43–44.
-
 8. Evans, *The Coming of the Third Reich*, 52–53; Tooze, *The Wages of Destruction*, 37–38, 43–44, 95–107.
-
 9. Tooze, *The Wages of Destruction*, 2, 189–190, 227–228, 249, 265; Evans, *The Coming of the Third Reich*, 80–84.
-
 10. Evans, *The Third Reich in Power, 1933–1939*, 18–21; Evans, *The Coming of the Third Reich*, 280–284.
-
 11. MacMillan, *Paris 1919*, 404–406; Tooze, *The Wages of Destruction*, 2, 37–38, 43–44, 95–107, 173–174, 189–190, 227–228, 249, 265; Evans, *The Coming of the Third Reich*, 80–84.
-
 12. Evans, *The Coming of the Third Reich*, 80–84, 88.
-
 13. Evans, *The Coming of the Third Reich*, 52–53, 80–84, 88; Tooze, *The Wages of Destruction*, 37–38, 43–44.
-
 14. Evans, *The Coming of the Third Reich*, 52–53; Tooze, *The Wages of Destruction*, 37–38, 43–44.
-
 15. Evans, *The Coming of the Third Reich*, 52–53, 280–284; Evans, *The Third Reich in Power, 1933–1939*, 18–21; Tooze, *The Wages of Destruction*, 37–38, 43–44, 95–107.
-
 16. MacMillan, *Paris 1919*, 389–391, 404–406, 480; Evans, *The Coming of the Third Reich*, 13–17; Tooze, *The Wages of Destruction*, 43–44.
-
 17. MacMillan, *Paris 1919*, 404–406; Evans, *The Coming of the Third Reich*, 52–53, 80–84; Tooze, *The Wages of Destruction*, 2, 37–38, 43–44, 95–107, 189–190, 227–228, 249, 265.
-
 18. Evans, *The Third Reich in Power, 1933–1939*, 18–21; Evans, *The Coming of the Third Reich*, 280–284; Tooze, *The Wages of Destruction*, 2, 173–174, 189–190, 227–228, 249, 265.
-
 19. MacMillan, *Paris 1919*, 389–391, 404–406, 480; Evans, *The Coming of the Third Reich*, 13–17, 52–53, 80–84, 88, 280–284; Evans, *The Third Reich in Power, 1933–1939*, 18–21; Tooze, *The Wages of Destruction*, 2, 37–38, 43–44, 95–107, 173–174, 189–190, 227–228, 249, 265.
-
 20. Evans, *The Coming of the Third Reich*, 52–53, 80–84, 280–284; Evans, *The Third Reich in Power, 1933–1939*, 18–21; Tooze, *The Wages of Destruction*, 2, 37–38, 43–44, 95–107, 189–190, 227–228, 249, 265.
-
 21. Evans, *The Third Reich in Power, 1933–1939*, 18–21; Evans, *The Coming of the Third Reich*, 280–284; Tooze, *The Wages of Destruction*, 2, 173–174, 189–190, 227–228, 249, 265.
-
 22. Evans, *The Third Reich in Power, 1933–1939*, 18–21; Evans, *The Coming of the Third Reich*, 280–284; Tooze, *The Wages of Destruction*, 2, 173–174, 189–190, 227–228, 249, 265.
 
 > 23.之後的註釋因太多懶得打，之後有空再補上
@@ -237,4 +216,5 @@ Tooze, Adam. *The Wages of Destruction: The Making and Breaking of the Nazi Econ
 這是一篇莫名其妙就生成出來的...偽歷史論文?\
 我也不知道為何一頓飯的時間就討論出這些奇妙東西，人生真是奇妙對吧。\
 如有任何錯誤或遺漏，請寄email到我的信箱\~也歡迎指教\~\
+(註 : 此文有使用chatGTP進行文獻搜索與文字潤飾)\
 感謝您長達30分鐘的觀看XD
