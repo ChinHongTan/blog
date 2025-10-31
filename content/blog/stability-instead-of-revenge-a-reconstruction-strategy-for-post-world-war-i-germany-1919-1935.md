@@ -10,7 +10,7 @@ featured_image: /images/uploads/atlas_van_der_hagen-kw1049b10_047-s._imperium_ro
 ---
 ## Abstract
 
-本文將論證，德國在 World War I 戰敗後(1919-1935)並非只能在被凡爾賽條約長期壓制與走向法西斯主義擴張之間二選一。相反的，1919年至1929年之間確實存在一條穩定化重建路線：以跨派系的文人聯合政府、賠款-貨幣重組與外資帶動工業復甦、防禦導向而受政府監督的軍隊、社會安全網與公共工程吸收失業人口、以及將德國高技術工業定位為歐洲復興工廠，而非侵略工具。本文指出，這套路線在1924-1929年的德國局部實現過，並一度成功讓德國恢復貨幣穩定、重返國際金融、獲得部分外交正常化，甚至暫時壓低極端主義吸引力。¹ 然而，該路線並未在1920年代以制度(社會保險、政府節制軍權、危機時的公共就業機制)形式被保留；因此，當1929年全球經濟崩盤、外資抽離、德國失業激增至數百萬時，政治中心沒有緩衝能力，極端民族主義遂乘虛而入，最終在1933年奪權。²本文主張，威瑪共和國的悲劇不在於從未有機會，而在於曾經接近成功，卻未能將短暫的穩定變成結構性的常態。³
+本文將論證，德國在 World War I 戰敗後(1919-1935)並非只能在被凡爾賽條約長期壓制與走向法西斯主義擴張之間二選一。相反的，1919年至1929年之間確實存在一條穩定化重建路線：以跨派系的文人聯合政府、賠款-貨幣重組與外資帶動工業復甦、防禦導向而受政府監督的軍隊、社會安全網與公共工程吸收失業人口、以及將德國高技術工業定位為歐洲復興工廠，而非侵略工具。本文指出，這套路線在1924-1929年的德國局部實現過，並一度成功讓德國恢復貨幣穩定、重返國際金融、獲得部分外交正常化，甚至暫時壓低極端主義吸引力。[^1] 然而，該路線並未在1920年代以制度(社會保險、政府節制軍權、危機時的公共就業機制)形式被保留；因此，當1929年全球經濟崩盤、外資抽離、德國失業激增至數百萬時，政治中心沒有緩衝能力，極端民族主義遂乘虛而入，最終在1933年奪權。[^2]本文主張，威瑪共和國的悲劇不在於從未有機會，而在於曾經接近成功，卻未能將短暫的穩定變成結構性的常態。[^3]
 
 ## Introduction
 
@@ -19,11 +19,11 @@ featured_image: /images/uploads/atlas_van_der_hagen-kw1049b10_047-s._imperium_ro
   <figcaption>fac-simile des trois pages de signature du traité de Versailles ,Amalgamated press Ltd</figcaption>
 </figure>
 
-1918年11月，德國在WW1中求和，帝國倒台，威瑪共和國成立。隨後的《凡爾賽條約》強制德國接受全部「戰爭罪責」、割讓領土、喪失殖民地，並將其陸軍限制在10萬人，同時禁止坦克、重砲、潛艦與軍用飛機，要求解散總參謀部。此外，條約在賠款問題上採取懲罰性設計，最終以1320億金馬克的天文數額呈現；協約國亦保留以軍事占領方式強制徵收的權利。⁴ 這些條件不只重創德國經濟結構與軍事威信，也使新生的議會政體在國內缺乏正當性，被廣泛視為受監管的戰敗政權，而非能保護國家利益的主權政府。⁵
+1918年11月，德國在WW1中求和，帝國倒台，威瑪共和國成立。隨後的《凡爾賽條約》強制德國接受全部「戰爭罪責」、割讓領土、喪失殖民地，並將其陸軍限制在10萬人，同時禁止坦克、重砲、潛艦與軍用飛機，要求解散總參謀部。此外，條約在賠款問題上採取懲罰性設計，最終以1320億金馬克的天文數額呈現；協約國亦保留以軍事占領方式強制徵收的權利。[^4] 這些條件不只重創德國經濟結構與軍事威信，也使新生的議會政體在國內缺乏正當性，被廣泛視為受監管的戰敗政權，而非能保護國家利益的主權政府。[^5]
 
-傳統論述往往把德國的命運描述為宿命式的二擇一：第一是屈從於凡爾賽秩序、在外力操控下的共和國；第二是走向民族復仇主義與極端威權統治，即納粹主導的軍事再擴張帝國。⁶ 本文將提出第三條路線的存在：1919-1929年間，德國在結構上其實有一個政治與經濟的穩定化方案，能在不立即求戰的前提下，逐步恢復主權談判能力、貨幣信用、社會秩序與產業競爭力。這條路線的本質不是引起戰爭轉移國內焦點，也不是肅清左右極端份子，而是以國家主導的秩序與社會安全作為生存工具。
+傳統論述往往把德國的命運描述為宿命式的二擇一：第一是屈從於凡爾賽秩序、在外力操控下的共和國；第二是走向民族復仇主義與極端威權統治，即納粹主導的軍事再擴張帝國。[^6] 本文將提出第三條路線的存在：1919-1929年間，德國在結構上其實有一個政治與經濟的穩定化方案，能在不立即求戰的前提下，逐步恢復主權談判能力、貨幣信用、社會秩序與產業競爭力。這條路線的本質不是引起戰爭轉移國內焦點，也不是肅清左右極端份子，而是以國家主導的秩序與社會安全作為生存工具。
 
-本文的核心論點如下：德國在戰後真正需要、而且在部分時期曾經短暫擁有的，是一套以五大支柱構成的穩定化戰略 : (1) 跨派系的重建型文人內閣，壓制左右極端武裝、確立文人節制武力⁷；(2) 將賠款由懲罰機制轉化為外資、工業復甦的長期重建機制，同時提前穩定貨幣⁸；(3) 以防禦導向、專業化、政府監督的小型軍隊作為外交籌碼，而非立即擴軍⁹；(4) 把失業保險、公共工程與工人制度化參與視為國安緩衝，而非慈善¹⁰；(5) 把德國的高端化工、機械、電氣工程產業視為德國整體重建不可或缺的關鍵點，以產業互賴取代領土擴張。¹¹
+本文的核心論點如下：德國在戰後真正需要、而且在部分時期曾經短暫擁有的，是一套以五大支柱構成的穩定化戰略 : (1) 跨派系的重建型文人內閣，壓制左右極端武裝、確立文人節制武力[^7]；(2) 將賠款由懲罰機制轉化為外資、工業復甦的長期重建機制，同時提前穩定貨幣[^8]；(3) 以防禦導向、專業化、政府監督的小型軍隊作為外交籌碼，而非立即擴軍[^9]；(4) 把失業保險、公共工程與工人制度化參與視為國安緩衝，而非慈善[^10]；(5) 把德國的高端化工、機械、電氣工程產業視為德國整體重建不可或缺的關鍵點，以產業互賴取代領土擴張。¹¹
 
 本文將依照時間脈絡與主題層面證明，這套方案在1924-1929年曾局部落地，卻未能制度化，因此在1929年全球經濟衝擊下崩解，讓極端主義接收一切。
 
@@ -172,18 +172,16 @@ Evans 指出，1920年代的國防軍仍保留高度專業自豪感，並非納�
 
 因此，威瑪政府的悲劇不是從未有路，而是有一條窄橋，本可以成為長堤，卻在被加固之前就被洪水沖斷。從歷史角度來看，這提醒我們：在戰後重建中，短期穩定必須在景氣好的時候就被制度化，否則下一次衝擊來臨時，國家中心會瞬間破口，極端政治便會進入並接管國家機器。
 
-## References 
-
-1. Richard J. Evans, *The Coming of the Third Reich* (New York: Penguin, 2004), 52–53, 80–84; Adam Tooze, *The Wages of Destruction: The Making and Breaking of the Nazi Economy* (London: Allen Lane, 2006), 2, 37–38, 43–44, 95–107, 189–190, 227–228, 249, 265.
-2. Richard J. Evans, *The Third Reich in Power, 1933–1939* (New York: Penguin, 2005), 18–21; Evans, *The Coming of the Third Reich*, 280–284; Tooze, *The Wages of Destruction*, 2, 173–174, 189–190, 227–228, 249, 265.
-3. Evans, *The Third Reich in Power, 1933–1939*, 18–21; Evans, *The Coming of the Third Reich*, 280–284.
-4. Margaret MacMillan, *Paris 1919: Six Months That Changed the World* (New York: Random House, 2001), 389–391, 404–406, 480; Evans, *The Coming of the Third Reich*, 13–17.
-5. MacMillan, *Paris 1919*, 389–391, 404–406, 480; Evans, *The Coming of the Third Reich*, 13–17.
-6. MacMillan, *Paris 1919*, 389–391, 404–406, 480; Evans, *The Coming of the Third Reich*, 13–17, 80–84, 88.
-7. Evans, *The Coming of the Third Reich*, 52–53, 80–84, 88; Tooze, *The Wages of Destruction*, 37–38, 43–44.
-8. Evans, *The Coming of the Third Reich*, 52–53; Tooze, *The Wages of Destruction*, 37–38, 43–44, 95–107.
-9. Tooze, *The Wages of Destruction*, 2, 189–190, 227–228, 249, 265; Evans, *The Coming of the Third Reich*, 80–84.
-10. Evans, *The Third Reich in Power, 1933–1939*, 18–21; Evans, *The Coming of the Third Reich*, 280–284.
+[^1]: Richard J. Evans, *The Coming of the Third Reich* (New York: Penguin, 2004), 52–53, 80–84; Adam Tooze, *The Wages of Destruction: The Making and Breaking of the Nazi Economy* (London: Allen Lane, 2006), 2, 37–38, 43–44, 95–107, 189–190, 227–228, 249, 265.
+[^2]: Richard J. Evans, *The Third Reich in Power, 1933–1939* (New York: Penguin, 2005), 18–21; Evans, *The Coming of the Third Reich*, 280–284; Tooze, *The Wages of Destruction*, 2, 173–174, 189–190, 227–228, 249, 265.
+[^3]: Evans, *The Third Reich in Power, 1933–1939*, 18–21; Evans, *The Coming of the Third Reich*, 280–284.
+[^4]: Margaret MacMillan, *Paris 1919: Six Months That Changed the World* (New York: Random House, 2001), 389–391, 404–406, 480; Evans, *The Coming of the Third Reich*, 13–17.
+[^5]: MacMillan, *Paris 1919*, 389–391, 404–406, 480; Evans, *The Coming of the Third Reich*, 13–17.
+[^6]: MacMillan, *Paris 1919*, 389–391, 404–406, 480; Evans, *The Coming of the Third Reich*, 13–17, 80–84, 88.
+[^7]: Evans, *The Coming of the Third Reich*, 52–53, 80–84, 88; Tooze, *The Wages of Destruction*, 37–38, 43–44.
+[^8]: Evans, *The Coming of the Third Reich*, 52–53; Tooze, *The Wages of Destruction*, 37–38, 43–44, 95–107.
+[^9]: Tooze, *The Wages of Destruction*, 2, 189–190, 227–228, 249, 265; Evans, *The Coming of the Third Reich*, 80–84.
+[^10]: Evans, *The Third Reich in Power, 1933–1939*, 18–21; Evans, *The Coming of the Third Reich*, 280–284.
 11. MacMillan, *Paris 1919*, 404–406; Tooze, *The Wages of Destruction*, 2, 37–38, 43–44, 95–107, 173–174, 189–190, 227–228, 249, 265; Evans, *The Coming of the Third Reich*, 80–84.
 12. Evans, *The Coming of the Third Reich*, 80–84, 88.
 13. Evans, *The Coming of the Third Reich*, 52–53, 80–84, 88; Tooze, *The Wages of Destruction*, 37–38, 43–44.
