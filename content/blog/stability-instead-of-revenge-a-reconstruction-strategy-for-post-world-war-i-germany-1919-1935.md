@@ -237,4 +237,4 @@ Tooze, Adam. *The Wages of Destruction: The Making and Breaking of the Nazi Econ
 這是一篇莫名其妙就生成出來的...偽歷史論文?\
 我也不知道為何一頓飯的時間就討論出這些奇妙東西，人生真是奇妙對吧。\
 如有任何錯誤或遺漏，請寄email到我的信箱\~也歡迎指教\~\
-感謝您的觀看，
+感謝您長達30分鐘的觀看XD
