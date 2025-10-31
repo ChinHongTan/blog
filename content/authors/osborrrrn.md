@@ -1,6 +1,6 @@
 ---
 name: Osborrrrn
-email: ""
+email: simplelogin-newsletter.diameter280@simplelogin.com
 bio: |-
   別人笑我太瘋癲，我笑他人看不穿。
   不見五陵豪傑墓，無花無酒鋤就田
