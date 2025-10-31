@@ -253,9 +253,11 @@ a[data-footnote-backref]:hover {
   scroll-margin-top: 120px;
 }
 
-/* Highlight footnote items when targeted (from clicking citation links) */
+/* Highlight footnote items when targeted or programmatically activated */
 .footnotes [id^="user-content-fn-"]:target,
-section[data-footnotes] [id^="user-content-fn-"]:target {
+.footnotes .is-footnote-highlighted,
+section[data-footnotes] [id^="user-content-fn-"]:target,
+section[data-footnotes] .is-footnote-highlighted {
   background-color: var(--color-bg-blue-tint);
   border-radius: 6px;
   padding: 0.5em;
@@ -263,9 +265,10 @@ section[data-footnotes] [id^="user-content-fn-"]:target {
   transition: background-color 0.3s ease;
 }
 
-/* Highlight citation references when targeted (from clicking back arrows) */
+/* Highlight citation references when targeted or programmatically activated */
 .footnotes [id^="user-content-fnref-"]:target,
-[id^="user-content-fnref-"]:target {
+[id^="user-content-fnref-"]:target,
+.is-citation-highlighted {
   background-color: var(--color-bg-blue-tint);
   padding: 0.2em 0.4em;
   margin: -0.2em -0.4em;
