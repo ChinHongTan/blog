@@ -22,13 +22,11 @@ featured_image: /images/uploads/螢幕擷取畫面-2025-11-02-145011.png
 
 並將這些分子層級指標，對照這些腦區在阿茲海默症病程中所扮演的角色。
 
-> 換句話說，問題不是單純「AD 腦有沒有 tau」，而是「哪一塊腦最早出現具播種能力的 tau？那一塊腦的 tau 長什麼生化樣態？這種 tau 樣態是否對應到可臨床量測的生物標記（例如 pTau217）？」。
+> 換句話說，問題不是單純「AD 腦有沒有 tau」，而是「哪一塊腦最早出現具播種能力的 tau？那一塊腦的 tau 長什麼生化樣態？這種 tau 樣態是否對應到可臨床量測的生物標記（例如 pTau217）？」
 
 ## Background and Rationale
 
-> 這邊在論文架構上是不存在的，但我覺得需要補充一下資訊，以防有人看不懂w
-
-### 2.1 Tau and phosphorylated tau
+> 這邊在論文架構上是不存在的，但我覺得需要補充一下資訊，以防有人看不懂 w
 
 Tau 是一種 microtubule-associated protein，在成熟神經元特別是 axon 中，協助穩定 microtubules ，維持細胞骨架與軸突內物質運輸的完整性（Hardy and Selkoe 2002）。在阿茲海默症中，tau 分子會發生過度磷酸化（hyperphosphorylation），使 tau 從微管上解離，並逐步聚集成高度有序的 β-摺疊纖維，最終形成 NFTs，而 NFTs 是阿茲海默症病理診斷的經典標誌之一（Hardy and Selkoe 2002）
 
@@ -36,7 +34,7 @@ Tau 是一種 microtubule-associated protein，在成熟神經元特別是 axon 
 
 <figure>
   <img src="/images/uploads/螢幕擷取畫面-2025-11-02-163341.png" alt="Intracellular neuronal aggregates in tauopathies">
-  <figcaption>Figure1. Tau phosphorylation, detachment from microtubules, and aggregation into neurofibrillary pathology. (a) In healthy neurons, tau binds to and stabilizes axonal microtubules, which are cylindrical polymers of α- and β-tubulin. Tau contains microtubule-binding repeats and additional domains (proline-rich region, projection domain) that help maintain microtubule structure. (b) Hyperphosphorylation of tau at multiple serine/threonine sites by kinases such as GSK3β, CDK5, and ERK2 reduces tau’s affinity for microtubules, destabilizing the microtubule network. (c) Abnormally phosphorylated tau dissociates from microtubules and forms paired helical filaments (PHFs), which are heavily phosphorylated and often ubiquitinated. (d) Further processing and aggregation of tau yields oligomers and neurofibrillary tangles (NFTs), changes that are associated with neuronal dysfunction and ultimately cell death. Source: Mazanetz MP & Fischer PM, 2007, *Nature Reviews Drug Discovery* 6:464–479.</figcaption>
+  <figcaption>Figure1. Tau phosphorylation, detachment from microtubules, and aggregation into neurofibrillary pathology. (a) In healthy neurons, tau binds to and stabilizes axonal microtubules, which are cylindrical polymers of α- and β-tubulin. Tau contains microtubule-binding repeats and additional domains (proline-rich region, projection domain) that help maintain microtubule structure. (b) Hyperphosphorylation of tau at multiple serine/threonine sites by kinases such as GSK3β, CDK5, and ERK2 reduces tau’s affinity for microtubules, destabilizing the microtubule network. (c) Abnormally phosphorylated tau dissociates from microtubules and forms paired helical filaments (PHFs), which are heavily phosphorylated and often ubiquitinated. (d) Further processing and aggregation of tau yields oligomers and neurofibrillary tangles (NFTs), changes that are associated with neuronal dysfunction and ultimately cell death. Source: Mazanetz MP & Fischer PM, 2007, \\*Nature Reviews Drug Discovery\\* 6:464–479.</figcaption>
 </figure>
 
 ### 2.2 Tau seeding activity
@@ -49,3 +47,26 @@ Tau seeding activity 為描述一種「模板驅動聚集」的行為：已經�
   <img src="/images/uploads/螢幕擷取畫面-2025-11-02-164733.png" alt="The most promising techniques for the quantitation of tau seeding activity in human biofluid">
   <figcaption>Figure 2. Quantifying tau seeding activity using biosensor cells and RT-QuIC. (A) In a cell-based biosensor assay, a sample containing tau seeds is applied to a reporter cell line overexpressing tau repeat domains fused to fluorescent proteins (e.g., CFP/YFP). Seed-competent tau from the sample is taken up by the cells and induces intracellular tau aggregation. Aggregation brings the tagged tau molecules into close proximity, producing a FRET signal that can be quantified by flow cytometry as integrated FRET density (combining %FRET-positive cells and median FRET intensity). (B) In RT-QuIC, a seed-containing sample is incubated with excess recombinant tau substrate and thioflavin T (ThT) under shaking/incubation cycles. Seed-competent tau drives templated aggregation of the substrate, generating a characteristic ThT fluorescence trace: an initial lag phase followed by a rapid aggregation phase and plateau. The ThT kinetics provide a quantitative readout of tau seeding activity in biofluids such as CSF. Source: Lathuiliere A. & Hyman B.T., 2021, Frontiers in Neuroscience 15:654176.</figcaption>
 </figure>
+
+### 2.3 Braak staging / Thal staging
+
+阿茲海默症病理的「空間 - 時間順序」可以用兩個常用分期系統來描述 : 
+
+> 這邊我們著重於 Braak staging，因為它在描述 tau上與本研究比較有關連 ; \
+> 有興趣可以去查另一個 Thal staging，描述 β-amyloid 沉積的範圍與分布廣度
+
+Braak staging：描述 tau 病理（特別是 NFTs）如何在大腦中依序出現與擴散。\
+典型順序是：最早在 entorhinal cortex 與內側顳葉（包括海馬相關迴路）觀察到高度 tau 病理；接著外側顳葉皮質，包括 inferior temporal gyrus (ITG)、middle temporal gyrus (MTG)、superior temporal gyrus (STG)；最後擴散到更廣泛的新皮質聯合區域。cerebellum (CER, 小腦) 在典型 AD 病程中通常相對少見明顯 tau 纖維性病變（Braak and Braak 1991; Braak and Braak 1995; Braak et al. 2006）。
+
+<figure>
+  <img src="/images/uploads/tau-tracer-uptake-patterns-resemble-ex-vivo-braak-stages-a-schematic-display-of-braak.png" alt="Figure 3. Braak stages of tau pathology in Alzheimer’s disease and their in vivo PET correlates.">
+  <figcaption>Figure 3. Braak stages of tau pathology in Alzheimer’s disease and their in vivo PET correlates. (A) Schematic post mortem staging of Alzheimer’s disease tau pathology (neurofibrillary tangles composed of hyperphosphorylated tau). Earliest involvement (Braak stages I/II) is localized to the transentorhinal / entorhinal cortex and adjacent medial temporal structures. Intermediate stages (III/IV) involve limbic regions, including medial temporal lobe and parts of medial parietal cortex. Late stages (V/VI) show widespread neocortical involvement. (B) Tau PET tracer uptake patterns in vivo (e.g., [¹⁸F]Flortaucipir) recapitulate this hierarchical progression: signal first appears in entorhinal / medial temporal cortex, then spreads to inferior and lateral temporal cortex and medial parietal regions, and finally becomes widespread across association neocortex. These PET patterns provide living-brain support for Braak’s ex vivo staging of tau pathology. Source: Adapted from “Biomarkers for tau pathology,” Schöll M. et al., 2018, Molecular and Cellular Neuroscience.</figcaption>
+</figure>
+
+本研究特別挑選多個腦區（ENT、ITG、MTG、STG、CER 等）來比較播種活性與 tau 分子狀態，這些腦區並不是隨機抽樣，而是涵蓋：
+
+* 典型 AD 病程中「早期高風險、最先累積 tau 病理」的區域（ENT、ITG）
+* 進一步受累的外側顳葉皮質（MTG、STG）
+* 以及對照用的、在典型 Braak 分期中較少 tau 聚集的小腦（CER）
+
+> 透過橫跨這些腦區，本研究在測試「Braak staging 的時序 ≈ seeding activity 的梯度」
