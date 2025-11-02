@@ -1,0 +1,49 @@
+---
+title: pTau217 Marks Tau Seeding Hotspots in Early Alzheimer’s Cortex
+description: 論文整理小筆記 (非常適合?對於生物醫學有興趣的人閱讀)
+date: 2025-11-02T14:45:00.000+08:00
+author: Automata
+tags:
+  - Research notes
+featured_image: /images/uploads/螢幕擷取畫面-2025-11-02-145011.png
+---
+## Introduction
+
+阿茲海默症（Alzheimer’s disease, AD）是一種神經退行性疾病，其典型特徵包含 β-類澱粉蛋白（amyloid-β, Aβ）沉積與 tau 病理的累積。tau 病理不僅表現為神經元內神經纖維纏結（neurofibrillary tangles, NFTs），也出現為可驅動聚集的種子型 tau（seeding-competent tau），而這種 seeding activity 被認為與病理向不同腦區擴散相關。
+
+**臨床與病理研究長期觀察到一個現象：AD 並非所有腦區同時、等量地受影響。**\
+相反地，一些區域（例如 entorhinal cortex, ENT 和 inferior temporal gyrus, ITG）在疾病早期就累積 tau 病理並表現強烈的退化跡象，而其他區域（例如cerebellum, CER）相對保留較長的時間。這種「區域差異」（regional variation）可能反映了兩件事：1. 某些腦區較早、較強地承受 tau 病理壓力。2. 某些 tau 分子型態（例如特定位點的p-tau）或 seeding activity，在不同腦區中本身就不一樣。
+
+本研究的核心目標，是同時比較多個腦區的 tau 特性，包括：
+
+* tau 播種活性（seeding activity）
+* 特定位點磷酸化 tau（例如 pTau217, pTau262, pTau396 等）
+* tau 蛋白的整體含量
+
+並將這些分子層級指標，對照這些腦區在阿茲海默症病程中所扮演的角色。
+
+> 換句話說，問題不是單純「AD 腦有沒有 tau」，而是「哪一塊腦最早出現具播種能力的 tau？那一塊腦的 tau 長什麼生化樣態？這種 tau 樣態是否對應到可臨床量測的生物標記（例如 pTau217）？」。
+
+## Background and Rationale
+
+### 2.1 Tau and phosphorylated tau
+
+Tau 是一種 microtubule-associated protein，在成熟神經元特別是 axon 中，協助穩定 microtubules ，維持細胞骨架與軸突內物質運輸的完整性（Hardy and Selkoe 2002）。在阿茲海默症中，tau 分子會發生過度磷酸化（hyperphosphorylation），使 tau 從微管上解離，並逐步聚集成高度有序的 β-摺疊纖維，最終形成 NFTs，而 NFTs 是阿茲海默症病理診斷的經典標誌之一（Hardy and Selkoe 2002）
+
+所謂磷酸化 tau（phosphorylated tau, p-tau）指的是 tau 在特定胺基酸殘基（通常是 Ser 或 Thr）上被磷酸化後的特定構型。不同位點的磷酸化定義出不同的 p-tau ，如 pTau217（Thr217 磷酸化）、pTau181（Thr181）、pTau262（Ser262 附近）、pTau396（Ser396/Ser404 區域）等。這些位點並非可互相取代：以 pTau217 為例，它在臨床研究中被證明在 AD 患者腦部和血漿中都顯著上升，並能將 AD 與其他失智症形式區隔，甚至在臨床症狀尚不嚴重的階段亦有區辨力（Palmqvist et al. 2020）
+
+<figure>
+  <img src="/images/uploads/螢幕擷取畫面-2025-11-02-163341.png" alt="Intracellular neuronal aggregates in tauopathies">
+  <figcaption>Figure1. Tau phosphorylation, detachment from microtubules, and aggregation into neurofibrillary pathology. (a) In healthy neurons, tau binds to and stabilizes axonal microtubules, which are cylindrical polymers of α- and β-tubulin. Tau contains microtubule-binding repeats and additional domains (proline-rich region, projection domain) that help maintain microtubule structure. (b) Hyperphosphorylation of tau at multiple serine/threonine sites by kinases such as GSK3β, CDK5, and ERK2 reduces tau’s affinity for microtubules, destabilizing the microtubule network. (c) Abnormally phosphorylated tau dissociates from microtubules and forms paired helical filaments (PHFs), which are heavily phosphorylated and often ubiquitinated. (d) Further processing and aggregation of tau yields oligomers and neurofibrillary tangles (NFTs), changes that are associated with neuronal dysfunction and ultimately cell death.</figcaption>
+</figure>
+
+### 2.2 Tau seeding activity
+
+Tau seeding activity 為描述一種「模板驅動聚集」的行為：已經錯誤折疊、並形成聚集核心的 tau（seed），能夠促使原本可溶性的 tau 轉換為相同β-摺疊聚集構型，並往外延伸成纖維狀聚集體。這代表 tau 病理不只是「自己累積變多」，而是具有可擴散的構形訊號（Kraus et al. 2019; Orrù et al. 2017）
+
+在實驗上，這項播種活性可用 real-time quaking-induced conversion (RT-QuIC) 測量。RT-QuIC 將可能含有播種活性的腦組織均質液（brain homogenate）與重組 tau 底物共同孵育，並在週期性震盪條件下促進聚集。如果樣本中真的含有播種活性，則聚集會加速發生，並可用螢光染劑 Thioflavin T (ThT) 的訊號上升速率、終點強度、lag time（起始延遲時間）等指標來量化。此法也可計算 SD50（引發 50% 反應孔出現陽性訊號所需的稀釋度），作為播種活性強度的功能性指標（Kraus et al. 2019; Orrù et al. 2017）
+
+<figure>
+  <img src="/images/uploads/螢幕擷取畫面-2025-11-02-164733.png" alt="The most promising techniques for the quantitation of tau seeding activity in human biofluid">
+  <figcaption>Figure 2. Quantifying tau seeding activity using biosensor cells and RT-QuIC. (A) In a cell-based biosensor assay, a sample containing tau seeds is applied to a reporter cell line overexpressing tau repeat domains fused to fluorescent proteins (e.g., CFP/YFP). Seed-competent tau from the sample is taken up by the cells and induces intracellular tau aggregation. Aggregation brings the tagged tau molecules into close proximity, producing a FRET signal that can be quantified by flow cytometry as integrated FRET density (combining %FRET-positive cells and median FRET intensity). (B) In RT-QuIC, a seed-containing sample is incubated with excess recombinant tau substrate and thioflavin T (ThT) under shaking/incubation cycles. Seed-competent tau drives templated aggregation of the substrate, generating a characteristic ThT fluorescence trace: an initial lag phase followed by a rapid aggregation phase and plateau. The ThT kinetics provide a quantitative readout of tau seeding activity in biofluids such as CSF.</figcaption>
+</figure>
