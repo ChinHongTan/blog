@@ -1,6 +1,6 @@
 ---
 title: pTau217 Marks Tau Seeding Hotspots in Early Alzheimer’s Cortex
-description: 論文整理小筆記 (非常適合?對於生物醫學有興趣的人閱讀)
+description: 論文整理小筆記 (可能適合?對於生物醫學有興趣的人閱讀)
 date: 2025-11-02T14:45:00.000+08:00
 author: Automata
 tags:
