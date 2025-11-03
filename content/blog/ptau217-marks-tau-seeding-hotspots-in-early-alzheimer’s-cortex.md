@@ -36,7 +36,7 @@ Tau 是一種 microtubule-associated protein，在成熟神經元特別是 axon 
 
 <figure>
   <img src="/images/uploads/螢幕擷取畫面-2025-11-02-163341.png" alt="Intracellular neuronal aggregates in tauopathies">
-  <figcaption>Figure1. Tau phosphorylation, detachment from microtubules, and aggregation into neurofibrillary pathology. (a) In healthy neurons, tau binds to and stabilizes axonal microtubules, which are cylindrical polymers of α- and β-tubulin. Tau contains microtubule-binding repeats and additional domains (proline-rich region, projection domain) that help maintain microtubule structure. (b) Hyperphosphorylation of tau at multiple serine/threonine sites by kinases such as GSK3β, CDK5, and ERK2 reduces tau’s affinity for microtubules, destabilizing the microtubule network. (c) Abnormally phosphorylated tau dissociates from microtubules and forms paired helical filaments (PHFs), which are heavily phosphorylated and often ubiquitinated. (d) Further processing and aggregation of tau yields oligomers and neurofibrillary tangles (NFTs), changes that are associated with neuronal dysfunction and ultimately cell death. Source: Mazanetz MP & Fischer PM, 2007, \\\\\\\*Nature Reviews Drug Discovery\\\\\\\* 6:464–479.</figcaption>
+  <figcaption>Figure1. Tau phosphorylation, detachment from microtubules, and aggregation into neurofibrillary pathology. (a) In healthy neurons, tau binds to and stabilizes axonal microtubules, which are cylindrical polymers of α- and β-tubulin. Tau contains microtubule-binding repeats and additional domains (proline-rich region, projection domain) that help maintain microtubule structure. (b) Hyperphosphorylation of tau at multiple serine/threonine sites by kinases such as GSK3β, CDK5, and ERK2 reduces tau’s affinity for microtubules, destabilizing the microtubule network. (c) Abnormally phosphorylated tau dissociates from microtubules and forms paired helical filaments (PHFs), which are heavily phosphorylated and often ubiquitinated. (d) Further processing and aggregation of tau yields oligomers and neurofibrillary tangles (NFTs), changes that are associated with neuronal dysfunction and ultimately cell death. Source: Mazanetz MP & Fischer PM, 2007, \\\\\\\\*Nature Reviews Drug Discovery\\\\\\\\* 6:464–479.</figcaption>
 </figure>
 
 ### 2. Tau seeding activity
@@ -62,7 +62,7 @@ Braak staging：描述 tau 病理（特別是 NFTs）如何在大腦中依序出
 
 <figure>
   <img src="/images/uploads/tau-tracer-uptake-patterns-resemble-ex-vivo-braak-stages-a-schematic-display-of-braak.png" alt="Figure 3. Braak stages of tau pathology in Alzheimer’s disease and their in vivo PET correlates.">
-  <figcaption>Figure 3. Braak stages of tau pathology in Alzheimer’s disease and their in vivo PET correlates. (A) Schematic post mortem staging of Alzheimer’s disease tau pathology (neurofibrillary tangles composed of hyperphosphorylated tau). Earliest involvement (Braak stages I/II) is localized to the transentorhinal / entorhinal cortex and adjacent medial temporal structures. Intermediate stages (III/IV) involve limbic regions, including medial temporal lobe and parts of medial parietal cortex. Late stages (V/VI) show widespread neocortical involvement. (B) Tau PET tracer uptake patterns in vivo (e.g., \\\\\[¹⁸F]Flortaucipir) recapitulate this hierarchical progression: signal first appears in entorhinal / medial temporal cortex, then spreads to inferior and lateral temporal cortex and medial parietal regions, and finally becomes widespread across association neocortex. These PET patterns provide living-brain support for Braak’s ex vivo staging of tau pathology. Source: Adapted from “Biomarkers for tau pathology,” Schöll M. et al., 2018, Molecular and Cellular Neuroscience.</figcaption>
+  <figcaption>Figure 3. Braak stages of tau pathology in Alzheimer’s disease and their in vivo PET correlates. (A) Schematic post mortem staging of Alzheimer’s disease tau pathology (neurofibrillary tangles composed of hyperphosphorylated tau). Earliest involvement (Braak stages I/II) is localized to the transentorhinal / entorhinal cortex and adjacent medial temporal structures. Intermediate stages (III/IV) involve limbic regions, including medial temporal lobe and parts of medial parietal cortex. Late stages (V/VI) show widespread neocortical involvement. (B) Tau PET tracer uptake patterns in vivo (e.g., \\\\\\[¹⁸F]Flortaucipir) recapitulate this hierarchical progression: signal first appears in entorhinal / medial temporal cortex, then spreads to inferior and lateral temporal cortex and medial parietal regions, and finally becomes widespread across association neocortex. These PET patterns provide living-brain support for Braak’s ex vivo staging of tau pathology. Source: Adapted from “Biomarkers for tau pathology,” Schöll M. et al., 2018, Molecular and Cellular Neuroscience.</figcaption>
 </figure>
 
 本研究特別挑選多個腦區（ENT、ITG、MTG、STG、CER 等）來比較播種活性與 tau 分子狀態，這些腦區並不是隨機抽樣，而是涵蓋：
@@ -95,6 +95,15 @@ RT-QuIC 的量測重點指標包含：
 
 本研究將這個臨床層訊號往回對照腦內：pTau217 是否在 AD 早期最脆弱、最早受累積的皮質區域（例如 ITG、ENT）顯著集中？這些同時又是否是 seeding activity 最強的腦區？如果答案是肯定的，那麼 pTau217可能反映了特定腦區內、 tau 本身的狀態。
 
+## Methods
+對於方法學有興趣的可以去讀一下原論文，它放在 Discussion下面。\
+這邊我將 Methods 提前說明，配合 Results 的實驗結果。
+
+超簡單版方法學 :  
+1. 使用已確診阿茲海默症病例的死後人類腦組織，切片+免疫染色後掃描
+2. 將各腦區的腦漿稀釋後，加入含有 tau 的多孔板，在震盪/孵育條件下進行 RT-QuIC
+3. 跑Western blotting，採用密度分析法測定 tau protein 強度，進行定量分析
+4. 將 AD 患者和非 AD 對照組的腦漿拿去跑液相層析質譜 (LC-MS) 分析
 
 
-( 待續...
+> ps.這篇的大腦來源是北京和湖南長沙，看起來是南昌大學醫學院為主導的
