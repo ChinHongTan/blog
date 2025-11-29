@@ -1,7 +1,9 @@
 ---
 title: "Stability Instead of Revenge: A Reconstruction Strategy for Post-World
   War I Germany, 1919-1935"
-description: 一篇在吃飯時莫名討論出的偽論文 (Chicago Manual of Style)
+description: |-
+  一篇在吃飯時莫名討論出的偽論文 (Chicago Manual of Style)
+  備註 : 目前引用文獻頁碼錯誤極多，但觀點大致無誤，修正中
 date: 2025-10-31T16:17:00.000+08:00
 author: Automata
 tags:
