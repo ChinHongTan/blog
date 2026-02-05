@@ -63,6 +63,7 @@ collections:
     slug: "{{slug}}"
     fields:
       - { label: "標題", name: "title", widget: "string" }
+      - { label: "路徑", name: "path", widget: "string", required: false, default: "/blog/{{slug}}", hint: "預設會自動填入，可視需要修改" }
       - { label: "描述", name: "description", widget: "text", required: false, hint: "文章的簡短摘要" }
       - { label: "日期", name: "date", widget: "datetime" }
       - { label: "作者", name: "author", widget: "relation", collection: "authors", search_fields: ["name"], value_field: "name", display_fields: ["name"], hint: "選擇文章作者" }

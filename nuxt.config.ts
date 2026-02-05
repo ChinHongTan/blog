@@ -7,11 +7,19 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   modules: [
+    '@nuxtjs/sitemap',
     '@nuxt/content',
     '@nuxt/eslint',
     '@nuxt/icon',
-    '@nuxt/image'
+    '@nuxt/image',
   ],
+
+  site: {
+    url: 'https://blog.chinono.dev',
+    title: '七糯糯的小站',
+    description: '记录学习和生活的点滴',
+    defaultLanguage: 'zh-CN'
+  },
 
   css: ['~/assets/css/main.css'],
 
@@ -54,8 +62,5 @@ export default defineNuxtConfig({
     }
   },
 
-  routeRules: {
-    // Ensure admin static files are served correctly
-    '/admin/**': { ssr: false },
-  }
+  routeRules: {}
 })
