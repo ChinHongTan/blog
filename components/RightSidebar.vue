@@ -44,6 +44,44 @@ const authorDirectory = computed<Record<string, AuthorCollectionItem>>(() => {
 // TOC state
 const toc = ref<{ id: string; text: string; level: number }[]>([]);
 const activeId = ref('');
+const tocLinkRefs = ref<Record<string, HTMLElement>>({});
+const tocIndicatorTop = ref(0);
+const tocIndicatorHeight = ref(0);
+const hasTocIndicator = ref(false);
+
+const setTocLinkRef = (id: string, element: Element | null) => {
+  if (element instanceof HTMLElement) {
+    tocLinkRefs.value[id] = element;
+    return;
+  }
+  delete tocLinkRefs.value[id];
+};
+
+const updateTocIndicator = () => {
+  if (!props.isPostPage || toc.value.length === 0) {
+    hasTocIndicator.value = false;
+    return;
+  }
+
+  const fallbackId = toc.value[0]?.id;
+  const currentId = activeId.value || fallbackId;
+  const currentElement = currentId ? tocLinkRefs.value[currentId] : null;
+
+  if (!currentElement) {
+    hasTocIndicator.value = false;
+    return;
+  }
+
+  tocIndicatorTop.value = currentElement.offsetTop;
+  tocIndicatorHeight.value = currentElement.offsetHeight;
+  hasTocIndicator.value = true;
+};
+
+const tocIndicatorStyle = computed(() => ({
+  transform: `translateY(${tocIndicatorTop.value}px)`,
+  height: `${tocIndicatorHeight.value}px`,
+  opacity: hasTocIndicator.value ? '1' : '0'
+}));
 
 // Extract TOC from DOM
 const extractTOC = () => {
@@ -70,6 +108,17 @@ const extractTOC = () => {
   });
   
   toc.value = links;
+  tocLinkRefs.value = {};
+
+  if (links.length === 0) {
+    activeId.value = '';
+  } else if (!links.some((item) => item.id === activeId.value)) {
+    activeId.value = links[0].id;
+  }
+
+  nextTick(() => {
+    updateTocIndicator();
+  });
 };
 
 // Smooth scroll to heading
@@ -126,6 +175,16 @@ watch(() => route.path, () => {
   });
 }, { immediate: false });
 
+watch(
+  [activeId, () => toc.value.length],
+  () => {
+    nextTick(() => {
+      updateTocIndicator();
+    });
+  },
+  { immediate: false }
+);
+
 // Extract TOC on mount
 onMounted(() => {
   nextTick(() => {
@@ -177,9 +236,9 @@ const authors = computed(() => {
 </script>
 
 <template>
-  <aside class="right-sidebar">
+  <aside :class="['right-sidebar', { 'post-sidebar': isPostPage }]">
     <!-- Search Bar -->
-    <div class="sidebar-section search-section">
+    <div v-if="!isPostPage" class="sidebar-section search-section">
       <div class="search-bar">
         <Icon name="heroicons:magnifying-glass" size="20" />
         <input 
@@ -198,9 +257,12 @@ const authors = computed(() => {
         本頁內容
       </h4>
       <nav class="toc-links">
+        <span class="toc-line" aria-hidden="true" />
+        <span class="toc-active-line" aria-hidden="true" :style="tocIndicatorStyle" />
         <a 
           v-for="link in toc" 
           :key="link.id"
+          :ref="(element) => setTocLinkRef(link.id, element as Element | null)"
           :href="`#${link.id}`"
           :class="['toc-link', `level-${link.level}`, { active: activeId === link.id }]"
           @click.prevent="scrollToHeading(link.id)"
@@ -211,7 +273,7 @@ const authors = computed(() => {
     </div>
 
     <!-- Posts by Year -->
-    <div v-if="postsByYear.length > 0" class="sidebar-section">
+    <div v-if="!isPostPage && postsByYear.length > 0" class="sidebar-section">
       <h4 class="section-title">
         <Icon name="heroicons:calendar" size="18" />
         文章存檔
@@ -231,7 +293,7 @@ const authors = computed(() => {
     </div>
 
     <!-- Authors -->
-    <div v-if="authors.length > 0" class="sidebar-section">
+    <div v-if="!isPostPage && authors.length > 0" class="sidebar-section">
       <h4 class="section-title">
         <Icon name="heroicons:users" size="18" />
         作者
@@ -258,7 +320,7 @@ const authors = computed(() => {
 .right-sidebar {
   background: var(--panel-bg);
   border: 1px solid var(--color-border-light);
-  padding: 1.5rem 1.25rem;
+  padding: 1.25rem 1rem;
   position: sticky;
   top: calc(var(--header-height) + 1.5rem);
   max-height: calc(100vh - var(--header-height) - 3rem);
@@ -270,6 +332,16 @@ const authors = computed(() => {
   box-shadow: var(--shadow-md);
   -webkit-backdrop-filter: saturate(1.2) blur(var(--glass-blur));
   backdrop-filter: saturate(1.2) blur(var(--glass-blur));
+}
+
+.right-sidebar.post-sidebar {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-radius: 0;
+  padding: 0.5rem 0 0.5rem 0.85rem;
 }
 
 /* Search Bar */
@@ -336,43 +408,62 @@ const authors = computed(() => {
 }
 
 .toc-links {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
+  padding-left: 0.8rem;
 }
 
-.toc-links a {
+.toc-line {
+  position: absolute;
+  top: 0.15rem;
+  bottom: 0.15rem;
+  left: 0;
+  width: 1px;
+  background: var(--color-border-medium);
+  opacity: 0.65;
+}
+
+.toc-active-line {
+  position: absolute;
+  left: 0;
+  width: 2px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  transition: transform 0.25s ease, height 0.25s ease, opacity 0.2s ease;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-primary) 45%, transparent);
+}
+
+.toc-link {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
   color: var(--color-text-secondary);
   text-decoration: none;
-  font-size: 0.9rem;
-  padding: 0.4rem 0.75rem;
-  border-radius: 6px;
-  transition: all 0.2s ease;
+  font-size: 0.86rem;
+  line-height: 1.35;
+  padding: 0.26rem 0.2rem 0.26rem 0.65rem;
+  border-radius: 0;
+  transition: color 0.2s ease;
 }
 
-.toc-links a.level-3 {
-  padding-left: 1.5rem;
-  font-size: 0.85rem;
+.toc-link.level-3 {
+  padding-left: 1.1rem;
+  font-size: 0.82rem;
 }
 
-.toc-links a.active {
+.toc-link.active {
   color: var(--color-primary-dark);
-  background: var(--color-bg-secondary);
-  font-weight: 500;
-  border-left: 3px solid var(--color-primary);
+  font-weight: 600;
 }
 
-.toc-links a:hover {
+.toc-link:hover {
   color: var(--color-primary-dark);
-  background: var(--color-bg-blue-tint);
-  padding-left: 1rem;
 }
 
-.toc-links a.level-3:hover {
-  padding-left: 2rem;
+.toc-link.level-3:hover {
+  color: var(--color-primary-dark);
 }
 
 /* Archive Links */

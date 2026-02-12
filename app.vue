@@ -1,18 +1,13 @@
 <script setup lang="ts">
-// Fetch all posts for tag extraction and sidebar data
-const { data: allPosts } = await useAsyncData("all-posts", () =>
-	queryCollection("blog").order("date", "DESC").all()
-);
-
 // Search query state
 const searchQuery = ref("");
+const isSearchOpen = ref(false);
 
 // Mobile menu state
 const isMobileMenuOpen = ref(false);
 
-// Provide search query and posts to child components
+// Provide search query to child components
 provide("searchQuery", searchQuery);
-provide("allPosts", allPosts);
 
 // Current route to determine context
 const route = useRoute();
@@ -24,49 +19,15 @@ const isPostPage = computed(
 		route.path !== "/code-of-conduct"
 );
 
-// Get current page data to determine author
-const { data: currentPage } = await useAsyncData(
-	"current-page",
-	async () => {
-		if (isPostPage.value && route.path !== "/") {
-			const blogPage = await queryCollection("blog").path(route.path).first();
-			if (blogPage) {
-				return blogPage;
-			}
-
-			const normalizedStem = route.path.replace(/^\/+/, "");
-			if (normalizedStem) {
-				const fallbackBlogPage = await queryCollection("blog")
-					.where("stem", "=", normalizedStem)
-					.first();
-				if (fallbackBlogPage) {
-					return fallbackBlogPage;
-				}
-			}
-		}
-		return false;
-	},
-	{
-		watch: [() => route.path],
-	}
-);
-
-const currentAuthor = computed(() => {
-	if (currentPage.value && typeof currentPage.value === "object") {
-		const page = currentPage.value as { author?: string };
-		return page.author || null;
-	}
-	return null;
-});
-
 // Close mobile menu when route changes
 watch(() => route.path, () => {
 	isMobileMenuOpen.value = false;
+	isSearchOpen.value = false;
 });
 </script>
 
 <template>
-	<div class="app-wrapper">
+	<div :class="['app-wrapper', { 'post-mood': isPostPage }]">
 		<!-- Top Header -->
 		<header class="main-header">
 			<div class="header-content">
@@ -103,6 +64,26 @@ watch(() => route.path, () => {
 							<span>作者</span>
 						</NuxtLink>
 					</nav>
+					<div class="header-search" :class="{ open: isSearchOpen }">
+						<button
+							type="button"
+							class="search-toggle"
+							:aria-label="isSearchOpen ? '收起搜尋' : '展開搜尋'"
+							@click="isSearchOpen = !isSearchOpen"
+						>
+							<Icon name="heroicons:magnifying-glass" size="18" />
+						</button>
+						<div class="header-search-shell">
+							<Icon name="heroicons:magnifying-glass" size="16" class="header-search-icon" />
+							<input
+								v-model="searchQuery"
+								type="search"
+								class="header-search-input"
+								placeholder="搜尋文章..."
+								:tabindex="isSearchOpen ? 0 : -1"
+							>
+						</div>
+					</div>
 					<ThemeToggle />
 					<button 
 					:aria-label="isMobileMenuOpen ? '關閉選單' : '開啟選單'"
@@ -151,9 +132,7 @@ watch(() => route.path, () => {
 			</div>
 		</Transition>
 
-		<div class="app-layout">
-			<LeftSidebar :current-author="currentAuthor" />
-
+		<div :class="['app-layout', { 'post-layout': isPostPage }]">
 			<main class="main-content">
 				<NuxtPage />
 
@@ -243,21 +222,70 @@ watch(() => route.path, () => {
 					</div>
 				</footer>
 			</main>
-
-			<RightSidebar
-				:all-posts="allPosts"
-				:is-post-page="isPostPage"
-				:search-query="searchQuery"
-				@update:search-query="searchQuery = $event"
-			/>
 		</div>
 	</div>
 </template>
 
 <style>
+.app-wrapper {
+	position: relative;
+	min-height: 100vh;
+	background: var(--color-bg-secondary);
+	isolation: isolate;
+}
+
+.app-wrapper > * {
+	position: relative;
+	z-index: 1;
+}
+
+.app-wrapper.post-mood {
+	background:
+		radial-gradient(
+			1200px 700px at 50% -260px,
+			color-mix(in srgb, var(--color-text-primary) 30%, var(--color-bg-secondary)),
+			var(--color-bg-secondary)
+		),
+		linear-gradient(
+			180deg,
+			color-mix(in srgb, var(--color-text-primary) 24%, var(--color-bg-secondary)),
+			var(--color-bg-secondary) 38%
+		);
+}
+
+.app-wrapper.post-mood::before,
+.app-wrapper.post-mood::after {
+	content: "";
+	position: absolute;
+	top: -220px;
+	width: 520px;
+	height: 360px;
+	filter: blur(70px);
+	opacity: 0.22;
+	pointer-events: none;
+	z-index: 0;
+	border-radius: 999px;
+}
+
+.app-wrapper.post-mood::before {
+	left: 6%;
+	background: color-mix(in srgb, var(--color-primary-light) 75%, transparent);
+}
+
+.app-wrapper.post-mood::after {
+	right: 5%;
+	background: color-mix(in srgb, var(--color-accent) 65%, transparent);
+}
+
 /* Header Styles */
 .main-header {
-	background: var(--color-bg-primary);
+	background:
+		linear-gradient(
+			90deg,
+			color-mix(in srgb, var(--color-primary-light) 18%, var(--color-bg-primary)),
+			color-mix(in srgb, var(--color-bg-primary) 92%, var(--color-accent) 8%)
+		),
+		var(--color-bg-primary);
 	border-bottom: 1px solid var(--color-border-light);
 	position: sticky;
 	top: 0;
@@ -330,6 +358,76 @@ watch(() => route.path, () => {
 	display: flex;
 	align-items: center;
 	gap: 1rem;
+}
+
+.header-search {
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+	min-width: 2.25rem;
+}
+
+.search-toggle {
+	width: 2.25rem;
+	height: 2.25rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	background: transparent;
+	border-radius: 8px;
+	color: var(--color-text-primary);
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.search-toggle:hover {
+	background: color-mix(in srgb, var(--color-primary-light) 18%, transparent);
+	color: var(--color-primary-dark);
+}
+
+.header-search-shell {
+	width: 0;
+	height: 2.25rem;
+	opacity: 0;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	border: 1px solid transparent;
+	border-radius: 999px;
+	background: transparent;
+	padding: 0;
+	transition: width 0.28s ease, opacity 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, padding 0.2s ease;
+}
+
+.header-search.open .header-search-shell {
+	width: clamp(180px, 20vw, 270px);
+	opacity: 1;
+	border-color: var(--color-border-light);
+	background: color-mix(in srgb, var(--color-bg-primary) 92%, transparent);
+	padding: 0 0.72rem;
+}
+
+.header-search-icon {
+	flex: 0 0 auto;
+	color: var(--color-text-tertiary);
+}
+
+.header-search-input {
+	width: 100%;
+	height: 2.25rem;
+	border: none;
+	background: transparent;
+	padding: 0;
+	font-size: 0.9rem;
+	color: var(--color-text-primary);
+	outline: none;
+}
+
+.header-search.open .header-search-shell:focus-within {
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-light) 28%, transparent);
 }
 
 /* Mobile menu button - hidden by default */
@@ -440,21 +538,25 @@ watch(() => route.path, () => {
 	transform: translateY(-100%);
 }
 
-/* 3-Column Grid Layout */
 .app-layout {
-	display: grid;
-	grid-template-columns: var(--sidebar-left-width) 1fr var(
-			--sidebar-right-width
-		);
+	width: 100%;
 	max-width: 1400px;
 	margin: 0 auto;
-	gap: 2rem;
 	padding: 0 2rem;
 }
 
+.app-layout.post-layout {
+	max-width: 1100px;
+}
+
+.app-layout.post-layout .main-content {
+	max-width: 100%;
+	margin: 0;
+}
+
 .main-content {
-	padding: 3rem 2rem;
-	max-width: var(--content-max-width);
+	padding: 3rem 0;
+	max-width: 100%;
 	margin: 0 auto;
 	width: 100%;
 }
@@ -574,15 +676,6 @@ html.dark .logo-dark {
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-	.app-layout {
-		grid-template-columns: 1fr;
-	}
-
-	/* Hide sidebars on mobile/tablet */
-	.app-layout > aside {
-		display: none;
-	}
-
 	.main-content {
 		max-width: 100%;
 	}
@@ -594,6 +687,10 @@ html.dark .logo-dark {
 
 	.main-nav {
 			display: none;
+	}
+
+	.header-search-input {
+		font-size: 0.88rem;
 	}
 
 		.header-actions {
@@ -625,6 +722,10 @@ html.dark .logo-dark {
 
 	.main-content {
 		padding: 1.5rem 0;
+	}
+
+	.header-search {
+		display: none;
 	}
 
 	.site-footer {

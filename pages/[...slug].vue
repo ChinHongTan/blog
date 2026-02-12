@@ -1,6 +1,29 @@
 <script setup lang="ts">
 const route = useRoute();
 
+const safeDecode = (value: string): string => {
+	let decoded = value;
+	for (let i = 0; i < 2; i += 1) {
+		try {
+			const next = decodeURIComponent(decoded);
+			if (next === decoded) break;
+			decoded = next;
+		} catch {
+			break;
+		}
+	}
+	return decoded;
+};
+
+const normalizePath = (value: string): string => {
+	if (!value) return "/";
+	const withLeadingSlash = value.startsWith("/") ? value : `/${value}`;
+	if (withLeadingSlash.length > 1 && withLeadingSlash.endsWith("/")) {
+		return withLeadingSlash.slice(0, -1);
+	}
+	return withLeadingSlash;
+};
+
 // Don't match /admin paths - let them be handled by static files
 if (route.path.startsWith("/admin")) {
 	throw createError({
@@ -12,10 +35,17 @@ if (route.path.startsWith("/admin")) {
 
 // Try to fetch from blog collection first, then pages collection
 const { data: page } = await useAsyncData(route.path, async () => {
-	// Try blog collection first with exact path
-	const blogResult = await queryCollection("blog").path(route.path).first();
-	if (blogResult) {
-		return blogResult;
+	const normalizedRoutePath = normalizePath(route.path);
+	const decodedRoutePath = normalizePath(safeDecode(route.path));
+	const blogPathCandidates = Array.from(
+		new Set([normalizedRoutePath, decodedRoutePath])
+	);
+
+	for (const candidatePath of blogPathCandidates) {
+		const blogResult = await queryCollection("blog").path(candidatePath).first();
+		if (blogResult) {
+			return blogResult;
+		}
 	}
 
 	// Derive stem from catch-all slug params (e.g. ['blog', 'post-name'])
@@ -28,29 +58,48 @@ const { data: page } = await useAsyncData(route.path, async () => {
 		: typeof slugParam === "string" && slugParam.length > 0
 			? [slugParam]
 			: [];
-	const targetStem = slugSegments.join("/");
+	const normalizedSlugSegments = slugSegments.map((segment) =>
+		safeDecode(segment)
+	);
+	const targetStem = normalizedSlugSegments.join("/");
+	const decodedRouteStem = normalizePath(decodedRoutePath)
+		.replace(/^\/+/, "")
+		.trim();
+	const stemCandidates = Array.from(
+		new Set([targetStem, decodedRouteStem].filter((value) => value.length > 0))
+	);
 
-	if (targetStem) {
-		const blogByStem = await queryCollection("blog")
-			.where("stem", "=", targetStem)
-			.first();
-		if (blogByStem) {
-			return blogByStem;
+	if (stemCandidates.length > 0) {
+		for (const stemCandidate of stemCandidates) {
+			const blogByStem = await queryCollection("blog")
+				.where("stem", "=", stemCandidate)
+				.first();
+			if (blogByStem) {
+				return blogByStem;
+			}
 		}
 
-		const pageByStem = await queryCollection("pages")
-			.where("stem", "=", targetStem)
-			.first();
-		if (pageByStem) {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			return pageByStem as any;
+		for (const stemCandidate of stemCandidates) {
+			const pageByStem = await queryCollection("pages")
+				.where("stem", "=", stemCandidate)
+				.first();
+			if (pageByStem) {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				return pageByStem as any;
+			}
 		}
 	}
 
-	// Fallback: try pages collection by path
-	const pageResult = await queryCollection("pages").path(route.path).first();
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return pageResult as any;
+	// Fallback: try pages collection by possible path variants
+	for (const candidatePath of blogPathCandidates) {
+		const pageResult = await queryCollection("pages").path(candidatePath).first();
+		if (pageResult) {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			return pageResult as any;
+		}
+	}
+
+	return null;
 });
 
 // Determine if this is a blog post (has date and author)
@@ -144,7 +193,14 @@ const readingTime = computed(() => {
 	<article v-if="page" class="blog-post">
 		<!-- Post Header -->
 		<header class="post-header">
-			<h1 class="post-title">{{ page.title }}</h1>
+			<div v-if="isBlogPost && page.featured_image" class="featured-hero">
+				<img :src="page.featured_image" :alt="page.title">
+				<div class="hero-title-wrap">
+					<h1 class="post-title hero-title">{{ page.title }}</h1>
+				</div>
+			</div>
+
+			<h1 v-else class="post-title">{{ page.title }}</h1>
 
 			<!-- Simple date display for static pages (pages with date but no author) -->
 			<div v-if="hasDate && !isBlogPost" class="page-meta">
@@ -207,11 +263,6 @@ const readingTime = computed(() => {
 			</div>
 		</header>
 
-		<!-- Featured Image (only for blog posts) -->
-		<div v-if="isBlogPost && page.featured_image" class="featured-image">
-			<img :src="page.featured_image" :alt="page.title">
-		</div>
-
 		<!-- Post Content -->
 		<div class="post-content">
 			<ContentRenderer :value="page" />
@@ -241,11 +292,7 @@ const readingTime = computed(() => {
 
 <style scoped>
 .blog-post {
-	background: var(--color-bg-primary);
-	border-radius: 12px;
-	padding: 3rem;
-	box-shadow: var(--shadow-sm);
-	border: 1px solid var(--color-border-light);
+	padding: 2rem 0;
 }
 
 /* Post Header */
@@ -253,6 +300,43 @@ const readingTime = computed(() => {
 	margin-bottom: 2rem;
 	padding-bottom: 1rem;
 	border-bottom: 2px solid var(--color-border-light);
+}
+
+.featured-hero {
+	position: relative;
+	border-radius: 14px;
+	overflow: hidden;
+	margin-bottom: 1.1rem;
+	box-shadow: var(--shadow-md);
+}
+
+.featured-hero img {
+	width: 100%;
+	display: block;
+	aspect-ratio: 16 / 7;
+	object-fit: cover;
+}
+
+.hero-title-wrap {
+	position: absolute;
+	left: 1rem;
+	right: 1rem;
+	bottom: 0.9rem;
+	display: flex;
+	justify-content: flex-start;
+	pointer-events: none;
+}
+
+.hero-title {
+	margin: 0;
+	padding: 0.45rem 0.85rem;
+	max-width: min(92%, 760px);
+	background: color-mix(in srgb, var(--color-bg-primary) 45%, transparent);
+	backdrop-filter: blur(8px) saturate(1.1);
+	-webkit-backdrop-filter: blur(8px) saturate(1.1);
+	border: 1px solid color-mix(in srgb, var(--color-border-light) 68%, transparent);
+	border-radius: 10px;
+	box-shadow: var(--shadow-sm);
 }
 
 .post-title {
@@ -333,7 +417,7 @@ const readingTime = computed(() => {
 	display: flex;
 	align-items: center;
 	gap: 0.75rem;
-	margin-top: 1rem;
+	margin-top: 0.75rem;
 }
 
 .post-tags :deep(svg) {
@@ -355,20 +439,6 @@ const readingTime = computed(() => {
 	font-size: 0.85rem;
 	font-weight: 500;
 	border: 1px solid var(--color-primary-light);
-}
-
-/* Featured Image */
-.featured-image {
-	margin-bottom: 2.5rem;
-	border-radius: 12px;
-	overflow: hidden;
-	box-shadow: var(--shadow-md);
-}
-
-.featured-image img {
-	width: 100%;
-	height: auto;
-	display: block;
 }
 
 /* Post Content */
@@ -705,6 +775,28 @@ html.dark .post-content :deep(.info-box-error) {
 		margin-bottom: 0.75rem;
 	}
 
+	.featured-hero {
+		border-radius: 10px;
+		margin-bottom: 0.9rem;
+	}
+
+	.featured-hero img {
+		aspect-ratio: 16 / 9;
+	}
+
+	.hero-title-wrap {
+		left: 0.75rem;
+		right: 0.75rem;
+		bottom: 0.7rem;
+	}
+
+	.hero-title {
+		padding: 0.35rem 0.65rem;
+		max-width: 100%;
+		font-size: 1.5rem;
+		line-height: 1.25;
+	}
+
 	.post-meta-bar {
 		flex-direction: column;
 		align-items: flex-start;
@@ -743,11 +835,6 @@ html.dark .post-content :deep(.info-box-error) {
 	.tag {
 		padding: 0.25rem 0.6rem;
 		font-size: 0.8rem;
-	}
-
-	.featured-image {
-		margin-bottom: 1.5rem;
-		border-radius: 8px;
 	}
 
 	.post-content {
@@ -824,6 +911,10 @@ html.dark .post-content :deep(.info-box-error) {
 
 	.post-title {
 		font-size: 1.5rem;
+	}
+
+	.hero-title {
+		font-size: 1.3rem;
 	}
 
 	.post-content {
