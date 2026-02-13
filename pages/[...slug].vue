@@ -220,6 +220,31 @@ onMounted(() => {
 onBeforeUnmount(() => {
 	window.removeEventListener("scroll", updateScrollPercentage);
 });
+
+// Waline Integration
+useHead({
+	link: [
+		{
+			rel: "stylesheet",
+			href: "https://unpkg.com/@waline/client@v3/dist/waline.css",
+		},
+	],
+});
+
+onMounted(() => {
+	if (isBlogPost.value) {
+		import("https://unpkg.com/@waline/client@v3/dist/waline.js").then(
+			({ init }) => {
+				init({
+					el: "#waline",
+					serverURL: "https://waline.chinono.dev",
+					lang: "zh-TW",
+					dark: "html.dark",
+				});
+			}
+		);
+	}
+});
 </script>
 
 <template>
@@ -317,6 +342,12 @@ onBeforeUnmount(() => {
 							</NuxtLink>
 						</div>
 					</footer>
+
+					<!-- Waline Comments -->
+					<div v-if="isBlogPost" class="waline-section">
+						<h2 class="waline-title">留言區</h2>
+						<div id="waline" class="waline-container" />
+					</div>
 				</div>
 
 				<!-- Sidebar Column (TOC) -->
@@ -799,6 +830,10 @@ onBeforeUnmount(() => {
 	border-color: var(--color-primary-light);
 	transform: translateY(-2px);
 	box-shadow: var(--shadow-lg);
+}
+
+.waline-container {
+	margin-top: 1rem;
 }
 
 .widget-icon {

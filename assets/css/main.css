@@ -3,254 +3,306 @@
 
 /* CSS Variables for Light Theme */
 :root {
-  /* Colors */
-  --color-primary: #38bdf8;
-  --color-primary-dark: #0ea5e9;
-  --color-primary-light: #7dd3fc;
-  --color-accent: #fbbf24;
-  --color-accent-dark: #f59e0b;
-  
-  /* Backgrounds */
-  --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f8fafc;
-  --color-bg-tertiary: #f1f5f9;
-  --color-bg-blue-tint: #f0f9ff;
-  
-  /* Text */
-  --color-text-primary: #1e293b;
-  --color-text-secondary: #475569;
-  --color-text-tertiary: #64748b;
-  
-  /* Borders */
-  --color-border-light: #e2e8f0;
-  --color-border-medium: #cbd5e1;
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  
-  /* Typography */
-  --font-heading: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
-  
-  /* Spacing */
-  --header-height: 70px;
-  --sidebar-left-width: 280px;
-  --sidebar-right-width: 260px;
-  --content-max-width: 720px;
+    /* Colors */
+    --color-primary: #38bdf8;
+    --color-primary-dark: #0ea5e9;
+    --color-primary-light: #7dd3fc;
+    --color-accent: #fbbf24;
+    --color-accent-dark: #f59e0b;
 
-  /* Glass UI */
-  --panel-bg: rgba(255, 255, 255, 0.65);
-  --glass-blur: 12px;
+    /* Backgrounds */
+    --color-bg-primary: #ffffff;
+    --color-bg-secondary: #f8fafc;
+    --color-bg-tertiary: #f1f5f9;
+    --color-bg-blue-tint: #f0f9ff;
+
+    /* Text */
+    --color-text-primary: #1e293b;
+    --color-text-secondary: #475569;
+    --color-text-tertiary: #64748b;
+
+    /* Borders */
+    --color-border-light: #e2e8f0;
+    --color-border-medium: #cbd5e1;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+
+    /* Typography */
+    --font-heading: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+    /* Spacing */
+    --header-height: 70px;
+    --sidebar-left-width: 280px;
+    --sidebar-right-width: 260px;
+    --content-max-width: 720px;
+
+    /* Glass UI */
+    --panel-bg: rgba(255, 255, 255, 0.65);
+    --glass-blur: 12px;
+}
+
+/* Waline Overrides (Light) — html:root selector beats waline.css's :root */
+html:root {
+    --waline-theme-color: var(--color-primary);
+    --waline-active-color: var(--color-primary-dark);
+    --waline-color: var(--color-text-primary);
+    --waline-bg-color: transparent;
+    --waline-bg-color-light: transparent;
+    --waline-bg-color-hover: var(--color-bg-blue-tint);
+    --waline-border-color: var(--color-border-light);
+    --waline-disable-bg-color: var(--color-bg-tertiary);
+    --waline-disable-color: var(--color-text-tertiary);
+    --waline-info-bg-color: var(--color-bg-tertiary);
+    --waline-info-color: var(--color-text-secondary);
+    --waline-border: 1px solid var(--color-border-light);
+    --waline-avatar-radius: 50%;
+    --waline-box-shadow: none;
 }
 
 /* Dark Theme Variables (applied when <html class="dark">) */
 html.dark {
-  /* Colors */
-  --color-primary: #38bdf8; /* keep brand */
-  --color-primary-dark: #0ea5e9;
-  --color-primary-light: #7dd3fc;
-  --color-accent: #fbbf24;
-  --color-accent-dark: #f59e0b;
+    /* Colors */
+    --color-primary: #38bdf8;
+    /* keep brand */
+    --color-primary-dark: #0ea5e9;
+    --color-primary-light: #7dd3fc;
+    --color-accent: #fbbf24;
+    --color-accent-dark: #f59e0b;
 
-  /* Backgrounds */
-  --color-bg-primary: #0f172a; /* slate-900 */
-  --color-bg-secondary: #111827; /* gray-900 */
-  --color-bg-tertiary: #1f2937; /* gray-800 */
-  --color-bg-blue-tint: #082f49; /* cyan-950 */
+    /* Backgrounds */
+    --color-bg-primary: #0f172a;
+    /* slate-900 */
+    --color-bg-secondary: #111827;
+    /* gray-900 */
+    --color-bg-tertiary: #1f2937;
+    /* gray-800 */
+    --color-bg-blue-tint: #082f49;
+    /* cyan-950 */
 
-  /* Text */
-  --color-text-primary: #e5e7eb; /* gray-200 */
-  --color-text-secondary: #cbd5e1; /* slate-300 */
-  --color-text-tertiary: #94a3b8; /* slate-400 */
+    /* Text */
+    --color-text-primary: #e5e7eb;
+    /* gray-200 */
+    --color-text-secondary: #cbd5e1;
+    /* slate-300 */
+    --color-text-tertiary: #94a3b8;
+    /* slate-400 */
 
-  /* Borders */
-  --color-border-light: #334155; /* slate-700 */
-  --color-border-medium: #475569; /* slate-600 */
+    /* Borders */
+    --color-border-light: #334155;
+    /* slate-700 */
+    --color-border-medium: #475569;
+    /* slate-600 */
 
-  /* Shadows (slightly stronger in dark) */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.35);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
+    /* Shadows (slightly stronger in dark) */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.35);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
 
-  /* Glass UI */
-  --panel-bg: rgba(15, 23, 42, 0.6); /* slate-900 @ 0.6 */
+    /* Glass UI */
+    --panel-bg: rgba(15, 23, 42, 0.6);
+    /* slate-900 @ 0.6 */
+}
+
+/* Waline Overrides (Dark) — html.dark:root beats waline.css's html.dark */
+html.dark:root {
+    --waline-theme-color: var(--color-primary);
+    --waline-active-color: var(--color-primary-dark);
+    --waline-color: var(--color-text-primary);
+    --waline-bg-color: transparent;
+    --waline-bg-color-light: transparent;
+    --waline-bg-color-hover: var(--color-bg-blue-tint);
+    --waline-border-color: var(--color-border-light);
+    --waline-disable-bg-color: var(--color-bg-tertiary);
+    --waline-disable-color: var(--color-text-tertiary);
+    --waline-info-bg-color: var(--color-bg-tertiary);
+    --waline-info-color: var(--color-text-secondary);
+    --waline-border: 1px solid var(--color-border-light);
+    --waline-box-shadow: none;
 }
 
 /* Global styles */
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 100px; /* Account for sticky header */
+    scroll-behavior: smooth;
+    scroll-padding-top: 100px;
+    /* Account for sticky header */
 }
 
 body {
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background: var(--color-bg-secondary);
-  color: var(--color-text-primary);
-  line-height: 1.6;
-  transition: background-color 0.3s ease;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    line-height: 1.6;
+    transition: background-color 0.3s ease;
 }
 
 /* Typography */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  font-weight: 600;
-  line-height: 1.3;
-  color: var(--color-text-primary);
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--color-text-primary);
 }
 
 h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
+    font-size: 2.5rem;
+    font-weight: 700;
 }
 
 h2 {
-  font-size: 2rem;
+    font-size: 2rem;
 }
 
 h3 {
-  font-size: 1.5rem;
+    font-size: 1.5rem;
 }
 
 p {
-  margin-bottom: 1rem;
+    margin-bottom: 1rem;
 }
 
 a {
-  color: var(--color-primary-dark);
-  text-decoration: none;
-  transition: color 0.2s ease;
+    color: var(--color-primary-dark);
+    text-decoration: none;
+    transition: color 0.2s ease;
 }
 
 a:hover {
-  color: var(--color-primary);
+    color: var(--color-primary);
 }
 
 /* Code blocks */
 code {
-  font-family: var(--font-mono);
-  background: var(--color-bg-tertiary);
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  font-size: 0.9em;
+    font-family: var(--font-mono);
+    background: var(--color-bg-tertiary);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
 }
 
 pre {
-  background: var(--color-text-primary);
-  color: #f8fafc;
-  padding: 1.5rem;
-  border-radius: 8px;
-  overflow-x: auto;
-  margin: 1.5rem 0;
+    background: var(--color-text-primary);
+    color: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1.5rem 0;
 }
 
 pre code {
-  background: transparent;
-  padding: 0;
-  color: inherit;
+    background: transparent;
+    padding: 0;
+    color: inherit;
 }
 
 /* Selection color */
 ::selection {
-  background: var(--color-primary);
-  color: white;
+    background: var(--color-primary);
+    color: white;
 }
 
 /* Focus styles for accessibility */
 *:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
 }
 
 /* Utilities */
 .container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
 }
 
 /* Smooth transitions */
 * {
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 mjx-container[jax="SVG"][display="true"] {
-  display: block;
-  text-align: center;
-  margin: 1.5rem 0;
-  border: 1px solid var(--color-border-medium);
+    display: block;
+    text-align: center;
+    margin: 1.5rem 0;
+    border: 1px solid var(--color-border-medium);
 }
 
-mjx-container[jax="SVG"][display="true"] > svg {
-  display: inline-block;
+mjx-container[jax="SVG"][display="true"]>svg {
+    display: inline-block;
 }
 
 /* Footnote references in text (superscript links) */
 sup a[href^="#fn-"],
 a[data-footnote-ref] {
-  color: var(--color-primary-dark);
-  text-decoration: none;
-  font-weight: 600;
-  padding: 0.1em 0.3em;
-  border-radius: 3px;
-  transition: all 0.2s ease;
+    color: var(--color-primary-dark);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    transition: all 0.2s ease;
 }
 
 sup a[href^="#fn-"]:hover,
 a[data-footnote-ref]:hover {
-  background: var(--color-primary-light);
-  color: var(--color-bg-primary);
+    background: var(--color-primary-light);
+    color: var(--color-bg-primary);
 }
 
 /* Footnotes section styling */
 .footnotes,
 section[data-footnotes] {
-  margin-top: 3rem;
-  font-size: 0.95em;
+    margin-top: 3rem;
+    font-size: 0.95em;
 }
 
 /* Footnote list items */
 .footnotes li,
 section[data-footnotes] li {
-  position: relative;
-  margin-bottom: 0.75rem;
-  padding-left: 0.5rem;
-  line-height: 1.7;
+    position: relative;
+    margin-bottom: 0.75rem;
+    padding-left: 0.5rem;
+    line-height: 1.7;
 }
 
 /* Backlink arrow in footnotes */
 .footnotes a[href^="#fnref-"],
 a[data-footnote-backref] {
-  color: var(--color-primary-dark);
-  text-decoration: none;
-  font-weight: 600;
-  margin-left: 0.5em;
-  padding: 0.1em 0.3em;
-  border-radius: 3px;
-  transition: all 0.2s ease;
+    color: var(--color-primary-dark);
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: 0.5em;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    transition: all 0.2s ease;
 }
 
 .footnotes a[href^="#fnref-"]:hover,
 a[data-footnote-backref]:hover {
-  background: var(--color-primary-light);
-  color: var(--color-bg-primary);
-  transform: translateY(-1px);
+    background: var(--color-primary-light);
+    color: var(--color-bg-primary);
+    transform: translateY(-1px);
 }
 
 /* Smooth scroll */
 [id^="fn-"],
 [id^="fnref-"] {
-  scroll-margin-top: 120px;
+    scroll-margin-top: 120px;
 }
 
 /* Highlight footnote items when targeted or programmatically activated */
@@ -258,22 +310,22 @@ a[data-footnote-backref]:hover {
 .footnotes .is-footnote-highlighted,
 section[data-footnotes] [id^="user-content-fn-"]:target,
 section[data-footnotes] .is-footnote-highlighted {
-  background-color: var(--color-bg-blue-tint);
-  border-radius: 6px;
-  padding: 0.5em;
-  margin: -0.5em;
-  transition: background-color 0.3s ease;
+    background-color: var(--color-bg-blue-tint);
+    border-radius: 6px;
+    padding: 0.5em;
+    margin: -0.5em;
+    transition: background-color 0.3s ease;
 }
 
 /* Highlight citation references when targeted or programmatically activated */
 .footnotes [id^="user-content-fnref-"]:target,
 [id^="user-content-fnref-"]:target,
 .is-citation-highlighted {
-  background-color: var(--color-bg-blue-tint);
-  padding: 0.2em 0.4em;
-  margin: -0.2em -0.4em;
-  border-radius: 3px;
-  transition: background-color 0.3s ease;
+    background-color: var(--color-bg-blue-tint);
+    padding: 0.2em 0.4em;
+    margin: -0.2em -0.4em;
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
 }
 
 /* Dark mode */
@@ -281,19 +333,56 @@ html.dark sup a[href^="#fn-"]:hover,
 html.dark a[data-footnote-ref]:hover,
 html.dark .footnotes a[href^="#fnref-"]:hover,
 html.dark a[data-footnote-backref]:hover {
-  background: var(--color-primary-dark);
-  color: var(--color-text-primary);
+    background: var(--color-primary-dark);
+    color: var(--color-text-primary);
 }
 
 /* Style the footnotes heading */
-.footnotes > h2,
-section[data-footnotes] > h2 {
-  font-family: var(--font-heading);
-  font-size: 2rem;
-  font-weight: 600;
-  line-height: 1.3;
-  color: var(--color-text-primary);
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 3px solid var(--color-primary);
+.footnotes>h2,
+section[data-footnotes]>h2 {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--color-text-primary);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid var(--color-primary);
+}
+
+/* Waline Custom Styles */
+.waline-section {
+    margin-top: 4rem;
+    padding-top: 2rem;
+}
+
+.waline-title {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--color-text-primary);
+    position: relative;
+    display: inline-block;
+}
+
+.waline-title::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 3px;
+    background: var(--color-primary);
+    margin-top: 0.5rem;
+    border-radius: 2px;
+}
+
+/* Fix resize handle visibility in dark mode */
+#waline textarea {
+    color-scheme: light dark;
+}
+
+/* Ensure Waline variables are respected deep in shadow DOM or specificity wars */
+:root {
+    --waline-font-size: 1rem;
+
 }
