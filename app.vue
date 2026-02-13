@@ -2,6 +2,22 @@
 // Search query state
 const searchQuery = ref("");
 const isSearchOpen = ref(false);
+const searchInputRef = ref<HTMLInputElement | null>(null);
+
+const toggleSearch = () => {
+    isSearchOpen.value = !isSearchOpen.value;
+    if (isSearchOpen.value) {
+        nextTick(() => {
+            searchInputRef.value?.focus();
+        });
+    }
+};
+
+const handleSearchBlur = () => {
+    if (!searchQuery.value) {
+        isSearchOpen.value = false;
+    }
+};
 
 // Mobile menu state
 const isMobileMenuOpen = ref(false);
@@ -24,12 +40,68 @@ watch(() => route.path, () => {
 	isMobileMenuOpen.value = false;
 	isSearchOpen.value = false;
 });
+
+// Scroll-aware header
+const isHeaderHidden = ref(false);
+const lastScrollY = ref(0);
+const scrollThreshold = 10; // Minimum scroll distance to trigger
+
+const handleScroll = () => {
+	if (typeof window === "undefined") return;
+	
+	const currentScrollY = window.scrollY;
+	
+	// Show header if:
+	// 1. Scrolling up
+	// 2. At the top of the page
+	// 3. Mobile menu is open
+	if (
+		currentScrollY < lastScrollY.value ||
+		currentScrollY < 100 ||
+		isMobileMenuOpen.value
+	) {
+		isHeaderHidden.value = false;
+	} 
+	// Hide header if:
+	// 1. Scrolling down AND past threshold
+	// 2. Not at top
+	// 3. Mobile menu is closed
+	else if (
+		currentScrollY > lastScrollY.value &&
+		currentScrollY > 100 &&
+		Math.abs(currentScrollY - lastScrollY.value) > scrollThreshold
+	) {
+		isHeaderHidden.value = true;
+	}
+
+	lastScrollY.value = currentScrollY;
+};
+
+// Throttle scroll handler for performance
+let ticking = false;
+const onScroll = () => {
+	if (!ticking) {
+		window.requestAnimationFrame(() => {
+			handleScroll();
+			ticking = false;
+		});
+		ticking = true;
+	}
+};
+
+onMounted(() => {
+	window.addEventListener("scroll", onScroll, { passive: true });
+});
+
+onUnmounted(() => {
+	window.removeEventListener("scroll", onScroll);
+});
 </script>
 
 <template>
 	<div :class="['app-wrapper', { 'post-mood': isPostPage }]">
 		<!-- Top Header -->
-		<header class="main-header">
+		<header class="main-header" :class="{ 'header-hidden': isHeaderHidden }">
 			<div class="header-content">
 				<NuxtLink to="/" class="logo">
 					<!-- Option 1: Profile Picture (Current) -->
@@ -65,22 +137,23 @@ watch(() => route.path, () => {
 						</NuxtLink>
 					</nav>
 					<div class="header-search" :class="{ open: isSearchOpen }">
-						<button
-							type="button"
-							class="search-toggle"
-							:aria-label="isSearchOpen ? '收起搜尋' : '展開搜尋'"
-							@click="isSearchOpen = !isSearchOpen"
-						>
-							<Icon name="heroicons:magnifying-glass" size="18" />
-						</button>
-						<div class="header-search-shell">
-							<Icon name="heroicons:magnifying-glass" size="16" class="header-search-icon" />
+						<div class="search-pill">
+							<button
+								type="button"
+								class="search-toggle"
+								:aria-label="isSearchOpen ? '收起搜尋' : '展開搜尋'"
+								@click="toggleSearch"
+							>
+								<Icon name="heroicons:magnifying-glass" size="18" />
+							</button>
 							<input
+								ref="searchInputRef"
 								v-model="searchQuery"
 								type="search"
 								class="header-search-input"
 								placeholder="搜尋文章..."
 								:tabindex="isSearchOpen ? 0 : -1"
+								@blur="handleSearchBlur"
 							>
 						</div>
 					</div>
@@ -282,15 +355,25 @@ watch(() => route.path, () => {
 	background:
 		linear-gradient(
 			90deg,
-			color-mix(in srgb, var(--color-primary-light) 18%, var(--color-bg-primary)),
-			color-mix(in srgb, var(--color-bg-primary) 92%, var(--color-accent) 8%)
+			color-mix(in srgb, var(--color-primary-light) 18%, transparent),
+			color-mix(in srgb, transparent 92%, var(--color-accent) 8%)
 		),
-		var(--color-bg-primary);
-	border-bottom: 1px solid var(--color-border-light);
+		color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border-bottom: 1px solid color-mix(in srgb, var(--color-border-light) 60%, transparent);
 	position: sticky;
 	top: 0;
 	z-index: 100;
 	box-shadow: var(--shadow-sm);
+	transition: 
+		transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+		background-color 0.3s ease,
+		border-color 0.3s ease;
+}
+
+.main-header.header-hidden {
+	transform: translateY(-100%);
 }
 
 .header-content {
@@ -312,7 +395,7 @@ watch(() => route.path, () => {
 	font-weight: 700;
 	color: var(--color-text-primary);
 	text-decoration: none;
-	transition: color 0.2s ease;
+	transition: color 0.3s ease;
 }
 
 .logo-image {
@@ -346,7 +429,7 @@ watch(() => route.path, () => {
 	font-weight: 500;
 	color: var(--color-text-secondary);
 	text-decoration: none;
-	transition: color 0.2s ease;
+	transition: color 0.3s ease;
 	padding: 0.5rem 0;
 }
 
@@ -363,8 +446,34 @@ watch(() => route.path, () => {
 .header-search {
 	display: flex;
 	align-items: center;
-	gap: 0.35rem;
-	min-width: 2.25rem;
+	height: 2.25rem;
+}
+
+.search-pill {
+	display: flex;
+	align-items: center;
+	height: 100%;
+	background: transparent;
+	border: 1px solid transparent;
+	border-radius: 999px;
+	padding: 0;
+	transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+	overflow: hidden;
+	width: 2.25rem; /* Initial width = icon width */
+}
+
+.header-search.open .search-pill {
+	width: clamp(180px, 20vw, 270px);
+	border-color: var(--color-border-light);
+	background: color-mix(in srgb, var(--color-bg-primary) 60%, transparent);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	padding-right: 0.75rem;
+}
+
+.header-search.open .search-pill:focus-within {
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-light) 28%, transparent);
 }
 
 .search-toggle {
@@ -375,59 +484,34 @@ watch(() => route.path, () => {
 	justify-content: center;
 	border: none;
 	background: transparent;
-	border-radius: 8px;
 	color: var(--color-text-primary);
 	cursor: pointer;
-	transition: all 0.2s ease;
+	transition: color 0.2s ease;
+	flex-shrink: 0;
 }
 
 .search-toggle:hover {
-	background: color-mix(in srgb, var(--color-primary-light) 18%, transparent);
 	color: var(--color-primary-dark);
 }
 
-.header-search-shell {
-	width: 0;
-	height: 2.25rem;
-	opacity: 0;
-	overflow: hidden;
-	display: flex;
-	align-items: center;
-	gap: 0.25rem;
-	border: 1px solid transparent;
-	border-radius: 999px;
-	background: transparent;
-	padding: 0;
-	transition: width 0.28s ease, opacity 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, padding 0.2s ease;
-}
-
-.header-search.open .header-search-shell {
-	width: clamp(180px, 20vw, 270px);
-	opacity: 1;
-	border-color: var(--color-border-light);
-	background: color-mix(in srgb, var(--color-bg-primary) 92%, transparent);
-	padding: 0 0.72rem;
-}
-
-.header-search-icon {
-	flex: 0 0 auto;
-	color: var(--color-text-tertiary);
-}
-
 .header-search-input {
-	width: 100%;
-	height: 2.25rem;
+	height: 100%;
 	border: none;
 	background: transparent;
 	padding: 0;
 	font-size: 0.9rem;
 	color: var(--color-text-primary);
 	outline: none;
+	width: 0;
+	opacity: 0;
+	transition: all 0.2s ease;
+	margin-left: 0;
 }
 
-.header-search.open .header-search-shell:focus-within {
-	border-color: var(--color-primary);
-	box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-light) 28%, transparent);
+.header-search.open .header-search-input {
+	width: 100%;
+	opacity: 1;
+	margin-left: 0.25rem;
 }
 
 /* Mobile menu button - hidden by default */
@@ -546,7 +630,7 @@ watch(() => route.path, () => {
 }
 
 .app-layout.post-layout {
-	max-width: 1100px;
+	max-width: 1280px;
 }
 
 .app-layout.post-layout .main-content {

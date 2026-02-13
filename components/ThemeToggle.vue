@@ -1,47 +1,19 @@
 <script setup lang="ts">
-const STORAGE_KEY = 'theme';
-type Theme = 'light' | 'dark';
-
 const props = withDefaults(defineProps<{
   size?: 'sm' | 'md';
 }>(), {
   size: 'sm'
 });
 
-const current = ref<Theme>('light');
+const { theme, toggleTheme, initTheme } = useTheme();
 const isMounted = ref(false);
 
-const applyTheme = (theme: Theme) => {
-  const root = document.documentElement;
-  if (theme === 'dark') root.classList.add('dark');
-  else root.classList.remove('dark');
-};
-
-const setTheme = (theme: Theme) => {
-  current.value = theme;
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY, theme);
-    applyTheme(theme);
-  }
-};
-
-const toggle = () => setTheme(current.value === 'dark' ? 'light' as Theme : 'dark');
-
 onMounted(() => {
-  // Determine initial theme: saved -> system -> light
-  let initial: Theme = 'light';
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    if (saved === 'dark' || saved === 'light') initial = saved;
-    else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) initial = 'dark';
-  } catch {
-    // ignore
-  }
-  setTheme(initial);
+  initTheme();
   isMounted.value = true;
 });
 
-const label = computed(() => current.value === 'dark' ? '切換為淺色主題' : '切換為深色主題');
+const label = computed(() => theme.value === 'dark' ? '切換為淺色主題' : '切換為深色主題');
 </script>
 
 <template>
@@ -49,9 +21,9 @@ const label = computed(() => current.value === 'dark' ? '切換為淺色主題' 
     class="theme-toggle"
     :class="[`size-${props.size}`]"
     role="switch"
-    :aria-checked="current === 'dark'"
+    :aria-checked="theme === 'dark'"
     :aria-label="label"
-    @click="toggle"
+    @click="toggleTheme"
   >
     <span class="icons">
       <Icon name="heroicons:moon" size="14" class="icon moon" />

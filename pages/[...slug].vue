@@ -187,97 +187,196 @@ const readingTime = computed(() => {
 
 	return Math.max(1, readingMinutes); // At least 1 minute
 });
+
+const hasToc = computed(() => {
+	return page.value?.body?.toc?.links && page.value.body.toc.links.length > 0;
+});
+
+const showToc = ref(true);
+const scrollPercentage = ref(0);
+
+const updateScrollPercentage = () => {
+	if (typeof window === "undefined") return;
+	const scrollTop = window.scrollY;
+	const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+	const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+	scrollPercentage.value = Math.min(100, Math.max(0, scrollPercent));
+};
+
+const scrollToTop = () => {
+	window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+onMounted(() => {
+	window.addEventListener("scroll", updateScrollPercentage, { passive: true });
+	updateScrollPercentage();
+	
+	// Default hide TOC on small screens
+	if (window.innerWidth < 1280) {
+		showToc.value = false;
+	}
+});
+
+onBeforeUnmount(() => {
+	window.removeEventListener("scroll", updateScrollPercentage);
+});
 </script>
 
 <template>
-	<article v-if="page" class="blog-post">
-		<!-- Post Header -->
-		<header class="post-header">
-			<div v-if="isBlogPost && page.featured_image" class="featured-hero">
-				<img :src="page.featured_image" :alt="page.title">
-				<div class="hero-title-wrap">
-					<h1 class="post-title hero-title">{{ page.title }}</h1>
+	<div v-if="page" class="post-layout-container">
+		<article class="blog-post">
+			<!-- Main Content Grid -->
+			<div class="layout-wrapper" :class="{ 'no-toc': !hasToc || !showToc }">
+				<div class="content-column">
+					<!-- Post Header -->
+					<header class="post-header">
+						<div v-if="isBlogPost && page.featured_image" class="featured-hero">
+							<img :src="page.featured_image" :alt="page.title">
+							<div class="hero-title-wrap">
+								<h1 class="post-title hero-title">{{ page.title }}</h1>
+							</div>
+						</div>
+
+						<h1 v-else class="post-title">{{ page.title }}</h1>
+
+						<!-- Simple date display for static pages (pages with date but no author) -->
+						<div v-if="hasDate && !isBlogPost" class="page-meta">
+							<span class="meta-item">
+								<Icon name="heroicons:calendar" size="16" />
+								最後更新：{{
+									new Date(page.date).toLocaleDateString("zh-TW", {
+										year: "numeric",
+										month: "long",
+										day: "numeric",
+									})
+								}}
+							</span>
+						</div>
+
+						<!-- Post Meta Information (only for blog posts) -->
+						<div v-if="isBlogPost" class="post-meta-bar">
+							<div class="author-info">
+								<img
+									:src="authorAvatar"
+									:alt="page.author || 'Author'"
+									class="author-avatar"
+								>
+								<span class="author-name">{{
+									page.author || "Anonymous"
+								}}</span>
+							</div>
+
+							<div class="meta-divider" />
+
+							<div class="post-meta-items">
+								<span class="meta-item">
+									<Icon name="heroicons:calendar" size="16" />
+									{{
+										new Date(page.date).toLocaleDateString("en-US", {
+											month: "long",
+											day: "numeric",
+											year: "numeric",
+										})
+									}}
+								</span>
+								<span class="meta-item">
+									<Icon name="heroicons:clock" size="16" />
+									{{ readingTime }} 分鐘閱讀
+								</span>
+							</div>
+						</div>
+
+						<!-- Tags (only for blog posts) -->
+						<div
+							v-if="isBlogPost && page.tags && page.tags.length"
+							class="post-tags"
+						>
+							<Icon name="heroicons:tag" size="16" />
+							<div class="tags-list">
+								<span v-for="tag in page.tags" :key="tag" class="tag">
+									{{ tag }}
+								</span>
+							</div>
+						</div>
+					</header>
+
+					<div class="post-content">
+						<ContentRenderer :value="page">
+							<div class="nuxt-content">
+								<ContentRendererMarkdown :value="page" />
+							</div>
+						</ContentRenderer>
+					</div>
+
+					<!-- Post Footer -->
+					<footer class="post-footer">
+						<div class="back-link">
+							<NuxtLink to="/">
+								<Icon name="heroicons:arrow-left" size="20" />
+								返回所有文章
+							</NuxtLink>
+						</div>
+					</footer>
 				</div>
+
+				<!-- Sidebar Column (TOC) -->
+				<Transition name="toc-transition">
+					<div v-show="hasToc && showToc" class="sidebar-column">
+						<div class="sidebar-sticky">
+							<RightSidebar :toc="page.body?.toc" :is-post-page="true" />
+						</div>
+					</div>
+				</Transition>
 			</div>
+		</article>
 
-			<h1 v-else class="post-title">{{ page.title }}</h1>
-
-			<!-- Simple date display for static pages (pages with date but no author) -->
-			<div v-if="hasDate && !isBlogPost" class="page-meta">
-				<span class="meta-item">
-					<Icon name="heroicons:calendar" size="16" />
-					最後更新：{{
-						new Date(page.date).toLocaleDateString("zh-TW", {
-							year: "numeric",
-							month: "long",
-							day: "numeric",
-						})
-					}}
-				</span>
-			</div>
-
-			<!-- Post Meta Information (only for blog posts) -->
-			<div v-if="isBlogPost" class="post-meta-bar">
-				<div class="author-info">
-					<img
-						:src="authorAvatar"
-						:alt="page.author || 'Author'"
-						class="author-avatar"
-					>
-					<span class="author-name">{{
-						page.author || "Anonymous"
-					}}</span>
-				</div>
-
-				<div class="meta-divider" />
-
-				<div class="post-meta-items">
-					<span class="meta-item">
-						<Icon name="heroicons:calendar" size="16" />
-						{{
-							new Date(page.date).toLocaleDateString("en-US", {
-								month: "long",
-								day: "numeric",
-								year: "numeric",
-							})
-						}}
-					</span>
-					<span class="meta-item">
-						<Icon name="heroicons:clock" size="16" />
-						{{ readingTime }} 分鐘閱讀
-					</span>
-				</div>
-			</div>
-
-			<!-- Tags (only for blog posts) -->
-			<div
-				v-if="isBlogPost && page.tags && page.tags.length"
-				class="post-tags"
+		<!-- Floating Widgets -->
+		
+		<!-- TOC Toggle Button (Upper Right) -->
+		<div v-if="hasToc" class="floating-toc-toggle">
+			<button 
+				class="widget-button toc-button" 
+				:class="{ 'active': showToc }"
+				@click="showToc = !showToc"
+				aria-label="Toggle Table of Contents"
 			>
-				<Icon name="heroicons:tag" size="16" />
-				<div class="tags-list">
-					<span v-for="tag in page.tags" :key="tag" class="tag">
-						{{ tag }}
-					</span>
-				</div>
-			</div>
-		</header>
-
-		<!-- Post Content -->
-		<div class="post-content">
-			<ContentRenderer :value="page" />
+				<Icon :name="showToc ? 'heroicons:list-bullet' : 'heroicons:list-bullet'" class="widget-icon" />
+				<span class="tooltip">{{ showToc ? '隱藏目錄' : '顯示目錄' }}</span>
+			</button>
 		</div>
 
-		<!-- Post Footer -->
-		<footer class="post-footer">
-			<div class="back-link">
-				<NuxtLink to="/">
-					<Icon name="heroicons:arrow-left" size="20" />
-					返回所有文章
-				</NuxtLink>
+		<!-- Scroll Progress Widget (Lower Right) -->
+		<div class="floating-scroll-widget">
+			<div class="progress-ring-container" @click="scrollToTop">
+				<svg class="progress-ring" width="48" height="48" viewBox="0 0 48 48">
+					<circle
+						class="progress-ring-circle-bg"
+						stroke="currentColor"
+						stroke-width="3"
+						fill="transparent"
+						r="20"
+						cx="24"
+						cy="24"
+					/>
+					<circle
+						class="progress-ring-circle"
+						stroke="currentColor"
+						stroke-width="3"
+						fill="transparent"
+						r="20"
+						cx="24"
+						cy="24"
+						:style="{ strokeDashoffset: 125.6 - (125.6 * scrollPercentage) / 100 }"
+					/>
+				</svg>
+				<div class="progress-text-container">
+					<span class="progress-text">{{ Math.round(scrollPercentage) }}</span>
+					<Icon name="heroicons:arrow-up" class="back-to-top-icon" />
+				</div>
 			</div>
-		</footer>
-	</article>
+		</div>
+
+	</div>
 
 	<div v-else class="not-found">
 		<Icon name="heroicons:document-magnifying-glass" size="64" />
@@ -291,15 +390,101 @@ const readingTime = computed(() => {
 </template>
 
 <style scoped>
+/* Main Layout Grid */
+.layout-wrapper {
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	/* gap: 3rem; Removed gap to allow smooth margin animation */
+	width: 100%;
+	max-width: 1400px;
+	margin-inline: auto;
+	position: relative;
+}
+
+.content-column {
+	width: 100%;
+	max-width: 900px; /* Increased from 720px */
+	min-width: 0;
+	flex-shrink: 0;
+	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Sidebar Transition */
+.sidebar-column {
+	width: 240px;
+	flex-shrink: 0;
+	position: sticky;
+	top: 100px;
+	height: fit-content;
+	margin-left: 3rem; /* Use margin instead of gap */
+}
+
+/* Prevent text wrapping during width animation */
+.sidebar-sticky {
+	min-width: 240px;
+	width: 240px;
+}
+
+/* TOC Toggle Animation */
+.toc-transition-enter-active,
+.toc-transition-leave-active {
+	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	overflow: hidden;
+}
+
+.toc-transition-enter-from,
+.toc-transition-leave-to {
+	width: 0;
+	opacity: 0;
+	margin-left: 0;
+}
+
+
 .blog-post {
 	padding: 2rem 0;
+	min-width: 0; /* Prevent grid blowout */
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.layout-wrapper.no-toc {
+	justify-content: center;
+}
+
+.layout-wrapper.no-toc .content-column {
+	margin-inline: auto;
+}
+
+/* Responsive sidebar hiding */
+@media (max-width: 1200px) {
+	.layout-wrapper {
+		flex-direction: column;
+		align-items: center;
+		gap: 2rem;
+	}
+
+	.content-column {
+		width: 100%;
+		max-width: 720px;
+	}
+
+	.sidebar-column {
+		display: none;
+	}
+
+	.post-sidebar-component {
+		display: none;
+	}
 }
 
 /* Post Header */
 .post-header {
 	margin-bottom: 2rem;
 	padding-bottom: 1rem;
-	border-bottom: 2px solid var(--color-border-light);
+	/* border-bottom: 2px solid var(--color-border-light); */
 }
 
 .featured-hero {
@@ -377,7 +562,6 @@ const readingTime = computed(() => {
 	width: 40px;
 	height: 40px;
 	border-radius: 50%;
-	border: 2px solid var(--color-primary-light);
 	object-fit: cover;
 	aspect-ratio: 1 / 1;
 	flex-shrink: 0;
@@ -438,7 +622,6 @@ const readingTime = computed(() => {
 	border-radius: 16px;
 	font-size: 0.85rem;
 	font-weight: 500;
-	border: 1px solid var(--color-primary-light);
 }
 
 /* Post Content */
@@ -571,6 +754,159 @@ const readingTime = computed(() => {
 	margin-bottom: 0.5rem;
 	font-size: 1.1rem;
 	font-weight: 600;
+}
+
+/* Floating Widgets */
+.floating-toc-toggle {
+	position: fixed;
+	top: 100px;
+	right: 2rem;
+	z-index: 90;
+}
+
+.floating-scroll-widget {
+	position: fixed;
+	bottom: 2rem;
+	right: 2rem;
+	z-index: 90;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	align-items: center;
+}
+
+.widget-button {
+	width: 44px;
+	height: 44px;
+	border-radius: 12px;
+	background: color-mix(in srgb, var(--color-bg-primary) 80%, transparent);
+	backdrop-filter: blur(8px);
+	border: 1px solid var(--color-border-light);
+	color: var(--color-text-secondary);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	box-shadow: var(--shadow-md);
+	transition: all 0.2s ease;
+	position: relative;
+}
+
+.widget-button:hover,
+.widget-button.active {
+	background: var(--color-bg-primary);
+	color: var(--color-primary);
+	border-color: var(--color-primary-light);
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-lg);
+}
+
+.widget-icon {
+	font-size: 1.3rem;
+}
+
+.tooltip {
+	position: absolute;
+	right: 120%;
+	background: var(--color-bg-tertiary);
+	color: var(--color-text-primary);
+	padding: 0.3rem 0.6rem;
+	border-radius: 6px;
+	font-size: 0.8rem;
+	white-space: nowrap;
+	opacity: 0;
+	visibility: hidden;
+	transition: all 0.2s ease;
+	pointer-events: none;
+	box-shadow: var(--shadow-sm);
+}
+
+.widget-button:hover .tooltip {
+	opacity: 1;
+	visibility: visible;
+	right: 110%;
+}
+
+/* Scroll Progress Ring Widget */
+.progress-ring-container {
+	position: relative;
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	background: color-mix(in srgb, var(--color-bg-primary) 80%, transparent);
+	backdrop-filter: blur(8px);
+	border: 1px solid var(--color-border-light);
+	box-shadow: var(--shadow-md);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.progress-ring-container:hover {
+	transform: translateY(-3px);
+	box-shadow: var(--shadow-lg);
+	border-color: var(--color-primary-light);
+}
+
+.progress-ring {
+	transform: rotate(-90deg);
+}
+
+.progress-ring-circle-bg {
+	stroke: var(--color-border-light);
+}
+
+.progress-ring-circle {
+	stroke: var(--color-primary);
+	stroke-dasharray: 125.6; /* 2 * PI * r (20) */
+	stroke-linecap: round;
+	transition: stroke-dashoffset 0.1s linear;
+}
+
+.progress-text-container {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.progress-text {
+	font-size: 0.8rem;
+	font-weight: 700;
+	color: var(--color-text-secondary);
+	transition: opacity 0.2s ease;
+	opacity: 1;
+}
+
+.back-to-top-icon {
+	color: var(--color-primary);
+	font-size: 1.2rem;
+	position: absolute;
+	transition: opacity 0.2s ease;
+	opacity: 0;
+}
+
+/* Show arrow on hover OR when at bottom */
+.progress-ring-container:hover .progress-text {
+	opacity: 0;
+}
+
+.progress-ring-container:hover .back-to-top-icon {
+	opacity: 1;
+}
+
+/* Optional: If you want it to show arrow at bottom even without hover, add class via JS or keep pure hover */
+
+
+/* Hide floating widgets on very small screens if needed, or adjust position */
+@media (max-width: 768px) {
+	.floating-toc-toggle,
+	.floating-scroll-widget {
+		right: 1rem;
+	}
 }
 
 .post-content :deep(.info-box p) {

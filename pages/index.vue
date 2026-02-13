@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import type { BlogCollectionItem } from "@nuxt/content";
+import { useTheme } from '#imports';
+
+const { theme } = useTheme();
+
+const heroImageSrc = computed(() => 
+	theme.value === 'dark' ? '/images/background_dark.jpg' : '/images/background_light.jpg'
+);
 
 type AuthorCollectionItem = {
 	name?: string;
@@ -207,20 +214,41 @@ const scrollToPosts = () => {
 };
 
 onMounted(() => {
-	let index = 0;
-	typingTimer = setInterval(() => {
-		if (index < fullDescription.length) {
-			typedDescription.value += fullDescription[index];
-			index += 1;
-			return;
-		}
+	let isDeleting = false;
+	const typeSpeed = 100;
+	const deleteSpeed = 50;
+	const pauseEnd = 2000;
+	const pauseStart = 500;
 
-		isTypingDone.value = true;
-		if (typingTimer) {
-			clearInterval(typingTimer);
-			typingTimer = null;
+	const typeLoop = () => {
+		const currentText = typedDescription.value;
+		const fullText = fullDescription;
+
+		if (isDeleting) {
+			if (currentText.length > 0) {
+				typedDescription.value = currentText.slice(0, -1);
+				typingTimer = setTimeout(typeLoop, deleteSpeed);
+			} else {
+				isDeleting = false;
+				typingTimer = setTimeout(typeLoop, pauseStart);
+			}
+		} else {
+			if (currentText.length < fullText.length) {
+				typedDescription.value = fullText.slice(0, currentText.length + 1);
+				typingTimer = setTimeout(typeLoop, typeSpeed + Math.random() * 50);
+			} else {
+				isDeleting = true;
+				isTypingDone.value = true;
+				typingTimer = setTimeout(() => {
+					isTypingDone.value = false;
+					typeLoop();
+				}, pauseEnd);
+			}
 		}
-	}, 52);
+	};
+
+	// Start typing loop
+	typingTimer = setTimeout(typeLoop, 500);
 
 	updateScrollProgress();
 	window.addEventListener("scroll", updateScrollProgress, { passive: true });
@@ -229,24 +257,33 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	if (typingTimer) {
-		clearInterval(typingTimer);
+		clearTimeout(typingTimer);
 		typingTimer = null;
 	}
 	window.removeEventListener("scroll", updateScrollProgress);
 	window.removeEventListener("resize", updateScrollProgress);
 });
 
-useSeoMeta({
-	title: "七糯糯的小站",
-	description:
-		"我們是一群認識的小夥伴。這是我們分享日常冒險、酷炫發現、成就和有趣時刻的地方。歡迎你的到來！",
-});
 </script>
+
 
 <template>
 	<div class="home-page" :style="heroStyle">
+
 		<div class="hero-background" aria-hidden="true">
-			<img src="/images/background.jpg" alt="" class="hero-image">
+			<!-- Dual images for smooth fade -->
+			<img 
+				src="/images/background_light.jpg" 
+				alt="" 
+				class="hero-image light-mode"
+				:class="{ active: theme === 'light' }"
+			>
+			<img 
+				src="/images/background_dark.jpg" 
+				alt="" 
+				class="hero-image dark-mode"
+				:class="{ active: theme === 'dark' }"
+			>
 			<div class="hero-background-mask" />
 		</div>
 
@@ -452,20 +489,28 @@ useSeoMeta({
 
 .hero-background {
 	position: fixed;
-	inset: var(--header-height) 0 auto 0;
-	height: calc(100vh - var(--header-height));
+	inset: 0 0 auto 0;
+	height: 100vh;
 	z-index: 0;
 	overflow: hidden;
 	opacity: var(--hero-opacity);
 }
 
+/* Hero Images transition using opacity */
 .hero-image {
+	position: absolute;
+	inset: 0;
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
 	filter: blur(var(--hero-blur));
 	transform: scale(calc(1 + (var(--hero-blur) / 130)));
-	transition: filter 0.18s linear, transform 0.2s ease, opacity 0.2s ease;
+	transition: filter 0.18s linear, transform 0.2s ease, opacity 0.6s ease;
+	opacity: 0;
+}
+
+.hero-image.active {
+	opacity: 1;
 }
 
 .hero-background-mask {
@@ -492,7 +537,7 @@ useSeoMeta({
 }
 
 .welcome-screen {
-	min-height: calc(100vh - var(--header-height));
+	min-height: 100vh;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -590,7 +635,7 @@ useSeoMeta({
 
 .sidebar-box-title {
 	margin: 0 0 0.7rem;
-	font-size: 0.87rem;
+	font-size: 1.05rem; /* Increased size (~ +3px) */
 	font-weight: 700;
 	letter-spacing: 0.04em;
 	color: var(--color-text-secondary);
@@ -695,11 +740,12 @@ useSeoMeta({
 	display: grid;
 	grid-template-columns: 30px minmax(0, 1fr) auto;
 	align-items: center;
-	gap: 0.5rem;
+	gap: 0.8rem;
 	text-decoration: none;
 	color: var(--color-text-secondary);
-	padding: 0.32rem 0.3rem;
+	padding: 0.4rem 0.8rem; /* Reduced vertical padding */
 	border-radius: 8px;
+	transition: all 0.2s ease;
 }
 
 .author-row:hover {
@@ -758,6 +804,63 @@ useSeoMeta({
 	gap: 0.75rem;
 }
 
+/* Post Interaction Animations */
+
+/* Read More Button */
+.post-readmore {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: var(--color-primary);
+	text-decoration: none;
+	transition: all 0.2s ease;
+}
+
+.post-readmore:hover {
+	color: var(--color-primary-dark);
+}
+
+.post-readmore :deep(svg) {
+	transition: transform 0.2s ease; /* Transition on base state for smooth return */
+}
+
+.post-readmore:hover :deep(svg) {
+	transform: translateX(4px);
+}
+
+/* Tag Links */
+.post-tag-link {
+	text-decoration: none;
+	background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+	padding: 0.1rem 0.5rem;
+	border-radius: 4px;
+	font-size: 0.85rem;
+	color: var(--color-primary);
+	transition: all 0.2s ease;
+	display: inline-block;
+}
+
+.post-tag-link:hover {
+	background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+	color: var(--color-primary-dark);
+	/* Removed transform: translateY(-2px); as requested */
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Author Link */
+.post-author-link {
+	text-decoration: none;
+	transition: opacity 0.2s ease;
+}
+
+.post-author-link:hover .post-author-name {
+	color: var(--color-primary);
+	text-decoration: underline;
+	text-underline-offset: 4px;
+}
+
 .section-heading {
 	display: flex;
 	align-items: center;
@@ -804,13 +907,14 @@ useSeoMeta({
 .post-card {
 	display: flex;
 	flex-direction: column;
-	background: color-mix(in srgb, var(--color-bg-primary) 86%, transparent);
+	background: color-mix(in srgb, var(--color-bg-primary) 60%, transparent);
 	border: 1px solid var(--color-border-light);
 	border-radius: 12px;
 	overflow: hidden;
 	transition: all 0.3s ease;
 	box-shadow: var(--shadow-md);
-	backdrop-filter: saturate(1.08) blur(var(--glass-blur));
+	backdrop-filter: saturate(1.08) blur(10px);
+	-webkit-backdrop-filter: saturate(1.08) blur(10px);
 }
 
 .post-card:hover {
