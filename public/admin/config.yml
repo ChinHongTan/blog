@@ -49,11 +49,13 @@ collections:
       - { label: "電子郵件", name: "email", widget: "string", required: false }
       - { label: "簡介", name: "bio", widget: "text", required: false, hint: "關於你的簡短描述" }
       - { label: "大頭照", name: "avatar", widget: "image", required: false, choose_url: true, hint: "從媒體庫選擇或上傳一張圖片" }
+      - { label: "橫幅圖片", name: "banner", widget: "image", required: false, choose_url: true, hint: "作者頁面頂部的橫幅背景圖片" }
       - { label: "社群連結", name: "social", widget: "object", required: false, fields: [
           { label: "GitHub", name: "github", widget: "string", required: false },
           { label: "Twitter/X", name: "twitter", widget: "string", required: false },
           { label: "網站", name: "website", widget: "string", required: false }
         ]}
+      - { label: "自我介紹 (README)", name: "body", widget: "markdown", required: false, hint: "詳細的自我介紹，會顯示在作者頁面的 README 分頁中" }
 
   # Blog Posts Collection
   - name: "blog"
@@ -68,5 +70,6 @@ collections:
       - { label: "日期", name: "date", widget: "datetime" }
       - { label: "作者", name: "author", widget: "relation", collection: "authors", search_fields: ["name"], value_field: "name", display_fields: ["name"], hint: "選擇文章作者" }
       - { label: "標籤", name: "tags", widget: "list", required: false, field: { label: "標籤", name: "tag", widget: "string" }, hint: "點擊「新增標籤」按鈕來新增多個標籤（例如：遊戲、攝影）" }
+      - { label: "專欄 / 系列", name: "series", widget: "list", required: false, field: { label: "專欄名稱", name: "series_name", widget: "string" }, hint: "⚡ 選填。適用於有系列性質的文章（例如「微積分教學」、「生活隨筆」）。加入專欄後，文章會出現在對應的專欄頁面中，方便讀者按順序閱讀同系列的內容。" }
       - { label: "精選圖片", name: "featured_image", widget: "image", required: false }
       - { label: "內文", name: "body", widget: "markdown" }

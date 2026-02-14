@@ -32,7 +32,9 @@ const isPostPage = computed(
 		route.path !== "/" &&
 		route.path !== "/about" &&
 		route.path !== "/authors" &&
-		route.path !== "/code-of-conduct"
+		route.path !== "/code-of-conduct" &&
+		!route.path.startsWith("/series") &&
+		!route.path.startsWith("/author/")
 );
 
 // Close mobile menu when route changes
@@ -127,6 +129,10 @@ onUnmounted(() => {
 							<Icon name="heroicons:home" size="20" />
 							<span>首頁</span>
 						</NuxtLink>
+						<NuxtLink to="/series">
+							<Icon name="heroicons:bookmark-square" size="20" />
+							<span>專欄</span>
+						</NuxtLink>
 						<NuxtLink to="/about">
 							<Icon name="heroicons:information-circle" size="20" />
 							<span>關於</span>
@@ -178,6 +184,10 @@ onUnmounted(() => {
 						<NuxtLink to="/" class="mobile-nav-link">
 							<Icon name="heroicons:home" size="20" />
 							首頁
+						</NuxtLink>
+						<NuxtLink to="/series" class="mobile-nav-link">
+							<Icon name="heroicons:bookmark-square" size="20" />
+							專欄
 						</NuxtLink>
 						<NuxtLink to="/about" class="mobile-nav-link">
 							<Icon name="heroicons:information-circle" size="20" />

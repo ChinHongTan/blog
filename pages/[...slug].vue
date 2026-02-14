@@ -245,13 +245,141 @@ onMounted(() => {
 		);
 	}
 });
+
+// Series sidebar logic
+const activeSeriesName = computed(() => {
+	// If navigated from a series page, use that series via query param
+	const querySeries = route.query.series as string | undefined;
+	if (querySeries) return querySeries;
+	// Otherwise, use the first series of the current post
+	if (page.value && 'series' in page.value && Array.isArray(page.value.series) && page.value.series.length > 0) {
+		return page.value.series[0] as string;
+	}
+	return null;
+});
+
+const hasSeries = computed(() => !!activeSeriesName.value);
+
+// Fetch all posts in the active series
+const { data: seriesAllPosts } = await useAsyncData(
+	`series-sidebar-${activeSeriesName.value || 'none'}`,
+	async () => {
+		if (!activeSeriesName.value) return [];
+		const allPosts = await queryCollection("blog").order("date", "DESC").all();
+		return allPosts.filter(
+			(post) => Array.isArray(post.series) && post.series.includes(activeSeriesName.value!)
+		);
+	}
+);
+
+// Get the post path helper
+function getSeriesPostPath(post: { path?: string; stem?: string; id?: string }): string {
+	if (post.path && post.path !== "/blog") return post.path;
+	if (post.stem) return `/${post.stem}`;
+	if (post.id) {
+		const derivedStem = post.id.replace(/^blog\//, "").replace(/\.md$/, "");
+		return `/${derivedStem}`;
+	}
+	return post.path ?? "/blog";
+}
+
+// Find current article index within the series
+const currentSeriesIndex = computed(() => {
+	if (!seriesAllPosts.value) return -1;
+	const currentPath = normalizePath(safeDecode(route.path));
+	return seriesAllPosts.value.findIndex((post) => {
+		const postPath = getSeriesPostPath(post);
+		return normalizePath(postPath) === currentPath;
+	});
+});
+
+// Windowed pagination: show 5 articles around the current one
+const WINDOW_SIZE = 5;
+const seriesWindow = computed(() => {
+	const posts = seriesAllPosts.value ?? [];
+	if (posts.length <= WINDOW_SIZE * 2 + 1) {
+		// Show all if total is small
+		return { posts, startIndex: 0 };
+	}
+	const idx = currentSeriesIndex.value;
+	if (idx < 0) return { posts: posts.slice(0, WINDOW_SIZE * 2 + 1), startIndex: 0 };
+	
+	let start = Math.max(0, idx - WINDOW_SIZE);
+	let end = Math.min(posts.length, idx + WINDOW_SIZE + 1);
+	
+	// Adjust if near edges
+	if (start === 0) end = Math.min(posts.length, WINDOW_SIZE * 2 + 1);
+	if (end === posts.length) start = Math.max(0, posts.length - (WINDOW_SIZE * 2 + 1));
+	
+	return { posts: posts.slice(start, end), startIndex: start };
+});
+
+const showSeriesSidebar = ref(true);
+
+onMounted(() => {
+	// Hide series sidebar on small screens
+	if (typeof window !== 'undefined' && window.innerWidth < 1400) {
+		showSeriesSidebar.value = false;
+	}
+});
 </script>
 
 <template>
-	<div v-if="page" class="post-layout-container">
+	<div v-if="page" class="post-layout-container" :class="{ 'has-series': hasSeries }">
 		<article class="blog-post">
 			<!-- Main Content Grid -->
-			<div class="layout-wrapper" :class="{ 'no-toc': !hasToc || !showToc }">
+			<div class="layout-wrapper" :class="{ 'no-toc': !hasToc || !showToc, 'has-series-sidebar': hasSeries && showSeriesSidebar }">
+				
+				<!-- Series Sidebar (Left) -->
+				<Transition name="series-sidebar-transition">
+					<aside v-if="hasSeries && showSeriesSidebar" class="series-sidebar-column">
+						<div class="series-sidebar-sticky">
+							<div class="series-sidebar-header">
+								<NuxtLink :to="`/series/${encodeURIComponent(activeSeriesName!)}`" class="series-sidebar-title">
+									<Icon name="heroicons:bookmark-square" size="18" />
+									<span>{{ activeSeriesName }}</span>
+								</NuxtLink>
+								<span class="series-sidebar-count">
+									{{ seriesAllPosts?.length ?? 0 }} 篇
+								</span>
+							</div>
+
+							<div class="series-sidebar-list">
+								<!-- Show "..." indicator if windowed from top -->
+								<div v-if="seriesWindow.startIndex > 0" class="series-window-indicator">
+									<Icon name="heroicons:ellipsis-horizontal" size="16" />
+									<span>前 {{ seriesWindow.startIndex }} 篇</span>
+								</div>
+
+								<NuxtLink
+									v-for="(post, idx) in seriesWindow.posts"
+									:key="post.id"
+									:to="`${getSeriesPostPath(post)}?series=${encodeURIComponent(activeSeriesName!)}`"
+									class="series-sidebar-item"
+									:class="{ 'is-current': getSeriesPostPath(post) === normalizePath(safeDecode(route.path)) }"
+								>
+									<span class="series-item-number">{{ seriesWindow.startIndex + idx + 1 }}</span>
+									<span class="series-item-title">{{ post.title }}</span>
+								</NuxtLink>
+
+								<!-- Show "..." indicator if windowed from bottom -->
+								<div v-if="seriesWindow.startIndex + seriesWindow.posts.length < (seriesAllPosts?.length ?? 0)" class="series-window-indicator">
+									<Icon name="heroicons:ellipsis-horizontal" size="16" />
+									<span>後 {{ (seriesAllPosts?.length ?? 0) - seriesWindow.startIndex - seriesWindow.posts.length }} 篇</span>
+								</div>
+							</div>
+
+							<NuxtLink
+								:to="`/series/${encodeURIComponent(activeSeriesName!)}`"
+								class="series-sidebar-view-all"
+							>
+								查看完整專欄
+								<Icon name="heroicons:arrow-right" size="14" />
+							</NuxtLink>
+						</div>
+					</aside>
+				</Transition>
+
 				<div class="content-column">
 					<!-- Post Header -->
 					<header class="post-header">
@@ -362,7 +490,20 @@ onMounted(() => {
 		</article>
 
 		<!-- Floating Widgets -->
-		
+
+		<!-- Series Sidebar Toggle Button (Upper Left) -->
+		<div v-if="hasSeries" class="floating-series-toggle">
+			<button
+				class="widget-button series-button"
+				:class="{ 'active': showSeriesSidebar }"
+				@click="showSeriesSidebar = !showSeriesSidebar"
+				aria-label="Toggle Series Sidebar"
+			>
+				<Icon name="heroicons:bookmark-square" class="widget-icon" />
+				<span class="tooltip tooltip-right">{{ showSeriesSidebar ? '隱藏專欄' : '顯示專欄' }}</span>
+			</button>
+		</div>
+
 		<!-- TOC Toggle Button (Upper Right) -->
 		<div v-if="hasToc" class="floating-toc-toggle">
 			<button 
@@ -426,29 +567,210 @@ onMounted(() => {
 	display: flex;
 	justify-content: center;
 	align-items: flex-start;
-	/* gap: 3rem; Removed gap to allow smooth margin animation */
 	width: 100%;
-	max-width: 1400px;
+	max-width: 1600px;
 	margin-inline: auto;
 	position: relative;
 }
 
 .content-column {
 	width: 100%;
-	max-width: 900px; /* Increased from 720px */
+	max-width: 900px;
 	min-width: 0;
 	flex-shrink: 0;
 	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Sidebar Transition */
+/* When series sidebar is showing, slightly reduce content width */
+.layout-wrapper.has-series-sidebar .content-column {
+	max-width: 820px;
+}
+
+/* Series Sidebar (Left) */
+.series-sidebar-column {
+	width: 260px;
+	flex-shrink: 0;
+	position: sticky;
+	top: calc(var(--header-height) + 1.25rem);
+	height: fit-content;
+	margin-right: 2rem;
+	max-height: calc(100vh - var(--header-height) - 2rem);
+	overflow-y: auto;
+}
+
+.series-sidebar-sticky {
+	min-width: 260px;
+	width: 260px;
+	background: var(--panel-bg);
+	border: 1px solid var(--color-border-light);
+	border-radius: 12px;
+	padding: 0.85rem;
+	box-shadow: var(--shadow-sm);
+	backdrop-filter: saturate(1.08) blur(var(--glass-blur));
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+}
+
+.series-sidebar-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.4rem;
+	padding-bottom: 0.5rem;
+	border-bottom: 1px solid var(--color-border-light);
+}
+
+.series-sidebar-title {
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+	font-size: 0.92rem;
+	font-weight: 700;
+	color: var(--color-text-primary);
+	text-decoration: none;
+	transition: color 0.2s;
+	min-width: 0;
+}
+
+.series-sidebar-title span {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.series-sidebar-title :deep(svg) {
+	color: var(--color-primary);
+	flex-shrink: 0;
+}
+
+.series-sidebar-title:hover {
+	color: var(--color-primary-dark);
+}
+
+.series-sidebar-count {
+	font-size: 0.75rem;
+	color: var(--color-text-tertiary);
+	background: color-mix(in srgb, var(--color-bg-secondary) 70%, transparent);
+	border: 1px solid var(--color-border-light);
+	padding: 0.12rem 0.45rem;
+	border-radius: 999px;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.series-sidebar-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+}
+
+.series-sidebar-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5rem;
+	padding: 0.45rem 0.55rem;
+	border-radius: 8px;
+	text-decoration: none;
+	color: var(--color-text-secondary);
+	font-size: 0.84rem;
+	line-height: 1.4;
+	transition: all 0.15s ease;
+}
+
+.series-sidebar-item:hover {
+	background: color-mix(in srgb, var(--color-primary-light) 12%, transparent);
+	color: var(--color-text-primary);
+}
+
+.series-sidebar-item.is-current {
+	background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+	color: var(--color-primary-dark);
+	font-weight: 600;
+	border-left: 3px solid var(--color-primary);
+	padding-left: calc(0.55rem - 3px);
+}
+
+.series-item-number {
+	width: 20px;
+	height: 20px;
+	border-radius: 5px;
+	background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.72rem;
+	font-weight: 700;
+	color: var(--color-primary-dark);
+	flex-shrink: 0;
+	margin-top: 1px;
+}
+
+.series-sidebar-item.is-current .series-item-number {
+	background: var(--color-primary);
+	color: white;
+}
+
+.series-item-title {
+	flex: 1;
+	min-width: 0;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.series-window-indicator {
+	display: flex;
+	align-items: center;
+	gap: 0.3rem;
+	padding: 0.3rem 0.55rem;
+	font-size: 0.75rem;
+	color: var(--color-text-tertiary);
+}
+
+.series-sidebar-view-all {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.3rem;
+	padding: 0.45rem;
+	border-top: 1px solid var(--color-border-light);
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: var(--color-primary-dark);
+	text-decoration: none;
+	transition: all 0.2s ease;
+	border-radius: 0 0 8px 8px;
+}
+
+.series-sidebar-view-all:hover {
+	color: var(--color-primary);
+	background: color-mix(in srgb, var(--color-primary-light) 10%, transparent);
+}
+
+/* Series Sidebar Transition */
+.series-sidebar-transition-enter-active,
+.series-sidebar-transition-leave-active {
+	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	overflow: hidden;
+}
+
+.series-sidebar-transition-enter-from,
+.series-sidebar-transition-leave-to {
+	width: 0;
+	opacity: 0;
+	margin-right: 0;
+}
+
+/* Sidebar Transition (TOC - right) */
 .sidebar-column {
 	width: 240px;
 	flex-shrink: 0;
 	position: sticky;
 	top: 100px;
 	height: fit-content;
-	margin-left: 3rem; /* Use margin instead of gap */
+	margin-left: 3rem;
 }
 
 /* Prevent text wrapping during width animation */
@@ -474,7 +796,7 @@ onMounted(() => {
 
 .blog-post {
 	padding: 2rem 0;
-	min-width: 0; /* Prevent grid blowout */
+	min-width: 0;
 	width: 100%;
 	display: flex;
 	flex-direction: column;
@@ -489,7 +811,31 @@ onMounted(() => {
 	margin-inline: auto;
 }
 
+/* Floating Series Toggle */
+.floating-series-toggle {
+	position: fixed;
+	top: 100px;
+	left: 2rem;
+	z-index: 90;
+}
+
+.tooltip-right {
+	left: 120%;
+	right: auto;
+}
+
+.widget-button:hover .tooltip-right {
+	left: 110%;
+	right: auto;
+}
+
 /* Responsive sidebar hiding */
+@media (max-width: 1400px) {
+	.series-sidebar-column {
+		display: none;
+	}
+}
+
 @media (max-width: 1200px) {
 	.layout-wrapper {
 		flex-direction: column;
@@ -502,7 +848,15 @@ onMounted(() => {
 		max-width: 720px;
 	}
 
+	.layout-wrapper.has-series-sidebar .content-column {
+		max-width: 720px;
+	}
+
 	.sidebar-column {
+		display: none;
+	}
+
+	.series-sidebar-column {
 		display: none;
 	}
 
@@ -941,6 +1295,10 @@ onMounted(() => {
 	.floating-toc-toggle,
 	.floating-scroll-widget {
 		right: 1rem;
+	}
+
+	.floating-series-toggle {
+		left: 1rem;
 	}
 }
 

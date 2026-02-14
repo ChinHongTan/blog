@@ -17,6 +17,7 @@ export default defineContentConfig({
                     date: z.string(),
                     featured_image: z.string().optional(),
                     tags: z.array(z.string()).optional(),
+                    series: z.array(z.string()).optional(),
                     path: z.string().optional()
                 }),
 		    })
@@ -30,6 +31,7 @@ export default defineContentConfig({
                     email: z.string().optional(),
                     bio: z.string().optional(),
                     avatar: z.string().optional(),
+                    banner: z.string().optional(),
                     social: z.object({
                         github: z.string().optional(),
                         twitter: z.string().optional(),
