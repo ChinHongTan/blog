@@ -1,15 +1,40 @@
 <template>
   <div class="admin-editor-page">
-    <!-- Badge and 發布 in top nav. Badge: 已儲存變更 (saved) / 未儲存變更 (unsaved) / 草稿. Button: 已發布 (disabled when saved) or 發布. -->
+    <!-- 狀態：儲存中… / 已儲存至本機 / 已同步。按鈕：儲存草稿、取消發布（僅已發布）、發布變更。 -->
     <Teleport to="#admin-editor-nav-actions">
-      <span class="admin-status-badge" :class="editorStatusClass">{{ editorStatusLabel }}</span>
-      <button type="button" class="admin-btn admin-btn-primary" :disabled="saving || !canEditPost || (isPublishedPost && !hasUnsavedChanges)" :title="canEditPost ? '' : '您只能編輯自己的文章'" @click="publish">
-        {{ saving ? "儲存中…" : isPublishedPost && !hasUnsavedChanges ? "已發布" : "發布" }}
-      </button>
+      <span class="admin-status-badge" :class="editorStatusClass">
+        <Icon v-if="saveStatus === 'loading' || saveStatus === 'typing'" name="heroicons:arrow-path" size="14" class="admin-status-spinner" />
+        <Icon v-else-if="saveStatus === 'saved'" name="heroicons:archive-box" size="14" />
+        <Icon v-else-if="saveStatus === 'synced'" name="heroicons:cloud-arrow-up" size="14" />
+        <Icon v-else name="heroicons:archive-box" size="14" />
+        {{ editorStatusLabel }}
+      </span>
+      <template v-if="docType === 'post'">
+        <button v-if="!isPublishedPost" type="button" class="admin-btn admin-btn-ghost" :disabled="savingDraft || saving || !canEditPost" @click="saveDraftToGitHub">
+          {{ savingDraft ? "儲存中…" : "儲存草稿" }}
+        </button>
+        <button v-if="isPublishedPost" type="button" class="admin-btn admin-btn-ghost" :disabled="saving || unpublishing || !canEditPost" @click="unpublish">
+          {{ unpublishing ? "處理中…" : "取消發布" }}
+        </button>
+        <button v-if="showDeleteDraftButton" type="button" class="admin-btn admin-btn-ghost" :disabled="deletingDraft || !canEditPost" @click="openDeleteDraftConfirm">
+          刪除草稿
+        </button>
+        <button type="button" class="admin-btn admin-btn-primary" :disabled="saving || !canEditPost || (isPublishedPost && !hasUnsavedChanges)" :title="canEditPost ? '' : '您只能編輯自己的文章'" @click="publish">
+          {{ saving ? "正在同步至 GitHub…" : publishButtonLabel }}
+        </button>
+      </template>
+      <template v-else>
+        <button type="button" class="admin-btn admin-btn-primary" :disabled="saving || !canEditPost" @click="publish">
+          {{ saving ? "儲存中…" : "儲存" }}
+        </button>
+      </template>
     </Teleport>
 
     <div v-if="docType === 'post' && !canEditPost && pathQuery" class="admin-editor-readonly-hint">
       此文章作者 ID 為「{{ meta.author }}」，您只能檢視；儲存按鈕已停用。
+    </div>
+    <div v-else-if="docType === 'post' && isPublishedPost" class="admin-editor-published-hint">
+      已發布文章可直接編輯，變更會先存於本機；點擊「發布變更」同步至 GitHub。
     </div>
     <div class="admin-editor-body">
       <!-- Post: toolbar, then metadata (same width as editor), then editor -->
@@ -112,7 +137,7 @@
               <ClientOnly>
                 <AdminMilkdownEditor
                   v-if="contentReady"
-                  :key="`editor-${pathQuery || slug || 'new'}`"
+                  :key="`editor-${pathQuery || slug || 'new'}-${editorMountKey}`"
                   ref="milkdownRef"
                   :default-value="body"
                   @ready="onEditorReady"
@@ -174,7 +199,7 @@
             <ClientOnly>
               <AdminMilkdownEditor
                 v-if="contentReady"
-                :key="`editor-${pathQuery || slug || 'new'}`"
+                :key="`editor-${pathQuery || slug || 'new'}-${editorMountKey}`"
                 ref="milkdownRef"
                 :default-value="body"
                 @ready="onEditorReady"
@@ -189,6 +214,43 @@
         </div>
       </template>
     </div>
+
+    <!-- 本機較新版本恢復列：僅在 content/drafts/ 且 local savedAt > server 時顯示 -->
+    <div v-if="showRecoveryBar" class="admin-recovery-bar">
+      <span class="admin-recovery-text">我們在此裝置上發現較新的未儲存版本。</span>
+      <div class="admin-recovery-actions">
+        <button type="button" class="admin-btn admin-btn-primary admin-btn-sm" @click="restoreLocalVersion">還原本機版本</button>
+        <button type="button" class="admin-btn admin-btn-ghost admin-btn-sm" @click="discardLocalVersion">捨棄本機變更</button>
+      </div>
+    </div>
+
+    <!-- 已發布 + 本機有草稿：選擇使用 GitHub 版本或本機版本 -->
+    <Teleport to="body">
+      <div v-if="showVersionChoiceModal" class="admin-confirm-overlay" @click.self="useGitHubVersion">
+        <div class="admin-confirm-modal" @click.stop>
+          <h3 class="admin-confirm-title">選擇版本</h3>
+          <p class="admin-confirm-text">此文章在 GitHub 已發布，且本機有未同步的版本。要使用哪一個？</p>
+          <div class="admin-confirm-actions">
+            <button type="button" class="admin-btn admin-btn-primary" @click="useGitHubVersion">使用 GitHub 上的版本</button>
+            <button type="button" class="admin-btn admin-btn-ghost" @click="useLocalVersion">使用本機版本</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- 刪除草稿確認 -->
+    <Teleport to="body">
+      <div v-if="showDeleteDraftConfirm" class="admin-confirm-overlay" @click.self="showDeleteDraftConfirm = false">
+        <div class="admin-confirm-modal admin-confirm-modal-danger" @click.stop>
+          <h3 class="admin-confirm-title">刪除草稿</h3>
+          <p class="admin-confirm-text">確定要刪除此草稿嗎？此操作無法復原。</p>
+          <div class="admin-confirm-actions">
+            <button type="button" class="admin-btn admin-btn-ghost" @click="showDeleteDraftConfirm = false">取消</button>
+            <button type="button" class="admin-btn admin-btn-primary admin-btn-danger" @click="confirmDeleteDraft">刪除</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <Teleport to="body">
       <div v-if="showImagePicker" class="image-picker-overlay" @click.self="showImagePicker = false">
@@ -308,9 +370,27 @@ const filePath = computed(() => {
   return "";
 });
 
+/** 目前編輯的是已發布文章（路徑在 content/blog/）。不依賴 fileSha，避免載入前誤判。 */
+const isPublishedPost = computed(
+  () =>
+    docType.value === "post" &&
+    !!pathQuery.value &&
+    pathQuery.value.startsWith("content/blog/")
+);
+
+/** 文章目前在 GitHub 的 content/drafts/（草稿）。 */
+const isDraftOnGitHub = computed(
+  () => docType.value === "post" && !!pathQuery.value && pathQuery.value.startsWith("content/drafts/")
+);
+
+/** 顯示「刪除草稿」按鈕：目前為草稿（未發布）且為文章。 */
+const showDeleteDraftButton = computed(
+  () => docType.value === "post" && !isPublishedPost.value
+);
+
 const draftKey = computed(() => `admin-draft-${docType.value}-${pathQuery.value || slug.value || "new"}`);
 
-/** Last saved meta/body for dirty check. Meta is reactive; body needs polling (Milkdown has no change event). */
+/** Last saved meta/body for dirty check (vs server). Meta is reactive; body needs polling (Milkdown has no change event). */
 const lastSavedMetaJson = ref<string | null>(null);
 const lastSavedBody = ref<string | null>(null);
 /** Cached serialized meta, updated only when meta changes (trigger-based). */
@@ -319,7 +399,25 @@ const cachedMetaJson = ref("");
 const bodyCheckTrigger = ref(0);
 let bodyCheckInterval: ReturnType<typeof setInterval> | null = null;
 
-const isPublishedPost = computed(() => docType.value === "post" && !!pathQuery.value && !!fileSha.value);
+/** 正在輸入尚未寫入 localStorage（1s 防抖後會寫入）。 */
+const isDirty = ref(false);
+let debounceSaveTimer: ReturnType<typeof setTimeout> | null = null;
+/** 上次寫入 localStorage 的內容快照，用於判斷是否需要儲存。 */
+const lastSavedToLocalSnapshot = ref("");
+const savingDraft = ref(false);
+const unpublishing = ref(false);
+const deletingDraft = ref(false);
+const showDeleteDraftConfirm = ref(false);
+const showRecoveryBar = ref(false);
+/** 已發布文章 + 本機有草稿時，詢問使用 GitHub 版本或本機版本。 */
+const showVersionChoiceModal = ref(false);
+/** 為 true 時不寫入 localStorage，避免載入 API 後觸發 watcher 覆蓋本機草稿。 */
+const versionChoicePending = ref(false);
+/** 載入時若本機較新，存 server 的 lastModified 供恢復列比較。 */
+const serverLastModified = ref<string | null>(null);
+/** 選擇「使用本機版本」時遞增，強制編輯器重新掛載以讀取 body。 */
+const editorMountKey = ref(0);
+let beforeUnloadHandler: ((e: BeforeUnloadEvent) => void) | null = null;
 
 function serializeMeta(): string {
   const metaCopy = { ...meta, tags: [...meta.tags], series: [...meta.series] };
@@ -338,16 +436,40 @@ const hasUnsavedChanges = computed(() => {
   return cachedMetaJson.value !== lastSavedMetaJson.value || bodyNow !== bodySaved;
 });
 
-/** Badge: saved (green) / unsaved (red) / draft (grey). */
-const editorStatusClass = computed(() => {
+/** 是否為已發布路徑（content/blog/）。此類文章不寫入 localStorage，且載入中顯示「載入中…」。 */
+const isPublishedPath = computed(
+  () => docType.value === "post" && !!pathQuery.value && pathQuery.value.startsWith("content/blog/")
+);
+
+/** 狀態：loading=載入中 / typing=儲存中… / saved=已儲存至本機 / synced=已同步。 */
+const saveStatus = computed<"loading" | "typing" | "saved" | "synced" | "draft">(() => {
   if (docType.value !== "post") return "draft";
-  if (!isPublishedPost.value) return "draft";
-  return hasUnsavedChanges.value ? "unsaved" : "saved";
+  if (!contentReady.value && isPublishedPath.value) return "loading";
+  if (isDirty.value) return "typing";
+  if (isPublishedPath.value && !hasUnsavedChanges.value) return "synced";
+  if (isPublishedPath.value && hasUnsavedChanges.value) return "saved";
+  return "saved";
+});
+const editorStatusClass = computed(() => {
+  if (saveStatus.value === "loading") return "status-typing";
+  if (saveStatus.value === "typing") return "status-typing";
+  if (saveStatus.value === "saved") return "status-saved";
+  if (saveStatus.value === "synced") return "status-synced";
+  return "draft";
 });
 const editorStatusLabel = computed(() => {
-  if (docType.value !== "post") return "草稿";
-  if (!isPublishedPost.value) return "草稿";
-  return hasUnsavedChanges.value ? "未儲存變更" : "已儲存變更";
+  if (saveStatus.value === "loading") return "載入中…";
+  if (saveStatus.value === "typing") return "儲存中…";
+  if (saveStatus.value === "saved" && isPublishedPath.value) return "本機有未同步變更";
+  if (saveStatus.value === "saved") return "已儲存至本機";
+  if (saveStatus.value === "synced") return "已同步";
+  return "草稿";
+});
+const publishButtonLabel = computed(() => {
+  if (docType.value !== "post") return "儲存";
+  if (saving.value) return "正在同步至 GitHub…";
+  if (isPublishedPost.value && !hasUnsavedChanges.value) return "已發布";
+  return "發布變更";
 });
 
 function onEditorReady(api: { getMarkdown: () => string }) {
@@ -388,13 +510,32 @@ function getBodyContent(): string {
 }
 
 function saveDraft() {
+  if (versionChoicePending.value) return;
+  if (docType.value === "post" && !canEditPost.value) return;
   const content = getBodyContent();
-  const data = { meta: { ...meta }, body: content };
+  const data = { meta: { ...meta }, body: content, savedAt: Date.now() };
   try {
     localStorage.setItem(draftKey.value, JSON.stringify(data));
+    lastSavedToLocalSnapshot.value = serializeMeta() + "\n" + normalizeBodyForCompare(content);
+    isDirty.value = false;
   } catch (e) {
     console.error(e);
   }
+}
+
+/** 有變更尚未寫入 localStorage 時排程 1s 後寫入。已發布文章也會寫入本機作為恢復用。非作者不自動儲存。 */
+function scheduleDebouncedLocalSave() {
+  if (versionChoicePending.value) return;
+  if (docType.value !== "post" && docType.value !== "author") return;
+  if (docType.value === "post" && !canEditPost.value) return;
+  const snapshot = serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
+  if (snapshot === lastSavedToLocalSnapshot.value) return;
+  isDirty.value = true;
+  if (debounceSaveTimer) clearTimeout(debounceSaveTimer);
+  debounceSaveTimer = setTimeout(() => {
+    saveDraft();
+    debounceSaveTimer = null;
+  }, 1000);
 }
 
 function captureLastSavedSnapshot() {
@@ -417,9 +558,76 @@ function loadDraft() {
     });
     body.value = data.body ?? "";
     rawBody.value = data.body ?? "";
+    lastSavedToLocalSnapshot.value = serializeMeta() + "\n" + normalizeBodyForCompare(body.value);
   } catch {
     // ignore
   }
+}
+
+function restoreLocalVersion() {
+  loadDraft();
+  showRecoveryBar.value = false;
+  serverLastModified.value = null;
+  nextTick(() => {
+    lastSavedMetaJson.value = serializeMeta();
+    lastSavedBody.value = normalizeBodyForCompare(getBodyContent());
+    setTimeout(() => {
+      lastSavedBody.value = normalizeBodyForCompare(getBodyContent());
+    }, 600);
+  });
+}
+
+function discardLocalVersion() {
+  try {
+    localStorage.removeItem(draftKey.value);
+  } catch {
+    /* ignore */
+  }
+  showRecoveryBar.value = false;
+  serverLastModified.value = null;
+  lastSavedToLocalSnapshot.value = serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
+}
+
+/** 版本選擇：使用 GitHub 上的已發布版本（捨棄本機草稿）。 */
+function useGitHubVersion() {
+  versionChoicePending.value = false;
+  try {
+    localStorage.removeItem(draftKey.value);
+  } catch {
+    /* ignore */
+  }
+  showVersionChoiceModal.value = false;
+  serverLastModified.value = null;
+  lastSavedToLocalSnapshot.value = serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
+  contentReady.value = true;
+  nextTick(() => {
+    setTimeout(() => {
+      lastSavedBody.value = normalizeBodyForCompare(getBodyContent());
+    }, 600);
+  });
+}
+
+/** 版本選擇：使用本機版本（載入草稿）。先關閉編輯器、載入本機、再重新掛載以確保顯示本機內容。 */
+function useLocalVersion() {
+  versionChoicePending.value = false;
+  showVersionChoiceModal.value = false;
+  contentReady.value = false;
+  nextTick(() => {
+    loadDraft();
+    editorMountKey.value += 1;
+    nextTick(() => {
+      contentReady.value = true;
+      lastSavedMetaJson.value = serializeMeta();
+      lastSavedBody.value = normalizeBodyForCompare(getBodyContent());
+      serverLastModified.value = null;
+      nextTick(() => {
+        lastSavedBody.value = normalizeBodyForCompare(getBodyContent());
+        setTimeout(() => {
+          lastSavedBody.value = normalizeBodyForCompare(getBodyContent());
+        }, 600);
+      });
+    });
+  });
 }
 
 function loadFromApi() {
@@ -434,11 +642,21 @@ function loadFromApi() {
     contentReady.value = true;
     return;
   }
-  $fetch<{ content: string; sha?: string }>(`/api/admin/repo/files?path=${encodeURIComponent(filePath.value)}`)
+  $fetch<{ content: string; sha?: string; lastModified?: string }>(`/api/admin/repo/files?path=${encodeURIComponent(filePath.value)}`)
     .then((res) => {
       fileSha.value = res.sha;
+      serverLastModified.value = res.lastModified ?? null;
       const raw = res.content || "";
       const match = raw.match(/^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/);
+      const rawDraftForChoice = typeof localStorage !== "undefined" ? localStorage.getItem(draftKey.value) : null;
+      const willShowVersionChoice = !!(rawDraftForChoice && docType.value === "post" && pathQuery.value?.startsWith("content/blog/"));
+      if (willShowVersionChoice) {
+        versionChoicePending.value = true;
+        if (debounceSaveTimer) {
+          clearTimeout(debounceSaveTimer);
+          debounceSaveTimer = null;
+        }
+      }
       if (match) {
         const front = match[1];
         body.value = match[2].trim();
@@ -492,17 +710,42 @@ function loadFromApi() {
         cachedMetaJson.value = serializeMeta();
         lastSavedMetaJson.value = cachedMetaJson.value;
         lastSavedBody.value = normalizeBodyForCompare(rawBody.value);
+        lastSavedToLocalSnapshot.value = serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
         const serverAuthor = meta.author;
-        const hasDraft = typeof localStorage !== "undefined" && localStorage.getItem(draftKey.value);
-        if (hasDraft) {
+        const rawDraft = typeof localStorage !== "undefined" ? localStorage.getItem(draftKey.value) : null;
+        if (rawDraft && docType.value === "post") {
+          if (pathQuery.value && pathQuery.value.startsWith("content/blog/")) {
+            showVersionChoiceModal.value = true;
+            return;
+          }
+          if (serverLastModified.value) {
+            try {
+              const draft = JSON.parse(rawDraft);
+              const localSavedAt = typeof draft.savedAt === "number" ? draft.savedAt : 0;
+              const serverTime = new Date(serverLastModified.value).getTime();
+              if (localSavedAt > serverTime) {
+                showRecoveryBar.value = true;
+                if (serverAuthor !== undefined) meta.author = serverAuthor;
+                contentReady.value = true;
+                setTimeout(() => {
+                  lastSavedBody.value = normalizeBodyForCompare(getBodyContent());
+                }, 600);
+                return;
+              }
+            } catch {
+              /* ignore */
+            }
+          }
+        }
+        if (rawDraft && docType.value === "author") {
           loadDraft();
-          if (docType.value === "post" && serverAuthor !== undefined) meta.author = serverAuthor;
+          if (serverAuthor !== undefined) meta.author = serverAuthor;
         }
         setTimeout(() => {
           lastSavedBody.value = normalizeBodyForCompare(getBodyContent());
         }, 600);
+        contentReady.value = true;
       });
-      contentReady.value = true;
     })
     .catch(() => {
       loadDraft();
@@ -532,23 +775,142 @@ async function publish() {
   }
   saving.value = true;
   try {
-    const res = await $fetch<{ sha?: string }>("/api/admin/repo/files", {
+    if (docType.value === "post" && isDraftOnGitHub.value && pathQuery.value) {
+      const fromPath = pathQuery.value;
+      const stem = meta.path?.replace(/^\/blog\/?/, "").trim() || slugifyTitle(meta.title);
+      const toPath = `content/blog/${stem}.md`;
+      const res = await $fetch<{ sha?: string }>("/api/admin/repo/files-move", {
+        method: "POST",
+        body: { fromPath, toPath, message: `Publish: move ${fromPath} to ${toPath}` },
+      });
+      fileSha.value = res?.sha;
+      try {
+        localStorage.removeItem(draftKey.value);
+      } catch {
+        /* ignore */
+      }
+      captureLastSavedSnapshot();
+      lastSavedToLocalSnapshot.value = serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
+      await navigateTo({ path: "/admin/editor", query: { type: "post", path: toPath } });
+    } else {
+      const res = await $fetch<{ sha?: string }>("/api/admin/repo/files", {
+        method: "PUT",
+        body: { path, content, sha: fileSha.value, message: pathQuery.value ? `Update ${path}` : `Publish ${path}` },
+      });
+      fileSha.value = res?.sha ?? fileSha.value;
+      try {
+        localStorage.removeItem(draftKey.value);
+      } catch {
+        /* ignore */
+      }
+      captureLastSavedSnapshot();
+      lastSavedToLocalSnapshot.value = serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
+      if (!pathQuery.value && docType.value === "post") {
+        const stem = meta.path?.replace(/^\/blog\/?/, "").trim() || slugifyTitle(meta.title);
+        await navigateTo({ path: "/admin/editor", query: { type: "post", path: `content/blog/${stem}.md` } });
+      } else if (slug.value) {
+        loadFromApi();
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    alert("儲存失敗，請查看主控台。");
+  } finally {
+    saving.value = false;
+  }
+}
+
+async function saveDraftToGitHub() {
+  if (docType.value !== "post") return;
+  if (!meta.title) syncTitleFromFirstH1();
+  const stem = meta.path?.replace(/^\/blog\/?/, "").trim() || slugifyTitle(meta.title) || "untitled";
+  const draftPath = `content/drafts/${stem}.md`;
+  if (!meta.date) meta.date = new Date().toISOString().slice(0, 16);
+  meta.author = currentUserAuthorId.value ?? meta.author;
+  const content = `${buildFrontmatter()}\n\n${getBodyContent()}`;
+  savingDraft.value = true;
+  try {
+    await $fetch("/api/admin/repo/files", {
       method: "PUT",
-      body: { path, content, sha: fileSha.value, message: `Update ${path}` },
+      body: {
+        path: draftPath,
+        content,
+        sha: isDraftOnGitHub.value && pathQuery.value === draftPath ? fileSha.value : undefined,
+        message: pathQuery.value ? `Update draft ${draftPath}` : `Save draft ${draftPath}`,
+      },
     });
-    fileSha.value = res?.sha ?? fileSha.value;
     try {
       localStorage.removeItem(draftKey.value);
     } catch {
       /* ignore */
     }
     captureLastSavedSnapshot();
-    if (slug.value) loadFromApi();
+    lastSavedToLocalSnapshot.value = serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
+    await navigateTo({ path: "/admin/editor", query: { type: "post", path: draftPath } });
   } catch (e) {
     console.error(e);
-    alert("儲存失敗，請查看主控台。");
+    alert("儲存草稿失敗，請查看主控台。");
   } finally {
-    saving.value = false;
+    savingDraft.value = false;
+  }
+}
+
+async function unpublish() {
+  if (docType.value !== "post" || !pathQuery.value || !pathQuery.value.startsWith("content/blog/")) return;
+  if (!canEditPost.value) return;
+  const fromPath = pathQuery.value;
+  const stem = fromPath.replace(/^content\/blog\//, "").replace(/\.md$/, "");
+  const toPath = `content/drafts/${stem}`;
+  unpublishing.value = true;
+  try {
+    await $fetch("/api/admin/repo/files-move", {
+      method: "POST",
+      body: { fromPath, toPath: toPath.endsWith(".md") ? toPath : `${toPath}.md`, message: `Unpublish: move to drafts` },
+    });
+    try {
+      localStorage.removeItem(draftKey.value);
+    } catch {
+      /* ignore */
+    }
+    await navigateTo({ path: "/admin/editor", query: { type: "post", path: `content/drafts/${stem}.md` } });
+  } catch (e) {
+    console.error(e);
+    alert("取消發布失敗，請查看主控台。");
+  } finally {
+    unpublishing.value = false;
+  }
+}
+
+function openDeleteDraftConfirm() {
+  showDeleteDraftConfirm.value = true;
+}
+
+async function confirmDeleteDraft() {
+  if (!canEditPost.value) return;
+  showDeleteDraftConfirm.value = false;
+  deletingDraft.value = true;
+  try {
+    if (isDraftOnGitHub.value && pathQuery.value && fileSha.value) {
+      await $fetch("/api/admin/repo/files.delete", {
+        method: "POST",
+        body: {
+          path: pathQuery.value,
+          sha: fileSha.value,
+          message: `Delete draft ${pathQuery.value}`,
+        },
+      });
+    }
+    try {
+      localStorage.removeItem(draftKey.value);
+    } catch {
+      /* ignore */
+    }
+    await navigateTo({ path: "/admin/posts" });
+  } catch (e) {
+    console.error(e);
+    alert("刪除草稿失敗，請查看主控台。");
+  } finally {
+    deletingDraft.value = false;
   }
 }
 
@@ -569,6 +931,8 @@ watch(
   meta,
   () => {
     cachedMetaJson.value = serializeMeta();
+    if (docType.value === "post" && !canEditPost.value) return;
+    scheduleDebouncedLocalSave();
   },
   { deep: true }
 );
@@ -587,15 +951,30 @@ onMounted(async () => {
   loadFromApi();
   bodyCheckInterval = setInterval(() => {
     bodyCheckTrigger.value++;
+    if (docType.value === "post" && !canEditPost.value) return;
+    scheduleDebouncedLocalSave();
   }, 2000);
-  setInterval(() => {
-    if (docType.value === "post" || docType.value === "author") saveDraft();
-  }, 30000);
-  // Auto-save is timer-based (30s) rather than on every change: fewer localStorage writes and less CPU.
+  beforeUnloadHandler = (e: BeforeUnloadEvent) => {
+    if (docType.value === "post" && pathQuery.value?.startsWith("content/blog/") && hasUnsavedChanges.value) {
+      e.preventDefault();
+      (e as BeforeUnloadEvent & { returnValue?: string }).returnValue = "";
+    }
+  };
+  window.addEventListener("beforeunload", beforeUnloadHandler);
 });
+
+watch(rawBody, () => {
+  if (docType.value === "post" && !canEditPost.value) return;
+  scheduleDebouncedLocalSave();
+}, { flush: "post" });
 
 onUnmounted(() => {
   if (bodyCheckInterval) clearInterval(bodyCheckInterval);
+  if (debounceSaveTimer) clearTimeout(debounceSaveTimer);
+  if (beforeUnloadHandler) {
+    window.removeEventListener("beforeunload", beforeUnloadHandler);
+    beforeUnloadHandler = null;
+  }
 });
 </script>
 
@@ -613,6 +992,12 @@ onUnmounted(() => {
   padding: 0.5rem 0;
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+.admin-editor-published-hint {
+  padding: 0.5rem 0;
+  margin-bottom: 0.5rem;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
 }
 
@@ -657,17 +1042,105 @@ onUnmounted(() => {
   padding: 0.2rem 0.5rem;
   border-radius: 0.25rem;
 }
+.admin-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.admin-status-spinner {
+  animation: admin-spin 0.8s linear infinite;
+}
+@keyframes admin-spin {
+  to { transform: rotate(360deg); }
+}
 .admin-status-badge.draft {
   background: var(--color-bg-tertiary);
   color: var(--color-text-secondary);
 }
-.admin-status-badge.saved {
-  background: color-mix(in srgb, var(--color-primary) 22%, transparent);
-  color: var(--color-primary-dark);
+.admin-status-badge.status-typing {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
 }
-.admin-status-badge.unsaved {
-  background: color-mix(in srgb, #dc2626 18%, transparent);
-  color: #dc2626;
+.admin-status-badge.status-saved {
+  background: color-mix(in srgb, #16a34a 22%, transparent);
+  color: #16a34a;
+}
+.admin-status-badge.status-synced {
+  background: color-mix(in srgb, #2563eb 22%, transparent);
+  color: #2563eb;
+}
+
+/* 本機較新版本恢復列 */
+.admin-recovery-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.75rem 1rem;
+  background: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  z-index: 100;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+}
+.admin-recovery-text {
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+.admin-recovery-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* 確認視窗（版本選擇、刪除草稿） */
+.admin-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 1rem;
+}
+.admin-confirm-modal {
+  background: var(--color-bg-primary);
+  padding: 1.5rem 1.75rem;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px var(--color-border-light);
+  max-width: 28rem;
+  width: 100%;
+}
+.admin-confirm-modal-danger .admin-confirm-title {
+  color: #b91c1c;
+}
+.admin-confirm-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+.admin-confirm-text {
+  margin: 0 0 1.5rem;
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+}
+.admin-confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.admin-confirm-actions .admin-btn {
+  min-width: 6rem;
 }
 
 /* Obsidian-style borderless properties table at top */
@@ -1009,6 +1482,15 @@ onUnmounted(() => {
 .admin-btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+.admin-btn-danger {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+.admin-btn-danger:hover:not(:disabled) {
+  background: #b91c1c;
+  border-color: #b91c1c;
 }
 .admin-btn-sm {
   padding: 0.375rem 0.75rem;

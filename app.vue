@@ -383,17 +383,18 @@ onUnmounted(() => {
 	padding: 0.2rem 0.5rem;
 	border-radius: 0.25rem;
 }
-.admin-editor-nav-actions .admin-status-badge.draft {
+.admin-editor-nav-actions .admin-status-badge.draft,
+.admin-editor-nav-actions .admin-status-badge.status-typing {
   background: var(--color-bg-tertiary);
   color: var(--color-text-secondary);
 }
-.admin-editor-nav-actions .admin-status-badge.saved {
-  background: color-mix(in srgb, var(--color-primary) 22%, transparent);
-  color: var(--color-primary-dark);
+.admin-editor-nav-actions .admin-status-badge.status-saved {
+  background: color-mix(in srgb, #16a34a 22%, transparent);
+  color: #16a34a;
 }
-.admin-editor-nav-actions .admin-status-badge.unsaved {
-  background: color-mix(in srgb, #dc2626 18%, transparent);
-  color: #dc2626;
+.admin-editor-nav-actions .admin-status-badge.status-synced {
+  background: color-mix(in srgb, #2563eb 22%, transparent);
+  color: #2563eb;
 }
 .admin-top-bar-title {
 	font-weight: 700;
