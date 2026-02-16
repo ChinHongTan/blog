@@ -1,17 +1,15 @@
-export const useAuthor = async (authorName: string) => {
-  // Fetch author data from the authors collection
-  const { data: authors } = await useAsyncData(`author-${authorName}`, () =>
+import { getAuthorId } from "./useAuthorId";
+
+/** Resolve author by immutable ID (filename stem, e.g. chinono). */
+export const useAuthor = async (authorId: string) => {
+  const { data: authors } = await useAsyncData(`author-${authorId}`, () =>
     queryCollection('authors').all()
   );
-  
-  // Find the matching author by name
+
   const author = computed(() => {
     if (!authors.value) return null;
-    return authors.value.find((a: unknown) => {
-      const authorData = a as { name: string };
-      return authorData.name === authorName;
-    });
+    return authors.value.find((a: unknown) => getAuthorId(a as { path?: string; name?: string }) === authorId) ?? null;
   });
-  
+
   return author;
 };

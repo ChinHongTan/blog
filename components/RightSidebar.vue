@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { getAuthorId } from "~/composables/useAuthorId";
+
 type AuthorCollectionItem = {
   name?: string;
   avatar?: string;
+  path?: string;
   [key: string]: unknown;
 };
 
@@ -34,9 +37,8 @@ const authorDirectory = computed<Record<string, AuthorCollectionItem>>(() => {
   const directory: Record<string, AuthorCollectionItem> = {};
   const records = (authorEntries.value ?? []) as unknown as AuthorCollectionItem[];
   records.forEach((entry) => {
-    if (entry?.name) {
-      directory[entry.name] = entry;
-    }
+    const id = getAuthorId(entry);
+    if (id) directory[id] = entry;
   });
   return directory;
 });
@@ -54,7 +56,8 @@ const setTocLinkRef = (id: string, element: Element | null) => {
     tocLinkRefs.value[id] = element;
     return;
   }
-  delete tocLinkRefs.value[id];
+  const { [id]: _, ...rest } = tocLinkRefs.value;
+  tocLinkRefs.value = rest;
 };
 
 const updateTocIndicator = () => {
@@ -226,10 +229,11 @@ const authors = computed(() => {
   });
   
   return Array.from(authorMap.entries())
-    .map(([name, count]) => ({
-      name,
+    .map(([id, count]) => ({
+      id,
+      name: authorDirectory.value[id]?.name ?? id,
       count,
-      avatar: authorDirectory.value[name]?.avatar ?? fallbackAvatar(name, 40),
+      avatar: authorDirectory.value[id]?.avatar ?? fallbackAvatar(id, 40),
     }))
     .sort((a, b) => b.count - a.count);
 });
@@ -300,9 +304,9 @@ const authors = computed(() => {
       </h4>
       <nav class="author-links">
         <NuxtLink 
-          v-for="{ name, count, avatar } in authors" 
-          :key="name"
-          :to="`/?author=${encodeURIComponent(name)}`"
+          v-for="{ id, name, count, avatar } in authors" 
+          :key="id"
+          :to="`/?author=${encodeURIComponent(id)}`"
           class="author-item"
         >
           <img :src="avatar" :alt="`${name} Avatar`" class="author-avatar">

@@ -24,15 +24,6 @@ const normalizePath = (value: string): string => {
 	return withLeadingSlash;
 };
 
-// Don't match /admin paths - let them be handled by static files
-if (route.path.startsWith("/admin")) {
-	throw createError({
-		statusCode: 404,
-		statusMessage: "Page Not Found",
-		fatal: false,
-	});
-}
-
 // Try to fetch from blog collection first, then pages collection
 const { data: page } = await useAsyncData(route.path, async () => {
 	const normalizedRoutePath = normalizePath(route.path);
@@ -122,10 +113,12 @@ const authorAvatar = computed(() => {
 		const profile = authorProfile.value as { avatar?: string };
 		if (profile.avatar) return profile.avatar;
 	}
-	// Fallback to placeholder
-	const firstLetter = page.value?.author?.[0] || "A";
+	const label = (authorProfile?.value as { name?: string })?.name ?? page.value?.author ?? "A";
+	const firstLetter = (typeof label === "string" ? label[0] : "A") || "A";
 	return `https://placehold.co/40x40/38bdf8/ffffff?text=${firstLetter}`;
 });
+
+const authorDisplayName = computed(() => (authorProfile?.value as { name?: string })?.name ?? page.value?.author ?? "Anonymous");
 
 // Calculate reading time (assuming average reading speed of 200 words per minute)
 const readingTime = computed(() => {
@@ -411,12 +404,10 @@ onMounted(() => {
 							<div class="author-info">
 								<img
 									:src="authorAvatar"
-									:alt="page.author || 'Author'"
+									:alt="authorDisplayName"
 									class="author-avatar"
 								>
-								<span class="author-name">{{
-									page.author || "Anonymous"
-								}}</span>
+								<span class="author-name">{{ authorDisplayName }}</span>
 							</div>
 
 							<div class="meta-divider" />
@@ -496,8 +487,8 @@ onMounted(() => {
 			<button
 				class="widget-button series-button"
 				:class="{ 'active': showSeriesSidebar }"
-				@click="showSeriesSidebar = !showSeriesSidebar"
 				aria-label="Toggle Series Sidebar"
+				@click="showSeriesSidebar = !showSeriesSidebar"
 			>
 				<Icon name="heroicons:bookmark-square" class="widget-icon" />
 				<span class="tooltip tooltip-right">{{ showSeriesSidebar ? '隱藏專欄' : '顯示專欄' }}</span>
@@ -509,8 +500,8 @@ onMounted(() => {
 			<button 
 				class="widget-button toc-button" 
 				:class="{ 'active': showToc }"
-				@click="showToc = !showToc"
 				aria-label="Toggle Table of Contents"
+				@click="showToc = !showToc"
 			>
 				<Icon :name="showToc ? 'heroicons:list-bullet' : 'heroicons:list-bullet'" class="widget-icon" />
 				<span class="tooltip">{{ showToc ? '隱藏目錄' : '顯示目錄' }}</span>

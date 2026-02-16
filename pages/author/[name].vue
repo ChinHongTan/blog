@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { BlogCollectionItem } from "@nuxt/content";
+import { getAuthorId } from "~/composables/useAuthorId";
 
 const route = useRoute();
 
-const authorName = computed(() => {
+/** Route param is the immutable author ID (e.g. chinono). */
+const authorId = computed(() => {
 	const raw = route.params.name;
 	if (Array.isArray(raw)) return decodeURIComponent(raw[0] || "");
 	return decodeURIComponent(raw || "");
@@ -30,23 +32,19 @@ type AuthorProfile = {
 };
 
 const authorRecord = computed(() => {
-	const records = (allAuthors.value ?? []) as unknown as AuthorProfile[];
-	return records.find((a) => a.name === authorName.value) ?? null;
+	const records = (allAuthors.value ?? []) as unknown as (AuthorProfile & { path?: string })[];
+	return records.find((a) => getAuthorId(a) === authorId.value) ?? null;
 });
 
 // Fetch author page separately to get body content for README
 const { data: authorPage } = await useAsyncData(
-	`author-page-${authorName.value}`,
+	`author-page-${authorId.value}`,
 	async () => {
-		// Try to find by stem (filename without extension)
-		const candidates = ['chinono', 'automata', 'mahiro', 'osborrrrn'];
-		// Query all and find matching
 		const all = await queryCollection("authors").all();
-		const match = all.find((a: Record<string, unknown>) => a.name === authorName.value);
+		const match = all.find((a: { path?: string; name?: string }) => getAuthorId(a) === authorId.value);
 		if (!match) return null;
-		// Now query by path to get the full content with body
-		if (match.path) {
-			const full = await queryCollection("authors").path(match.path).first();
+		if ((match as { path?: string }).path) {
+			const full = await queryCollection("authors").path((match as { path: string }).path).first();
 			return full;
 		}
 		return match;
@@ -70,13 +68,13 @@ const hasReadme = computed(() => {
 
 // Fetch all posts by this author
 const { data: allPosts } = await useAsyncData<BlogCollectionItem[]>(
-	`author-posts-${authorName.value}`,
+	`author-posts-${authorId.value}`,
 	() => queryCollection("blog").order("date", "DESC").all()
 );
 
 const authorPosts = computed(() => {
 	return (allPosts.value ?? []).filter(
-		(post) => post.author === authorName.value
+		(post) => post.author === authorId.value
 	);
 });
 
@@ -95,8 +93,10 @@ function fallbackAvatar(label: string, size = 120) {
 	return `https://placehold.co/${size}x${size}/38bdf8/ffffff?text=${initial}`;
 }
 
+const authorDisplayName = computed(() => authorRecord.value?.name ?? authorId.value);
+
 const avatar = computed(() => {
-	return authorRecord.value?.avatar ?? fallbackAvatar(authorName.value);
+	return authorRecord.value?.avatar ?? fallbackAvatar(authorDisplayName.value);
 });
 
 const bannerUrl = computed(() => {
@@ -160,7 +160,7 @@ const sortedPosts = computed(() => {
 });
 
 useHead({
-	title: `${authorName.value} - 作者 - 七糯糯的小站`,
+	title: `${authorDisplayName.value} - 作者 - 七糯糯的小站`,
 });
 </script>
 
@@ -169,7 +169,7 @@ useHead({
 		<!-- Banner -->
 		<div class="banner-section">
 			<div v-if="bannerUrl" class="banner-image">
-				<img :src="bannerUrl" :alt="`${authorName} banner`">
+				<img :src="bannerUrl" :alt="`${authorDisplayName} banner`">
 			</div>
 			<div v-else class="banner-default">
 				<div class="banner-pattern" />
@@ -183,10 +183,10 @@ useHead({
 				<div class="profile-card">
 					<!-- Avatar -->
 					<div class="profile-avatar-wrap">
-						<img :src="avatar" :alt="authorName" class="profile-avatar">
+						<img :src="avatar" :alt="authorDisplayName" class="profile-avatar">
 					</div>
 
-					<h1 class="profile-name">{{ authorName }}</h1>
+					<h1 class="profile-name">{{ authorDisplayName }}</h1>
 					<p v-if="authorRecord?.bio" class="profile-bio">
 						{{ authorRecord.bio }}
 					</p>
@@ -260,7 +260,7 @@ useHead({
 						<NuxtLink
 							v-for="tag in authorTags.slice(0, 10)"
 							:key="tag.name"
-							:to="`/?tag=${encodeURIComponent(tag.name)}&author=${encodeURIComponent(authorName)}`"
+							:to="`/?tag=${encodeURIComponent(tag.name)}&author=${encodeURIComponent(authorId)}`"
 							class="tag-cloud-item"
 						>
 							#{{ tag.name }}
@@ -397,8 +397,8 @@ useHead({
 					<div v-if="hasReadme && authorPage" class="readme-content">
 						<div class="readme-card">
 							<div class="readme-header">
-								<img :src="avatar" :alt="authorName" class="readme-avatar">
-								<span class="readme-filename">{{ authorName }} / README.md</span>
+								<img :src="avatar" :alt="authorDisplayName" class="readme-avatar">
+								<span class="readme-filename">{{ authorDisplayName }} / README.md</span>
 							</div>
 							<div class="readme-body nuxt-content">
 								<ContentRenderer :value="authorPage">

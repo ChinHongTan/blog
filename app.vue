@@ -25,8 +25,23 @@ const isMobileMenuOpen = ref(false);
 // Provide search query to child components
 provide("searchQuery", searchQuery);
 
-// Current route to determine context
+// Current route (must be declared before any watch/computed that uses it)
 const route = useRoute();
+
+// Admin top bar (when on /admin)
+const adminQuickAddRef = ref<HTMLElement | null>(null);
+const adminQuickAddOpen = ref(false);
+const { user: adminUser } = useAdminAuth();
+watch(() => route.path, () => { adminQuickAddOpen.value = false; });
+function closeQuickAddIfOutside(e: MouseEvent) {
+	if (adminQuickAddOpen.value && adminQuickAddRef.value && !adminQuickAddRef.value.contains(e.target as Node)) {
+		adminQuickAddOpen.value = false;
+	}
+}
+onMounted(() => { document.addEventListener("click", closeQuickAddIfOutside); });
+onUnmounted(() => { document.removeEventListener("click", closeQuickAddIfOutside); });
+const isAdminRoute = computed(() => route.path.startsWith("/admin"));
+const isEditorPage = computed(() => route.path.startsWith("/admin/editor"));
 const isPostPage = computed(
 	() =>
 		route.path !== "/" &&
@@ -102,27 +117,51 @@ onUnmounted(() => {
 
 <template>
 	<div :class="['app-wrapper', { 'post-mood': isPostPage }]">
-		<!-- Top Header -->
-		<header class="main-header" :class="{ 'header-hidden': isHeaderHidden }">
+		<!-- Top Header: admin bar when on /admin, otherwise site nav -->
+		<header v-if="isAdminRoute" class="main-header admin-top-bar">
+			<div class="header-content admin-top-bar-content">
+				<NuxtLink to="/admin" class="admin-top-bar-title">後台</NuxtLink>
+				<!-- Target for editor Teleport; always present when on admin so nav doesn't break when leaving editor -->
+				<div v-if="isAdminRoute" id="admin-editor-nav-actions" class="admin-editor-nav-actions" />
+				<div class="admin-nav-spacer" />
+				<div class="header-actions">
+					<div v-if="!isEditorPage" ref="adminQuickAddRef" class="admin-quick-add-wrap">
+						<button
+							type="button"
+							class="admin-quick-add-btn"
+							:aria-expanded="adminQuickAddOpen"
+							aria-haspopup="true"
+							@click="adminQuickAddOpen = !adminQuickAddOpen"
+						>
+							快速新增
+							<Icon name="heroicons:chevron-down" size="16" />
+						</button>
+						<Transition name="dropdown">
+							<div v-if="adminQuickAddOpen" class="admin-quick-add-dropdown" @click.stop>
+								<NuxtLink to="/admin/editor?type=post" class="admin-quick-add-item" @click="adminQuickAddOpen = false">
+									新增文章
+								</NuxtLink>
+							</div>
+						</Transition>
+					</div>
+					<ThemeToggle />
+					<template v-if="adminUser">
+						<AdminUserPopover />
+					</template>
+					<NuxtLink v-else to="/" class="admin-top-back">← 返回網站</NuxtLink>
+				</div>
+			</div>
+		</header>
+		<header v-else class="main-header" :class="{ 'header-hidden': isHeaderHidden }">
 			<div class="header-content">
 				<NuxtLink to="/" class="logo">
-					<!-- Option 1: Profile Picture (Current) -->
 					<img
 						src="/images/uploads/103467998_p0 copy.png"
 						alt="Logo"
 						class="logo-image"
 					>
-
-					<!-- Option 2: Remove icon completely - just delete the img/Icon line above -->
-
-					<!-- Option 3: Use an icon instead:
-          <Icon name="heroicons:academic-cap" size="28" />
-          -->
-
 					<span>七糯糯的小站</span>
 				</NuxtLink>
-
-				<!-- Header actions: nav + theme toggle + mobile menu button (nav moved to right) -->
 				<div class="header-actions">
 					<nav class="main-nav">
 						<NuxtLink to="/">
@@ -217,9 +256,11 @@ onUnmounted(() => {
 
 		<div :class="['app-layout', { 'post-layout': isPostPage }]">
 			<main class="main-content">
-				<NuxtPage />
+				<NuxtLayout>
+					<NuxtPage />
+				</NuxtLayout>
 
-				<footer class="site-footer">
+				<footer v-if="!isAdminRoute" class="site-footer">
 					<div class="footer-info">
 						<p>
 							© 2025 七糯糯的小站.
@@ -320,6 +361,131 @@ onUnmounted(() => {
 .app-wrapper > * {
 	position: relative;
 	z-index: 1;
+}
+
+/* Admin top bar (replaces site nav when on /admin) */
+.admin-top-bar .admin-top-bar-content {
+	justify-content: flex-start;
+	gap: 1rem;
+}
+.admin-nav-spacer {
+	flex: 1;
+	min-width: 0;
+}
+.admin-editor-nav-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+.admin-editor-nav-actions .admin-status-badge {
+	font-size: 0.75rem;
+	font-weight: 500;
+	padding: 0.2rem 0.5rem;
+	border-radius: 0.25rem;
+}
+.admin-editor-nav-actions .admin-status-badge.draft {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+}
+.admin-editor-nav-actions .admin-status-badge.saved {
+  background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+  color: var(--color-primary-dark);
+}
+.admin-editor-nav-actions .admin-status-badge.unsaved {
+  background: color-mix(in srgb, #dc2626 18%, transparent);
+  color: #dc2626;
+}
+.admin-top-bar-title {
+	font-weight: 700;
+	font-size: 1.125rem;
+	color: var(--color-primary);
+	text-decoration: none;
+}
+.admin-top-bar .header-actions {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+.admin-quick-add-wrap {
+	position: relative;
+}
+.admin-quick-add-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	padding: 0.4rem 0.75rem;
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: var(--color-text-primary);
+	background: var(--color-bg-tertiary);
+	border: 1px solid var(--color-border-light);
+	border-radius: 0.375rem;
+	cursor: pointer;
+}
+.admin-quick-add-btn:hover {
+	background: var(--color-bg-blue-tint);
+	border-color: var(--color-primary);
+}
+.admin-quick-add-dropdown {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	margin-top: 0.25rem;
+	min-width: 140px;
+	background: var(--color-bg-primary);
+	border: 1px solid var(--color-border-light);
+	border-radius: 0.375rem;
+	box-shadow: var(--shadow-lg);
+	overflow: hidden;
+	z-index: 100;
+}
+.admin-quick-add-item {
+	display: block;
+	padding: 0.5rem 0.75rem;
+	font-size: 0.875rem;
+	color: var(--color-text-primary);
+	text-decoration: none;
+	transition: background 0.15s;
+}
+.admin-quick-add-item:hover {
+	background: var(--color-bg-tertiary);
+}
+.admin-top-avatar {
+	border-radius: 50%;
+}
+.admin-top-username {
+	font-size: 0.875rem;
+	color: var(--color-text-secondary);
+}
+.admin-top-logout {
+	padding: 0.35rem 0.65rem;
+	font-size: 0.8125rem;
+	color: var(--color-text-secondary);
+	background: transparent;
+	border: 1px solid var(--color-border-light);
+	border-radius: 0.25rem;
+	cursor: pointer;
+}
+.admin-top-logout:hover {
+	background: var(--color-bg-tertiary);
+	color: var(--color-text-primary);
+}
+.admin-top-back {
+	font-size: 0.875rem;
+	color: var(--color-text-secondary);
+	text-decoration: none;
+}
+.admin-top-back:hover {
+	color: var(--color-primary);
+}
+.dropdown-enter-active,
+.dropdown-leave-active {
+	transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.dropdown-enter-from,
+.dropdown-leave-to {
+	opacity: 0;
+	transform: translateY(-4px);
 }
 
 .app-wrapper.post-mood {

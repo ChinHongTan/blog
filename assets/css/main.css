@@ -44,6 +44,11 @@
     /* Glass UI */
     --panel-bg: rgba(255, 255, 255, 0.65);
     --glass-blur: 12px;
+
+    /* Scrollbar (light) */
+    --scrollbar-track: var(--color-bg-secondary);
+    --scrollbar-thumb: var(--color-border-medium);
+    --scrollbar-thumb-hover: var(--color-text-tertiary);
 }
 
 /* Waline Overrides (Light) — html:root selector beats waline.css's :root */
@@ -106,6 +111,11 @@ html.dark {
     /* Glass UI */
     --panel-bg: rgba(15, 23, 42, 0.6);
     /* slate-900 @ 0.6 */
+
+    /* Scrollbar (dark) */
+    --scrollbar-track: var(--color-bg-secondary);
+    --scrollbar-thumb: var(--color-border-medium);
+    --scrollbar-thumb-hover: var(--color-text-tertiary);
 }
 
 /* Waline Overrides (Dark) — html.dark:root beats waline.css's html.dark */
@@ -136,6 +146,32 @@ html {
     scroll-behavior: smooth;
     scroll-padding-top: 100px;
     /* Account for sticky header */
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* Themed scrollbars (light/dark) */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
 }
 
 body {
@@ -385,4 +421,27 @@ section[data-footnotes]>h2 {
 :root {
     --waline-font-size: 1rem;
 
+}
+
+/* Admin: Milkdown Crepe editor dark theme (toolbar, slash menu, etc.) */
+html.dark .milkdown {
+    --crepe-color-background: #1b1c1d;
+    --crepe-color-on-background: #f8f9ff;
+    --crepe-color-surface: #111418;
+    --crepe-color-surface-low: #191c20;
+    --crepe-color-on-surface: #e1e2e8;
+    --crepe-color-on-surface-variant: #c3c6cf;
+    --crepe-color-outline: #8d9199;
+    --crepe-color-primary: #a1c9fd;
+    --crepe-color-secondary: #3c4858;
+    --crepe-color-on-secondary: #d7e3f8;
+    --crepe-color-inverse: #e1e2e8;
+    --crepe-color-on-inverse: #2e3135;
+    --crepe-color-inline-code: #ffb4ab;
+    --crepe-color-error: #ffb4ab;
+    --crepe-color-hover: #1d2024;
+    --crepe-color-selected: #32353a;
+    --crepe-color-inline-area: #111418;
+    --crepe-shadow-1: 0px 1px 2px 0px rgba(255, 255, 255, 0.3), 0px 1px 3px 1px rgba(255, 255, 255, 0.15);
+    --crepe-shadow-2: 0px 1px 2px 0px rgba(255, 255, 255, 0.3), 0px 2px 6px 2px rgba(255, 255, 255, 0.15);
 }

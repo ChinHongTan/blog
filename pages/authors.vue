@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { BlogCollectionItem } from "@nuxt/content";
+import { getAuthorId } from "~/composables/useAuthorId";
 
 // Fetch all authors from the authors collection
 const { data: authors } = await useAsyncData("all-authors", () =>
@@ -39,8 +40,8 @@ useHead({
 		<div v-if="authors && authors.length" class="authors-grid">
 			<NuxtLink
 				v-for="author in authors"
-				:key="author.name"
-				:to="`/author/${encodeURIComponent(author.name)}`"
+				:key="getAuthorId(author)"
+				:to="`/author/${encodeURIComponent(getAuthorId(author))}`"
 				class="author-card"
 			>
 				<div class="author-avatar-large">
@@ -48,20 +49,20 @@ useHead({
 						v-if="author.avatar"
 						:src="author.avatar"
 						:alt="author.name"
-					/>
+					>
 					<div v-else class="avatar-placeholder">
-						{{ author.name[0] }}
+						{{ (author.name ?? getAuthorId(author))[0] }}
 					</div>
 				</div>
 
 				<div class="author-details">
-					<h2 class="author-name">{{ author.name }}</h2>
+					<h2 class="author-name">{{ author.name ?? getAuthorId(author) }}</h2>
 					<p v-if="author.bio" class="author-bio">{{ author.bio }}</p>
 
 					<div class="author-stats-row">
 						<span class="author-post-count">
 							<Icon name="heroicons:document-text" size="14" />
-							{{ authorPostCounts[author.name] || 0 }} 篇文章
+							{{ authorPostCounts[getAuthorId(author)] || 0 }} 篇文章
 						</span>
 					</div>
 

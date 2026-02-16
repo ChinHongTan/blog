@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { BlogCollectionItem } from "@nuxt/content";
+import { getAuthorId } from "~/composables/useAuthorId";
 
 const route = useRoute();
 
@@ -42,9 +43,10 @@ type AuthorProfile = { name?: string; avatar?: string; [key: string]: unknown };
 
 const authorDirectory = computed<Record<string, AuthorProfile>>(() => {
 	const dir: Record<string, AuthorProfile> = {};
-	const records = (authors.value ?? []) as unknown as AuthorProfile[];
+	const records = (authors.value ?? []) as unknown as (AuthorProfile & { path?: string })[];
 	records.forEach((entry) => {
-		if (entry?.name) dir[entry.name] = entry;
+		const id = getAuthorId(entry);
+		if (id) dir[id] = entry;
 	});
 	return dir;
 });
@@ -54,8 +56,9 @@ function fallbackAvatar(label: string, size = 32) {
 	return `https://placehold.co/${size}x${size}/38bdf8/ffffff?text=${initial}`;
 }
 
-function getAuthorAvatar(authorName: string): string {
-	return authorDirectory.value[authorName]?.avatar ?? fallbackAvatar(authorName);
+function getAuthorAvatar(authorId: string): string {
+	const entry = authorDirectory.value[authorId];
+	return entry?.avatar ?? fallbackAvatar(entry?.name ?? authorId);
 }
 
 useHead({

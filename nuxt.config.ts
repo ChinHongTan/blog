@@ -6,6 +6,17 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
+  runtimeConfig: {
+    githubClientId: process.env.NUXT_GITHUB_CLIENT_ID || '',
+    githubClientSecret: process.env.NUXT_GITHUB_CLIENT_SECRET || '',
+    githubRepo: 'ChinHongTan/blog', // owner/repo
+    public: {
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+      githubClientId: process.env.NUXT_GITHUB_CLIENT_ID || '',
+      githubRepo: process.env.NUXT_PUBLIC_GITHUB_REPO || 'ChinHongTan/blog',
+    },
+  },
+
   modules: [
     '@nuxtjs/sitemap',
     '@nuxt/content',

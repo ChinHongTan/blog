@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import type { BlogCollectionItem } from "@nuxt/content";
-import { useTheme } from '#imports';
+import { useTheme } from "#imports";
+import { getAuthorId } from "~/composables/useAuthorId";
 
 const { theme } = useTheme();
 
-const heroImageSrc = computed(() => 
-	theme.value === 'dark' ? '/images/background_dark.jpg' : '/images/background_light.jpg'
+const _heroImageSrc = computed(() =>
+	theme.value === "dark" ? "/images/background_dark.jpg" : "/images/background_light.jpg"
 );
 
 type AuthorCollectionItem = {
 	name?: string;
 	bio?: string;
 	avatar?: string;
+	path?: string;
 	[key: string]: unknown;
 };
 
@@ -19,6 +21,8 @@ type DisplayPost = BlogCollectionItem & {
 	path: string;
 	authorAvatar?: string;
 	authorBio?: string;
+	/** Display name (from author file); post.author is the immutable ID */
+	authorDisplayName?: string;
 };
 
 const route = useRoute();
@@ -37,9 +41,8 @@ const authorDirectory = computed<Record<string, AuthorCollectionItem>>(() => {
 	const directory: Record<string, AuthorCollectionItem> = {};
 	const records = (authors.value ?? []) as unknown as AuthorCollectionItem[];
 	records.forEach((entry) => {
-		if (entry?.name) {
-			directory[entry.name] = entry;
-		}
+		const id = getAuthorId(entry);
+		if (id) directory[id] = entry;
 	});
 	return directory;
 });
@@ -59,6 +62,7 @@ function enrichPost(post: BlogCollectionItem, path: string): DisplayPost {
 			profile?.avatar ??
 			(post.author ? fallbackAvatar(post.author, 56) : undefined),
 		authorBio: profile?.bio,
+		authorDisplayName: profile?.name ?? post.author,
 	};
 }
 
@@ -134,7 +138,10 @@ const filteredPosts = computed<DisplayPost[]>(() => {
 const activeFilter = computed(() => {
 	if (tagFilter.value) return `標籤：${tagFilter.value}`;
 	if (yearFilter.value) return `年份：${yearFilter.value}`;
-	if (authorFilter.value) return `作者：${authorFilter.value}`;
+	if (authorFilter.value) {
+		const displayName = authorDirectory.value[authorFilter.value]?.name ?? authorFilter.value;
+		return `作者：${displayName}`;
+	}
 	if (categoryFilter.value) return `分類：${categoryFilter.value}`;
 	return null;
 });
@@ -177,10 +184,11 @@ const sidebarAuthors = computed(() => {
 	});
 
 	return Array.from(authorCounts.entries())
-		.map(([name, count]) => ({
-			name,
+		.map(([id, count]) => ({
+			id,
+			name: authorDirectory.value[id]?.name ?? id,
 			count,
-			avatar: authorDirectory.value[name]?.avatar ?? fallbackAvatar(name, 44),
+			avatar: authorDirectory.value[id]?.avatar ?? fallbackAvatar(id, 44),
 		}))
 		.sort((a, b) => b.count - a.count);
 });
@@ -359,8 +367,8 @@ onBeforeUnmount(() => {
 						<div class="authors-list">
 							<NuxtLink
 								v-for="author in sidebarAuthors"
-								:key="author.name"
-								:to="`/?author=${encodeURIComponent(author.name)}`"
+								:key="author.id"
+								:to="`/?author=${encodeURIComponent(author.id)}`"
 								class="author-row"
 							>
 								<img :src="author.avatar" :alt="author.name" class="author-avatar">
@@ -372,8 +380,8 @@ onBeforeUnmount(() => {
 						<div class="authors-grid" aria-label="作者列表">
 							<NuxtLink
 								v-for="author in sidebarAuthors"
-								:key="`${author.name}-grid`"
-								:to="`/?author=${encodeURIComponent(author.name)}`"
+								:key="`${author.id}-grid`"
+								:to="`/?author=${encodeURIComponent(author.id)}`"
 								class="author-grid-item"
 							>
 								<img :src="author.avatar" :alt="author.name" class="author-avatar">
@@ -420,7 +428,7 @@ onBeforeUnmount(() => {
 										<template v-if="post.author">
 											<img
 												:src="post.authorAvatar || fallbackAvatar(post.author, 32)"
-												:alt="post.author"
+												:alt="post.authorDisplayName || post.author"
 												class="post-author-avatar"
 											>
 										</template>
@@ -430,7 +438,7 @@ onBeforeUnmount(() => {
 												:to="`/?author=${encodeURIComponent(post.author)}`"
 												class="post-author-link"
 											>
-												<span class="post-author-name">{{ post.author }}</span>
+												<span class="post-author-name">{{ post.authorDisplayName || post.author }}</span>
 											</NuxtLink>
 											<span class="meta-item post-date">
 												<Icon name="heroicons:calendar-days" size="15" class="meta-icon" />

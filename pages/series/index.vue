@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { BlogCollectionItem } from "@nuxt/content";
+import { getAuthorId } from "~/composables/useAuthorId";
 
 const { data: posts } = await useAsyncData<BlogCollectionItem[]>("series-posts", () =>
 	queryCollection("blog").order("date", "DESC").all()
@@ -14,9 +15,10 @@ type AuthorProfile = { name?: string; avatar?: string; [key: string]: unknown };
 
 const authorDirectory = computed<Record<string, AuthorProfile>>(() => {
 	const dir: Record<string, AuthorProfile> = {};
-	const records = (authorsData.value ?? []) as unknown as AuthorProfile[];
+	const records = (authorsData.value ?? []) as unknown as (AuthorProfile & { path?: string })[];
 	records.forEach((entry) => {
-		if (entry?.name) dir[entry.name] = entry;
+		const id = getAuthorId(entry);
+		if (id) dir[id] = entry;
 	});
 	return dir;
 });
@@ -120,16 +122,16 @@ useHead({
 							<!-- Author avatars stack -->
 							<div class="series-authors-stack">
 								<img
-									v-for="authorName in Array.from(series.authors).slice(0, 3)"
-									:key="authorName"
-									:src="authorDirectory[authorName]?.avatar ?? fallbackAvatar(authorName)"
-									:alt="authorName"
+									v-for="authorId in Array.from(series.authors).slice(0, 3)"
+									:key="authorId"
+									:src="authorDirectory[authorId]?.avatar ?? fallbackAvatar(authorDirectory[authorId]?.name ?? authorId)"
+									:alt="authorDirectory[authorId]?.name ?? authorId"
 									class="series-author-avatar"
 								>
 							</div>
 							<div class="series-meta-text">
 								<span class="series-author-names">
-									{{ Array.from(series.authors).slice(0, 2).join("、") }}
+									{{ Array.from(series.authors).slice(0, 2).map((id) => authorDirectory[id]?.name ?? id).join("、") }}
 									<template v-if="series.authors.size > 2">
 										等 {{ series.authors.size }} 位作者
 									</template>
