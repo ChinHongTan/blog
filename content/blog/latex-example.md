@@ -2,7 +2,7 @@
 title: LaTeX Example
 description: An example on how to write latex on this blog.
 date: 2025-11-04T22:26:00.000+08:00
-author: 七糯糯
+author: chinono
 tags:
   - math
 featured_image: /images/uploads/latex.png

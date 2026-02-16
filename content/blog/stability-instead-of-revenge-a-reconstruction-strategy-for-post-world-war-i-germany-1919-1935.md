@@ -5,7 +5,7 @@ description: |-
   一篇在吃飯時莫名討論出的偽論文 (Chicago Manual of Style)
   備註 : 目前引用文獻頁碼錯誤極多，但觀點大致無誤，修正中
 date: 2025-10-31T16:17:00.000+08:00
-author: Automata
+author: automata
 tags:
   - World War II conjecture
 featured_image: /images/uploads/atlas_van_der_hagen-kw1049b10_047-s._imperium_romano-germanicum_oder_deutschland_mit_seinen_angräntzenden_königreichen_und_provincien_neulich_entworffen_und_theils_gezeichnet_durch_iulium_reichelt_chur_pfal.jpg

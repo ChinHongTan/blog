@@ -29,14 +29,24 @@ const route = useRoute();
 const fullDescription =
 	"我們是一群認識的小夥伴。這裡收錄大家的日常冒險、靈感筆記和生活記錄。";
 
-const { data: posts } = await useAsyncData<BlogCollectionItem[]>("posts", () =>
+const { data: posts, refresh: refreshPosts } = await useAsyncData<BlogCollectionItem[]>("posts", () =>
 	queryCollection("blog").order("date", "DESC").all()
 );
 
-const { data: authors } = await useAsyncData("authors", () =>
+const { data: authors, refresh: refreshAuthors } = await useAsyncData("authors", () =>
 	queryCollection("authors").all()
 );
 
+// Refetch on client when initial payload had no posts (fixes empty home on first load e.g. static/SSR timing)
+onMounted(() => {
+	if ((posts.value ?? []).length === 0) {
+		refreshPosts();
+		refreshAuthors();
+	}
+});
+
+// Author directory: one entry per author file, keyed only by immutable ID (filename stem).
+// All frontmatter (name, avatar, bio) from that file belongs to that ID.
 const authorDirectory = computed<Record<string, AuthorCollectionItem>>(() => {
 	const directory: Record<string, AuthorCollectionItem> = {};
 	const records = (authors.value ?? []) as unknown as AuthorCollectionItem[];
