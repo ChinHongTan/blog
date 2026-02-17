@@ -107,22 +107,24 @@ export default defineEventHandler(async (event): Promise<ProfileMe | null> => {
     let profile: ProfileMe["profile"] = null;
     let sha: string | undefined;
 
-    // 1) Find author file by social.github matching this GitHub user
+    // 1) Find author file by social.github matching this GitHub user (fetch all author files in parallel)
     try {
       const { data: list } = await octokit.repos.getContent({ owner, repo, path: "content/authors" });
       if (Array.isArray(list)) {
-        const mdFiles = list.filter((f: { name: string }) => f.name.endsWith(".md"));
-        for (const f of mdFiles) {
-          const path = (f as { path: string }).path;
-          const { data: file } = await octokit.repos.getContent({ owner, repo, path });
-          if (Array.isArray(file) || !("content" in file) || !file.content) continue;
-          const raw = Buffer.from(file.content, "base64").toString("utf-8");
+        const mdFiles = list.filter((f: { name: string }) => f.name.endsWith(".md")) as { name: string; path: string }[];
+        const fileResults = await Promise.all(
+          mdFiles.map((f) => octokit.repos.getContent({ owner, repo, path: f.path }).catch(() => null))
+        );
+        for (let i = 0; i < mdFiles.length; i++) {
+          const res = fileResults[i];
+          if (!res?.data || Array.isArray(res.data) || !("content" in res.data) || !res.data.content) continue;
+          const raw = Buffer.from(res.data.content, "base64").toString("utf-8");
           const parsed = parseAuthorFrontmatter(raw);
           if (!parsed?.socialGithub) continue;
           const fileLogin = githubUrlToLogin(parsed.socialGithub);
           if (fileLogin && fileLogin.toLowerCase() === login.toLowerCase()) {
-            resolvedPath = path;
-            const fileSha = (file as { sha?: string }).sha;
+            resolvedPath = mdFiles[i].path;
+            const fileSha = (res.data as { sha?: string }).sha;
             const result = parseProfileFromRaw(raw, fileSha);
             profile = result.profile;
             sha = result.sha;

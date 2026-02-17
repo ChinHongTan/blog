@@ -238,13 +238,24 @@
       </div>
     </Teleport>
 
-    <!-- 刪除草稿確認 -->
+    <!-- 刪除草稿確認（點擊背景不關閉，改為晃動提示） -->
     <Teleport to="body">
-      <div v-if="showDeleteDraftConfirm" class="admin-confirm-overlay" @click.self="showDeleteDraftConfirm = false">
-        <div class="admin-confirm-modal admin-confirm-modal-danger" @click.stop>
+      <div
+        v-if="showDeleteDraftConfirm"
+        class="admin-confirm-overlay"
+        role="presentation"
+        @click="onDeleteConfirmOverlayClick"
+      >
+        <div
+          class="admin-confirm-modal admin-confirm-modal-danger"
+          :class="{ 'admin-confirm-modal-shake': deleteModalShake }"
+          role="dialog"
+          aria-modal="true"
+          @click.stop
+        >
           <h3 class="admin-confirm-title">刪除草稿</h3>
           <p class="admin-confirm-text">確定要刪除此草稿嗎？此操作無法復原。</p>
-          <div class="admin-confirm-actions">
+          <div class="admin-confirm-actions admin-confirm-actions-rounded">
             <button type="button" class="admin-btn admin-btn-ghost" @click="showDeleteDraftConfirm = false">取消</button>
             <button type="button" class="admin-btn admin-btn-primary admin-btn-danger" @click="confirmDeleteDraft">刪除</button>
           </div>
@@ -408,6 +419,21 @@ const savingDraft = ref(false);
 const unpublishing = ref(false);
 const deletingDraft = ref(false);
 const showDeleteDraftConfirm = ref(false);
+/** Shake delete modal when user clicks backdrop (destructive action — must choose). */
+const deleteModalShake = ref(false);
+let deleteModalShakeTimeout: ReturnType<typeof setTimeout> | null = null;
+
+function onDeleteConfirmOverlayClick(e: MouseEvent) {
+  if (e.target !== e.currentTarget) return;
+  e.preventDefault();
+  e.stopPropagation();
+  deleteModalShake.value = true;
+  if (deleteModalShakeTimeout) clearTimeout(deleteModalShakeTimeout);
+  deleteModalShakeTimeout = setTimeout(() => {
+    deleteModalShake.value = false;
+    deleteModalShakeTimeout = null;
+  }, 500);
+}
 const showRecoveryBar = ref(false);
 /** 已發布文章 + 本機有草稿時，詢問使用 GitHub 版本或本機版本。 */
 const showVersionChoiceModal = ref(false);
@@ -630,7 +656,7 @@ function useLocalVersion() {
   });
 }
 
-function loadFromApi() {
+function loadFromApi(): Promise<void> {
   if (!filePath.value) {
     if (docType.value === "post") {
       meta.date = new Date().toISOString().slice(0, 16);
@@ -640,9 +666,9 @@ function loadFromApi() {
       cachedMetaJson.value = serializeMeta();
     });
     contentReady.value = true;
-    return;
+    return Promise.resolve();
   }
-  $fetch<{ content: string; sha?: string; lastModified?: string }>(`/api/admin/repo/files?path=${encodeURIComponent(filePath.value)}`)
+  return $fetch<{ content: string; sha?: string; lastModified?: string }>(`/api/admin/repo/files?path=${encodeURIComponent(filePath.value)}`)
     .then((res) => {
       fileSha.value = res.sha;
       serverLastModified.value = res.lastModified ?? null;
@@ -942,13 +968,14 @@ onMounted(async () => {
   $fetch<{ name: string; path: string; displayName?: string }[]>("/api/admin/repo/authors")
     .then((list) => (authors.value = list))
     .catch(() => (authors.value = []));
-  try {
-    const profile = await $fetch<{ authorId?: string | null }>("/api/admin/profile/me");
-    currentUserAuthorId.value = profile?.authorId ?? null;
-  } catch {
-    currentUserAuthorId.value = null;
-  }
-  loadFromApi();
+  const profilePromise = $fetch<{ authorId?: string | null }>("/api/admin/profile/me")
+    .then((profile) => {
+      currentUserAuthorId.value = profile?.authorId ?? null;
+    })
+    .catch(() => {
+      currentUserAuthorId.value = null;
+    });
+  await Promise.all([profilePromise, loadFromApi()]);
   bodyCheckInterval = setInterval(() => {
     bodyCheckTrigger.value++;
     if (docType.value === "post" && !canEditPost.value) return;
@@ -1100,6 +1127,10 @@ onUnmounted(() => {
 .admin-confirm-overlay {
   position: fixed;
   inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -1108,6 +1139,8 @@ onUnmounted(() => {
   justify-content: center;
   z-index: 1100;
   padding: 1rem;
+  cursor: default;
+  pointer-events: auto;
 }
 .admin-confirm-modal {
   background: var(--color-bg-primary);
@@ -1141,6 +1174,33 @@ onUnmounted(() => {
 }
 .admin-confirm-actions .admin-btn {
   min-width: 6rem;
+}
+
+/* Delete modal: rounded-square buttons; backdrop click triggers shake (do not close) */
+.admin-confirm-modal-shake {
+  animation: admin-confirm-shake 0.5s ease-in-out;
+}
+@keyframes admin-confirm-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-8px); }
+  30% { transform: translateX(8px); }
+  45% { transform: translateX(-6px); }
+  60% { transform: translateX(6px); }
+  75% { transform: translateX(-3px); }
+  90% { transform: translateX(3px); }
+}
+.admin-confirm-modal-danger .admin-confirm-actions-rounded {
+  gap: 1rem;
+}
+.admin-confirm-modal-danger .admin-confirm-actions-rounded .admin-btn {
+  width: 4rem;
+  height: 4rem;
+  min-width: unset;
+  padding: 0;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Obsidian-style borderless properties table at top */
@@ -1523,6 +1583,7 @@ onUnmounted(() => {
 .admin-editor-raw {
   overflow: visible;
 }
+/* Raw markdown textarea: match blog .post-content font/size */
 .admin-textarea {
   width: 100%;
   min-height: 50vh;
@@ -1543,40 +1604,62 @@ onUnmounted(() => {
   box-shadow: none !important;
   min-height: 100%;
 }
-/* Match blog .post-content typography inside the WYSIWYG editor */
+/* Match blog .post-content typography inside the WYSIWYG editor (override Crepe theme) */
 .admin-wysiwyg-site :deep(.milkdown) {
+  font-family: var(--font-body);
   font-size: 1.05rem;
   line-height: 1.8;
   color: var(--color-text-primary);
 }
-.admin-wysiwyg-site :deep(.milkdown p) {
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror) {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--color-text-primary);
+}
+.admin-wysiwyg-site :deep(.milkdown p),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror p) {
   margin-bottom: 1.25rem;
 }
-.admin-wysiwyg-site :deep(.milkdown h1) {
+.admin-wysiwyg-site :deep(.milkdown h1),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror h1) {
+  font-family: var(--font-body);
   font-size: 2.5rem;
   font-weight: 700;
   line-height: 1.2;
+  margin-top: 0;
   margin-bottom: 0.75rem;
   color: var(--color-text-primary);
 }
-.admin-wysiwyg-site :deep(.milkdown h2) {
+.admin-wysiwyg-site :deep(.milkdown h2),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror h2) {
+  font-family: var(--font-body);
   font-size: 2rem;
+  font-weight: 600;
   margin-top: 2.5rem;
   margin-bottom: 1rem;
-  color: var(--color-text-primary);
   padding-bottom: 0.75rem;
   border-bottom: 2px solid var(--color-border-light);
+  color: var(--color-text-primary);
 }
-.admin-wysiwyg-site :deep(.milkdown h3) {
+.admin-wysiwyg-site :deep(.milkdown h3),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror h3) {
+  font-family: var(--font-body);
   font-size: 1.5rem;
+  font-weight: 600;
   margin-top: 2rem;
   margin-bottom: 0.75rem;
   color: var(--color-text-primary);
 }
 .admin-wysiwyg-site :deep(.milkdown h4),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror h4),
 .admin-wysiwyg-site :deep(.milkdown h5),
-.admin-wysiwyg-site :deep(.milkdown h6) {
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror h5),
+.admin-wysiwyg-site :deep(.milkdown h6),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror h6) {
+  font-family: var(--font-body);
   font-size: 1.25rem;
+  font-weight: 600;
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
   color: var(--color-text-primary);
@@ -1627,6 +1710,52 @@ onUnmounted(() => {
   border: none;
   border-top: 2px solid var(--color-border-light);
   margin: 2rem 0;
+}
+/* Editor tables: match blog .post-content table styling */
+.admin-wysiwyg-site :deep(.milkdown .milkdown-table-block),
+.admin-wysiwyg-site :deep(.milkdown-table-block) {
+  width: 100%;
+  margin: 1.25rem 0 1.5rem;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-sm);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-light);
+}
+.admin-wysiwyg-site :deep(.milkdown .milkdown-table-block table),
+.admin-wysiwyg-site :deep(.milkdown-table-block table) {
+  width: 100%;
+  border-collapse: collapse;
+}
+.admin-wysiwyg-site :deep(.milkdown .milkdown-table-block thead),
+.admin-wysiwyg-site :deep(.milkdown-table-block thead) {
+  background: var(--color-bg-tertiary);
+}
+.admin-wysiwyg-site :deep(.milkdown .milkdown-table-block th),
+.admin-wysiwyg-site :deep(.milkdown-table-block th) {
+  padding: 0.65rem 0.75rem;
+  text-align: center;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: inherit;
+  color: var(--color-text-primary);
+  border-bottom: 2px solid var(--color-border-medium);
+}
+.admin-wysiwyg-site :deep(.milkdown .milkdown-table-block td),
+.admin-wysiwyg-site :deep(.milkdown-table-block td) {
+  padding: 0.6rem 0.75rem;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: inherit;
+  border-bottom: 1px solid var(--color-border-light);
+}
+.admin-wysiwyg-site :deep(.milkdown .milkdown-table-block tbody tr:last-child td),
+.admin-wysiwyg-site :deep(.milkdown-table-block tbody tr:last-child td) {
+  border-bottom: none;
+}
+.admin-wysiwyg-site :deep(.milkdown .milkdown-table-block tbody tr:hover),
+.admin-wysiwyg-site :deep(.milkdown-table-block tbody tr:hover) {
+  background: var(--color-bg-secondary);
 }
 .image-picker-overlay {
   position: fixed;
