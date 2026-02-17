@@ -24,12 +24,51 @@ import { TextSelection } from "@milkdown/prose/state";
 import { $inputRule, $nodeAttr, $nodeSchema } from "@milkdown/utils";
 import remarkDirective from "remark-directive";
 import { directiveToMarkdown } from "mdast-util-directive";
+import { visit } from "unist-util-visit";
 
 /** Timer: must complete after schema so serializer gets remark with directive stringify extension. */
 const RemarkDirectiveStringifyReady = createTimer("RemarkDirectiveStringifyReady");
 
 /** Timer: schema must wait for this so remark-directive is in remarkPluginsCtx before the parser is built. */
 const RemarkDirectiveParseReady = createTimer("RemarkDirectiveParseReady");
+
+/**
+ * Remark plugin: make directive-heavy trees parseable by Milkdown.
+ * - textDirective / leafDirective have no parser → convert to paragraph(text)
+ * - block-level "html" as direct child of containerDirective is parsed as inline html
+ *   by commonmark, which breaks infoBox (content: block+) → wrap in paragraph(text)
+ * Unified plugin: () => (tree) => void
+ */
+function remarkDirectiveTransformForMilkdown(): (options?: unknown) => (tree: import("mdast").Root) => void {
+  const transform = (tree: import("mdast").Root) => {
+    visit(tree, (node, index, parent) => {
+      if (index == null || !parent) return;
+      const p = parent as { type: string; children: unknown[] };
+      const n = node as { type: string; name?: string; value?: string; children?: unknown[] };
+
+      // Unsupported directive types → paragraph with label/text so parser can match
+      if (n.type === "textDirective" || n.type === "leafDirective") {
+        const label = typeof n.name === "string" ? n.name : "";
+        p.children[index] = {
+          type: "paragraph",
+          children: [{ type: "text", value: label }],
+        } as unknown;
+        return;
+      }
+
+      // Block html as direct child of containerDirective: commonmark treats html as inline,
+      // so it would be pushed into infoBox as inline and break "block+". Wrap as paragraph(text).
+      if (p.type === "containerDirective" && n.type === "html") {
+        const value = typeof n.value === "string" ? n.value : "";
+        p.children[index] = {
+          type: "paragraph",
+          children: [{ type: "text", value }],
+        } as unknown;
+      }
+    });
+  };
+  return () => transform;
+}
 
 const INFO_BOX_KINDS = ["info", "warning", "success", "error"] as const;
 export type InfoBoxKind = (typeof INFO_BOX_KINDS)[number];
@@ -184,18 +223,30 @@ function infoBoxBlockHandleFilter(): MilkdownPlugin {
  * We run async after InitReady and make the schema wait for us, so when the schema
  * builds the remark processor it already has remark-directive (same pattern as $remark).
  */
+const directiveTransformPlugin = remarkDirectiveTransformForMilkdown();
+
 function remarkDirectiveParse(): MilkdownPlugin {
-  const remarkPluginEntry = { plugin: remarkDirective, options: {} as Record<string, unknown> };
+  const directiveEntry = { plugin: remarkDirective, options: {} as Record<string, unknown> };
+  const transformEntry = {
+    plugin: directiveTransformPlugin as import("@milkdown/transformer").RemarkPlugin["plugin"],
+    options: {} as Record<string, unknown>,
+  };
   return (ctx: Ctx) => {
     ctx.update(schemaTimerCtx, (timers) => [...timers, RemarkDirectiveParseReady]);
     ctx.record(RemarkDirectiveParseReady);
     return async () => {
       await ctx.wait(InitReady);
-      ctx.update(remarkPluginsCtx, (plugs) => [...plugs, remarkPluginEntry]);
+      ctx.update(remarkPluginsCtx, (plugs) => [
+        ...plugs,
+        directiveEntry,
+        transformEntry,
+      ]);
       ctx.done(RemarkDirectiveParseReady);
       return () => {
         ctx.update(remarkPluginsCtx, (plugs) =>
-          plugs.filter((p) => p.plugin !== remarkDirective)
+          plugs.filter(
+            (p) => p.plugin !== remarkDirective && p.plugin !== directiveTransformPlugin
+          )
         );
         ctx.clearTimer(RemarkDirectiveParseReady);
       };
