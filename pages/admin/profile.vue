@@ -475,6 +475,23 @@ onMounted(load);
   padding: 1rem;
 }
 
+.admin-profile-editor-wrap :deep(.milkdown-markdown-reveal) {
+  display: block;
+  font-family: var(--mono-font, ui-monospace, monospace);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--color-text-muted, #6b7280);
+  margin-bottom: 0.25rem;
+  padding: 0.25rem 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  user-select: none;
+  pointer-events: none;
+}
+html.dark .admin-profile-editor-wrap :deep(.milkdown-markdown-reveal) {
+  color: var(--color-text-muted, #9ca3af);
+}
+
 .admin-profile-editor-loading {
   min-height: 320px;
   display: flex;

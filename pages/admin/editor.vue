@@ -1604,6 +1604,23 @@ onUnmounted(() => {
   box-shadow: none !important;
   min-height: 100%;
 }
+/* Obsidian-style markdown reveal: grey source above focused block, hidden on blur */
+.admin-wysiwyg-site :deep(.milkdown-markdown-reveal) {
+  display: block;
+  font-family: var(--mono-font, ui-monospace, monospace);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--color-text-muted, #6b7280);
+  margin-bottom: 0.25rem;
+  padding: 0.25rem 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  user-select: none;
+  pointer-events: none;
+}
+html.dark .admin-wysiwyg-site :deep(.milkdown-markdown-reveal) {
+  color: var(--color-text-muted, #9ca3af);
+}
 /* Match blog .post-content typography inside the WYSIWYG editor (override Crepe theme) */
 .admin-wysiwyg-site :deep(.milkdown) {
   font-family: var(--font-body);

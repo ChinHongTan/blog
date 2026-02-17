@@ -8,6 +8,7 @@ import { Milkdown, useEditor } from "@milkdown/vue";
 import { Crepe, CrepeFeature } from "@milkdown/crepe";
 import { watch, onBeforeUnmount } from "vue";
 import { infoBoxFeature, infoBoxSlashItems } from "~/lib/milkdown-info-box";
+import { markdownRevealPlugin } from "~/lib/milkdown-markdown-reveal";
 
 const props = withDefaults(
   defineProps<{
@@ -87,6 +88,7 @@ const { loading } = useEditor((root: HTMLElement) => {
     featureConfigs: zhTWConfig,
   });
   crepe.addFeature(infoBoxFeature);
+  crepe.editor.use(markdownRevealPlugin);
   builderInstance = crepe;
   return crepe;
 });
