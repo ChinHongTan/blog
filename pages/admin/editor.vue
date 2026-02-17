@@ -1621,53 +1621,90 @@ onUnmounted(() => {
 .admin-wysiwyg-site :deep(.milkdown .ProseMirror p) {
   margin-bottom: 1.25rem;
 }
+/* Headings: match main.css + .post-content (font-heading, distinct sizes, h2 bar) */
 .admin-wysiwyg-site :deep(.milkdown h1),
 .admin-wysiwyg-site :deep(.milkdown .ProseMirror h1) {
-  font-family: var(--font-body);
+  font-family: var(--font-heading);
   font-size: 2.5rem;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.3;
   margin-top: 0;
   margin-bottom: 0.75rem;
   color: var(--color-text-primary);
 }
 .admin-wysiwyg-site :deep(.milkdown h2),
 .admin-wysiwyg-site :deep(.milkdown .ProseMirror h2) {
-  font-family: var(--font-body);
+  font-family: var(--font-heading);
   font-size: 2rem;
   font-weight: 600;
+  line-height: 1.3;
   margin-top: 2.5rem;
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
   border-bottom: 2px solid var(--color-border-light);
+  position: relative;
   color: var(--color-text-primary);
+}
+.admin-wysiwyg-site :deep(.milkdown h2)::after,
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror h2)::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 60px;
+  height: 2px;
+  background: var(--color-primary);
 }
 .admin-wysiwyg-site :deep(.milkdown h3),
 .admin-wysiwyg-site :deep(.milkdown .ProseMirror h3) {
-  font-family: var(--font-body);
+  font-family: var(--font-heading);
   font-size: 1.5rem;
   font-weight: 600;
+  line-height: 1.3;
   margin-top: 2rem;
   margin-bottom: 0.75rem;
   color: var(--color-text-primary);
 }
 .admin-wysiwyg-site :deep(.milkdown h4),
-.admin-wysiwyg-site :deep(.milkdown .ProseMirror h4),
-.admin-wysiwyg-site :deep(.milkdown h5),
-.admin-wysiwyg-site :deep(.milkdown .ProseMirror h5),
-.admin-wysiwyg-site :deep(.milkdown h6),
-.admin-wysiwyg-site :deep(.milkdown .ProseMirror h6) {
-  font-family: var(--font-body);
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror h4) {
+  font-family: var(--font-heading);
   font-size: 1.25rem;
   font-weight: 600;
+  line-height: 1.3;
   margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-primary);
+}
+.admin-wysiwyg-site :deep(.milkdown h5),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror h5) {
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-primary);
+}
+.admin-wysiwyg-site :deep(.milkdown h6),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror h6) {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 1.25rem;
   margin-bottom: 0.5rem;
   color: var(--color-text-primary);
 }
 .admin-wysiwyg-site :deep(.milkdown a) {
   color: var(--color-primary-dark);
   text-decoration: underline;
+  text-decoration-color: var(--color-primary-light);
   text-underline-offset: 3px;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+.admin-wysiwyg-site :deep(.milkdown a:hover) {
+  color: var(--color-primary);
+  text-decoration-color: var(--color-primary);
 }
 .admin-wysiwyg-site :deep(.milkdown ul),
 .admin-wysiwyg-site :deep(.milkdown ol) {
@@ -1690,7 +1727,24 @@ onUnmounted(() => {
 .admin-wysiwyg-site :deep(.milkdown img) {
   max-width: 100%;
   height: auto;
-  border-radius: 8px;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+  box-shadow: var(--shadow-md);
+}
+.admin-wysiwyg-site :deep(.milkdown figure) {
+  margin: 1.5rem 0;
+}
+.admin-wysiwyg-site :deep(.milkdown figure img) {
+  display: block;
+  margin: 0;
+}
+.admin-wysiwyg-site :deep(.milkdown figcaption) {
+  text-align: center;
+  color: var(--color-text-tertiary);
+  font-size: 0.9rem;
+  margin-top: 0.75rem;
+  font-style: italic;
+  line-height: 1.4;
 }
 .admin-wysiwyg-site :deep(.milkdown pre) {
   background: var(--color-bg-tertiary);
@@ -1710,6 +1764,74 @@ onUnmounted(() => {
   border: none;
   border-top: 2px solid var(--color-border-light);
   margin: 2rem 0;
+}
+/* Editor info-box: match blog .post-content (supports pasted HTML and ::: rendered as div by remark) */
+.admin-wysiwyg-site :deep(.milkdown .info-box),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box) {
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+  border-left: 4px solid;
+}
+.admin-wysiwyg-site :deep(.milkdown .info-box strong),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box strong) {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.admin-wysiwyg-site :deep(.milkdown .info-box p),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box p) {
+  margin: 0;
+  line-height: 1.6;
+}
+.admin-wysiwyg-site :deep(.milkdown .info-box-info),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-info) {
+  background: #e0f2fe;
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+.admin-wysiwyg-site :deep(.milkdown .info-box-success),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-success) {
+  background: #d1fae5;
+  border-color: #10b981;
+  color: #059669;
+}
+.admin-wysiwyg-site :deep(.milkdown .info-box-warning),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-warning) {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #d97706;
+}
+.admin-wysiwyg-site :deep(.milkdown .info-box-error),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-error) {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+html.dark .admin-wysiwyg-site :deep(.milkdown .info-box-info),
+html.dark .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-info) {
+  background: rgba(14, 165, 233, 0.18);
+  border-color: #38bdf8;
+  color: #bae6fd;
+}
+html.dark .admin-wysiwyg-site :deep(.milkdown .info-box-success),
+html.dark .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-success) {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: #34d399;
+  color: #bbf7d0;
+}
+html.dark .admin-wysiwyg-site :deep(.milkdown .info-box-warning),
+html.dark .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-warning) {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: #fbbf24;
+  color: #fcd34d;
+}
+html.dark .admin-wysiwyg-site :deep(.milkdown .info-box-error),
+html.dark .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-error) {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: #f87171;
+  color: #fecaca;
 }
 /* Editor tables: match blog .post-content table styling */
 .admin-wysiwyg-site :deep(.milkdown .milkdown-table-block),
@@ -1756,6 +1878,10 @@ onUnmounted(() => {
 .admin-wysiwyg-site :deep(.milkdown .milkdown-table-block tbody tr:hover),
 .admin-wysiwyg-site :deep(.milkdown-table-block tbody tr:hover) {
   background: var(--color-bg-secondary);
+}
+html.dark .admin-wysiwyg-site :deep(.milkdown .milkdown-table-block thead),
+html.dark .admin-wysiwyg-site :deep(.milkdown-table-block thead) {
+  background: color-mix(in srgb, var(--color-bg-tertiary) 80%, transparent);
 }
 .image-picker-overlay {
   position: fixed;

@@ -1,5 +1,7 @@
 import remarkMath from 'remark-math'
+import remarkDirective from 'remark-directive'
 import rehypeMathjax from 'rehype-mathjax'
+import remarkInfoBox from './remark-info-box.mjs'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -38,6 +40,12 @@ export default defineNuxtConfig({
     build: {
       markdown: {
         remarkPlugins: {
+          'remark-directive': {
+            instance: remarkDirective
+          },
+          'remark-info-box': {
+            instance: remarkInfoBox
+          },
           'remark-math': {
             instance: remarkMath
           }
