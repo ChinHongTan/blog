@@ -1052,6 +1052,22 @@ onMounted(() => {
 	color: var(--color-primary-dark);
 }
 
+.post-content :deep(h4) {
+	font-size: 1.25rem;
+	margin-top: 1.5rem;
+	margin-bottom: 0.5rem;
+	color: var(--color-text-primary);
+}
+
+.post-content :deep(h4 a) {
+	color: inherit;
+	text-decoration: none;
+}
+
+.post-content :deep(h4 a:hover) {
+	color: var(--color-primary-dark);
+}
+
 .post-content :deep(p) {
 	margin-bottom: 1.25rem;
 }
