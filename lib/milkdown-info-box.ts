@@ -46,13 +46,27 @@ function remarkDirectiveTransformForMilkdown(): (options?: unknown) => (tree: im
       const p = parent as { type: string; children: unknown[] };
       const n = node as { type: string; name?: string; value?: string; children?: unknown[] };
 
-      // Unsupported directive types → paragraph with label/text so parser can match
+      // Unsupported directive types: need parseable node. Times like 19:00 are parsed as
+      // textDirective (":00" starts a directive), which would become a paragraph and then
+      // "Cannot create node for paragraph" (paragraph can't contain block nodes).
       if (n.type === "textDirective" || n.type === "leafDirective") {
         const label = typeof n.name === "string" ? n.name : "";
-        p.children[index] = {
-          type: "paragraph",
-          children: [{ type: "text", value: label }],
-        } as unknown;
+        const isInsidePhrasing =
+          p.type === "paragraph" ||
+          p.type === "heading" ||
+          p.type === "strong" ||
+          p.type === "emphasis" ||
+          p.type === "link" ||
+          p.type === "listItem";
+        if (isInsidePhrasing) {
+          // Keep inline: replace with text so "19:00" stays one paragraph (e.g. "19" + ":00..."
+          p.children[index] = { type: "text", value: ":" + label } as unknown;
+        } else {
+          p.children[index] = {
+            type: "paragraph",
+            children: [{ type: "text", value: ":" + label }],
+          } as unknown;
+        }
         return;
       }
 
