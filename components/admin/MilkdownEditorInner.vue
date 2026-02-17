@@ -3,9 +3,11 @@
 </template>
 
 <script setup lang="ts">
+import type { Ctx } from "@milkdown/ctx";
 import { Milkdown, useEditor } from "@milkdown/vue";
 import { Crepe, CrepeFeature } from "@milkdown/crepe";
 import { watch, onBeforeUnmount } from "vue";
+import { infoBoxFeature, infoBoxSlashItems } from "~/lib/milkdown-info-box";
 
 const props = withDefaults(
   defineProps<{
@@ -50,6 +52,29 @@ const zhTWConfig = {
       table: { label: "表格" },
       math: { label: "數學公式" },
     },
+    buildMenu(
+      builder: {
+        getGroup(
+          key: string
+        ):
+          | {
+              addItem(
+                id: string,
+                item: { label: string; icon: string; onRun: (ctx: unknown) => void }
+              ): void;
+            }
+          | undefined;
+      }
+    ) {
+      const advanced = builder.getGroup("advanced");
+      infoBoxSlashItems().forEach((item) =>
+        advanced?.addItem(item.id, {
+          label: item.label,
+          icon: item.icon,
+          onRun: (ctx: unknown) => item.onRun(ctx as Ctx),
+        })
+      );
+    },
   },
 } as const;
 
@@ -61,6 +86,7 @@ const { loading } = useEditor((root: HTMLElement) => {
     defaultValue: props.defaultValue,
     featureConfigs: zhTWConfig,
   });
+  crepe.addFeature(infoBoxFeature);
   builderInstance = crepe;
   return crepe;
 });

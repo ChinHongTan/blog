@@ -2,6 +2,9 @@ import remarkMath from 'remark-math'
 import remarkDirective from 'remark-directive'
 import rehypeMathjax from 'rehype-mathjax'
 import remarkInfoBox from './remark-info-box.mjs'
+import remarkHeadingId from './remark-heading-id.mjs'
+import rehypeFigureCaption from './rehype-figure-caption.mjs'
+import rehypeSpanAttributes from './rehype-span-attributes.mjs'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -46,11 +49,20 @@ export default defineNuxtConfig({
           'remark-info-box': {
             instance: remarkInfoBox
           },
+          'remark-heading-id': {
+            instance: remarkHeadingId
+          },
           'remark-math': {
             instance: remarkMath
           }
         },
         rehypePlugins: {
+          'rehype-figure-caption': {
+            instance: rehypeFigureCaption
+          },
+          'rehype-span-attributes': {
+            instance: rehypeSpanAttributes
+          },
           'rehype-mathjax': {
             instance: rehypeMathjax
           }

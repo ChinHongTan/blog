@@ -1388,6 +1388,29 @@ html.dark .post-content :deep(.info-box-error) {
 	color: #fecaca;
 }
 
+/* Colored label spans from [text]{.red} / {.green} / {.orange} */
+.post-content :deep(span.red) {
+	color: #dc2626;
+	font-weight: 500;
+}
+.post-content :deep(span.green) {
+	color: #059669;
+	font-weight: 500;
+}
+.post-content :deep(span.orange) {
+	color: #d97706;
+	font-weight: 500;
+}
+html.dark .post-content :deep(span.red) {
+	color: #f87171;
+}
+html.dark .post-content :deep(span.green) {
+	color: #34d399;
+}
+html.dark .post-content :deep(span.orange) {
+	color: #fbbf24;
+}
+
 .post-content :deep(.youtube-embed) {
 	position: relative;
 	padding-bottom: 56.25%;

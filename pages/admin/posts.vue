@@ -28,7 +28,7 @@
     <!-- 捨棄草稿確認：Alert Card -->
     <Teleport to="body">
       <div v-if="discardConfirmDraft" class="admin-discard-confirm-overlay" @click.self="discardConfirmDraft = null">
-        <div class="admin-discard-confirm-modal" @click.stop role="alertdialog" aria-labelledby="admin-discard-confirm-heading" aria-describedby="admin-discard-confirm-desc">
+        <div class="admin-discard-confirm-modal" role="alertdialog" aria-labelledby="admin-discard-confirm-heading" aria-describedby="admin-discard-confirm-desc" @click.stop>
           <div class="admin-discard-confirm-icon" aria-hidden="true">
             <Icon name="heroicons:trash" size="28" />
           </div>
