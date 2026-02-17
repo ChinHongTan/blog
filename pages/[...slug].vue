@@ -1132,6 +1132,48 @@ onMounted(() => {
 	font-weight: 600;
 }
 
+/* Markdown / GFM tables: styled like former .my-table */
+.post-content :deep(table) {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 1.25rem 0 1.5rem;
+	font-size: 0.95rem;
+	box-shadow: var(--shadow-sm);
+	border-radius: 8px;
+	overflow: hidden;
+	border: 1px solid var(--color-border-light);
+}
+
+.post-content :deep(thead) {
+	background: var(--color-bg-tertiary);
+}
+
+.post-content :deep(th) {
+	padding: 0.65rem 0.75rem;
+	text-align: center;
+	font-weight: 600;
+	color: var(--color-text-primary);
+	border-bottom: 2px solid var(--color-border-medium);
+}
+
+.post-content :deep(td) {
+	padding: 0.6rem 0.75rem;
+	text-align: center;
+	border-bottom: 1px solid var(--color-border-light);
+}
+
+.post-content :deep(tbody tr:last-child td) {
+	border-bottom: none;
+}
+
+.post-content :deep(tbody tr:hover) {
+	background: var(--color-bg-secondary);
+}
+
+html.dark .post-content :deep(thead) {
+	background: color-mix(in srgb, var(--color-bg-tertiary) 80%, transparent);
+}
+
 /* Floating Widgets */
 .floating-toc-toggle {
 	position: fixed;
