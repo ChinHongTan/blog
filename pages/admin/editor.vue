@@ -2,12 +2,14 @@
   <div class="admin-editor-page">
     <!-- 狀態：儲存中… / 已儲存至本機 / 已同步。按鈕：儲存草稿、取消發布（僅已發布）、發布變更。 -->
     <Teleport to="#admin-editor-nav-actions">
-      <span class="admin-status-badge" :class="editorStatusClass">
-        <Icon v-if="saveStatus === 'loading' || saveStatus === 'typing'" name="heroicons:arrow-path" size="14" class="admin-status-spinner" />
-        <Icon v-else-if="saveStatus === 'saved'" name="heroicons:archive-box" size="14" />
-        <Icon v-else-if="saveStatus === 'synced'" name="heroicons:cloud-arrow-up" size="14" />
-        <Icon v-else name="heroicons:archive-box" size="14" />
-        {{ editorStatusLabel }}
+      <span
+        class="admin-status-dot-wrap"
+        :class="editorStatusClass"
+        :title="editorStatusLabel"
+        aria-label="儲存狀態"
+      >
+        <Icon v-if="saveStatus === 'loading' || saveStatus === 'typing'" name="heroicons:arrow-path" size="12" class="admin-status-spinner" />
+        <span v-else class="admin-status-dot" />
       </span>
       <template v-if="docType === 'post'">
         <button v-if="!isPublishedPost" type="button" class="admin-btn admin-btn-ghost" :disabled="savingDraft || saving || !canEditPost" @click="saveDraftToGitHub">
@@ -27,6 +29,13 @@
         <button type="button" class="admin-btn admin-btn-primary" :disabled="saving || !canEditPost" @click="publish">
           {{ saving ? "儲存中…" : "儲存" }}
         </button>
+      </template>
+    </Teleport>
+
+    <!-- Fixed toolbar in top nav (middle): icons + hover dropdowns. Only in WYSIWYG when editor ready. -->
+    <Teleport to="#admin-editor-toolbar">
+      <template v-if="showFixedToolbar">
+        <AdminEditorToolbar :api="milkdownRef" />
       </template>
     </Teleport>
 
@@ -288,6 +297,8 @@
 </template>
 
 <script setup lang="ts">
+import type { EditorToolbarApi } from "~/components/admin/MilkdownEditorInner.vue";
+
 definePageMeta({ layout: "admin" });
 
 const route = useRoute();
@@ -332,8 +343,15 @@ const meta = reactive({
 const body = ref("");
 const rawBody = ref("");
 const viewMode = ref<"wysiwyg" | "raw">("wysiwyg");
-const milkdownRef = ref<{ getMarkdown: () => string; setMarkdown: (markdown: string) => void } | null>(null);
+const milkdownRef = ref<EditorToolbarApi | null>(null);
 const getMarkdownRef = ref<(() => string) | null>(null);
+/** Show fixed icon toolbar in top nav when in WYSIWYG and editor is ready. */
+const showFixedToolbar = computed(
+  () =>
+    viewMode.value === "wysiwyg" &&
+    (docType.value === "post" || docType.value === "author") &&
+    contentReady.value
+);
 /** When true, rawBody was just set from Milkdown — skip pushing back to Milkdown in rawBody watcher. */
 const rawBodyUpdateFromMilkdown = ref(false);
 const authors = ref<{ name: string; path: string; displayName?: string }[]>([]);
@@ -516,7 +534,7 @@ const publishButtonLabel = computed(() => {
   return "發布變更";
 });
 
-function onEditorReady(api: { getMarkdown: () => string; setMarkdown: (markdown: string) => void }) {
+function onEditorReady(api: EditorToolbarApi) {
   getMarkdownRef.value = api.getMarkdown;
 }
 
@@ -1176,16 +1194,21 @@ onUnmounted(() => {
   gap: 0.5rem;
   flex-wrap: wrap;
 }
-.admin-status-badge {
-  font-size: 0.75rem;
-  font-weight: 500;
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.25rem;
-}
-.admin-status-badge {
+/* Fixed-size status indicator (dot or spinner) so toolbar doesn’t jump */
+.admin-status-dot-wrap {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+.admin-status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
 }
 .admin-status-spinner {
   animation: admin-spin 0.8s linear infinite;
@@ -1193,19 +1216,19 @@ onUnmounted(() => {
 @keyframes admin-spin {
   to { transform: rotate(360deg); }
 }
-.admin-status-badge.draft {
+.admin-status-dot-wrap.draft {
   background: var(--color-bg-tertiary);
   color: var(--color-text-secondary);
 }
-.admin-status-badge.status-typing {
+.admin-status-dot-wrap.status-typing {
   background: var(--color-bg-tertiary);
   color: var(--color-text-secondary);
 }
-.admin-status-badge.status-saved {
+.admin-status-dot-wrap.status-saved {
   background: color-mix(in srgb, #16a34a 22%, transparent);
   color: #16a34a;
 }
-.admin-status-badge.status-synced {
+.admin-status-dot-wrap.status-synced {
   background: color-mix(in srgb, #2563eb 22%, transparent);
   color: #2563eb;
 }
@@ -1999,6 +2022,70 @@ html.dark .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-error) {
   border-color: #f87171;
   color: #fecaca;
 }
+/* Colored label spans [text]{.class} in editor */
+.admin-wysiwyg-site :deep(.milkdown span[data-span-class]),
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror span[data-span-class]) {
+  font-weight: 500;
+}
+/* Hue rows: red, orange, yellow, green, teal, blue, purple, pink, grey; 5 shades each (1=light, 5=dark) */
+.admin-wysiwyg-site :deep(.milkdown span.red-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.red-1) { color: #fecaca; }
+.admin-wysiwyg-site :deep(.milkdown span.red-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.red-2) { color: #f87171; }
+.admin-wysiwyg-site :deep(.milkdown span.red-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.red-3) { color: #dc2626; }
+.admin-wysiwyg-site :deep(.milkdown span.red-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.red-4) { color: #b91c1c; }
+.admin-wysiwyg-site :deep(.milkdown span.red-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.red-5) { color: #7f1d1d; }
+.admin-wysiwyg-site :deep(.milkdown span.orange-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.orange-1) { color: #fed7aa; }
+.admin-wysiwyg-site :deep(.milkdown span.orange-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.orange-2) { color: #fb923c; }
+.admin-wysiwyg-site :deep(.milkdown span.orange-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.orange-3) { color: #ea580c; }
+.admin-wysiwyg-site :deep(.milkdown span.orange-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.orange-4) { color: #c2410c; }
+.admin-wysiwyg-site :deep(.milkdown span.orange-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.orange-5) { color: #9a3412; }
+.admin-wysiwyg-site :deep(.milkdown span.yellow-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.yellow-1) { color: #fef08a; }
+.admin-wysiwyg-site :deep(.milkdown span.yellow-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.yellow-2) { color: #facc15; }
+.admin-wysiwyg-site :deep(.milkdown span.yellow-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.yellow-3) { color: #eab308; }
+.admin-wysiwyg-site :deep(.milkdown span.yellow-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.yellow-4) { color: #ca8a04; }
+.admin-wysiwyg-site :deep(.milkdown span.yellow-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.yellow-5) { color: #a16207; }
+.admin-wysiwyg-site :deep(.milkdown span.green-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.green-1) { color: #bbf7d0; }
+.admin-wysiwyg-site :deep(.milkdown span.green-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.green-2) { color: #4ade80; }
+.admin-wysiwyg-site :deep(.milkdown span.green-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.green-3) { color: #22c55e; }
+.admin-wysiwyg-site :deep(.milkdown span.green-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.green-4) { color: #16a34a; }
+.admin-wysiwyg-site :deep(.milkdown span.green-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.green-5) { color: #15803d; }
+.admin-wysiwyg-site :deep(.milkdown span.teal-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.teal-1) { color: #99f6e4; }
+.admin-wysiwyg-site :deep(.milkdown span.teal-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.teal-2) { color: #2dd4bf; }
+.admin-wysiwyg-site :deep(.milkdown span.teal-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.teal-3) { color: #14b8a6; }
+.admin-wysiwyg-site :deep(.milkdown span.teal-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.teal-4) { color: #0d9488; }
+.admin-wysiwyg-site :deep(.milkdown span.teal-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.teal-5) { color: #0f766e; }
+.admin-wysiwyg-site :deep(.milkdown span.blue-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.blue-1) { color: #bfdbfe; }
+.admin-wysiwyg-site :deep(.milkdown span.blue-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.blue-2) { color: #60a5fa; }
+.admin-wysiwyg-site :deep(.milkdown span.blue-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.blue-3) { color: #2563eb; }
+.admin-wysiwyg-site :deep(.milkdown span.blue-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.blue-4) { color: #1d4ed8; }
+.admin-wysiwyg-site :deep(.milkdown span.blue-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.blue-5) { color: #1e3a8a; }
+.admin-wysiwyg-site :deep(.milkdown span.purple-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.purple-1) { color: #e9d5ff; }
+.admin-wysiwyg-site :deep(.milkdown span.purple-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.purple-2) { color: #c084fc; }
+.admin-wysiwyg-site :deep(.milkdown span.purple-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.purple-3) { color: #a855f7; }
+.admin-wysiwyg-site :deep(.milkdown span.purple-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.purple-4) { color: #7c3aed; }
+.admin-wysiwyg-site :deep(.milkdown span.purple-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.purple-5) { color: #6b21a8; }
+.admin-wysiwyg-site :deep(.milkdown span.pink-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.pink-1) { color: #fbcfe8; }
+.admin-wysiwyg-site :deep(.milkdown span.pink-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.pink-2) { color: #f472b6; }
+.admin-wysiwyg-site :deep(.milkdown span.pink-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.pink-3) { color: #ec4899; }
+.admin-wysiwyg-site :deep(.milkdown span.pink-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.pink-4) { color: #db2777; }
+.admin-wysiwyg-site :deep(.milkdown span.pink-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.pink-5) { color: #be185d; }
+.admin-wysiwyg-site :deep(.milkdown span.grey-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.grey-1) { color: #e5e7eb; }
+.admin-wysiwyg-site :deep(.milkdown span.grey-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.grey-2) { color: #9ca3af; }
+.admin-wysiwyg-site :deep(.milkdown span.grey-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.grey-3) { color: #6b7280; }
+.admin-wysiwyg-site :deep(.milkdown span.grey-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.grey-4) { color: #4b5563; }
+.admin-wysiwyg-site :deep(.milkdown span.grey-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.grey-5) { color: #374151; }
+/* Backward compatibility: old class names map to mid/dark shades */
+.admin-wysiwyg-site :deep(.milkdown span.red), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.red) { color: #dc2626; }
+.admin-wysiwyg-site :deep(.milkdown span.red-dark), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.red-dark) { color: #7f1d1d; }
+.admin-wysiwyg-site :deep(.milkdown span.orange), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.orange) { color: #ea580c; }
+.admin-wysiwyg-site :deep(.milkdown span.orange-dark), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.orange-dark) { color: #9a3412; }
+.admin-wysiwyg-site :deep(.milkdown span.green), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.green) { color: #22c55e; }
+.admin-wysiwyg-site :deep(.milkdown span.green-dark), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.green-dark) { color: #15803d; }
+.admin-wysiwyg-site :deep(.milkdown span.blue), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.blue) { color: #2563eb; }
+.admin-wysiwyg-site :deep(.milkdown span.blue-dark), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.blue-dark) { color: #1e3a8a; }
+.admin-wysiwyg-site :deep(.milkdown span.purple), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.purple) { color: #a855f7; }
+.admin-wysiwyg-site :deep(.milkdown span.purple-dark), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.purple-dark) { color: #6b21a8; }
+.admin-wysiwyg-site :deep(.milkdown span.gray), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.gray) { color: #6b7280; }
+.admin-wysiwyg-site :deep(.milkdown span.gray-dark), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.gray-dark) { color: #374151; }
 /* Editor tables: match blog .post-content table styling */
 .admin-wysiwyg-site :deep(.milkdown .milkdown-table-block),
 .admin-wysiwyg-site :deep(.milkdown-table-block) {

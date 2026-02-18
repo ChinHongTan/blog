@@ -123,7 +123,10 @@ onUnmounted(() => {
 				<NuxtLink to="/admin" class="admin-top-bar-title">後台</NuxtLink>
 				<!-- Target for editor Teleport; always present when on admin so nav doesn't break when leaving editor -->
 				<div v-if="isAdminRoute" id="admin-editor-nav-actions" class="admin-editor-nav-actions" />
-				<div class="admin-nav-spacer" />
+				<!-- Fixed toolbar slot: editor page teleports icon buttons here (middle of top bar) -->
+				<div v-if="isAdminRoute" id="admin-editor-toolbar" class="admin-editor-toolbar-slot" />
+				<!-- Spacer only when not on editor so toolbar can use full middle space on editor page -->
+				<div v-if="!isEditorPage" class="admin-nav-spacer" />
 				<div class="header-actions">
 					<div v-if="!isEditorPage" ref="adminQuickAddRef" class="admin-quick-add-wrap">
 						<button
@@ -377,24 +380,36 @@ onUnmounted(() => {
 	align-items: center;
 	gap: 0.5rem;
 }
-.admin-editor-nav-actions .admin-status-badge {
-	font-size: 0.75rem;
-	font-weight: 500;
-	padding: 0.2rem 0.5rem;
-	border-radius: 0.25rem;
+.admin-editor-toolbar-slot {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.25rem;
+	min-width: 0;
+	overflow: visible;
 }
-.admin-editor-nav-actions .admin-status-badge.draft,
-.admin-editor-nav-actions .admin-status-badge.status-typing {
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-secondary);
+.admin-editor-toolbar-slot .admin-toolbar-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	padding: 0;
+	border: none;
+	border-radius: 0.375rem;
+	background: transparent;
+	color: var(--color-text-secondary);
+	cursor: pointer;
+	transition: background 0.15s, color 0.15s;
 }
-.admin-editor-nav-actions .admin-status-badge.status-saved {
-  background: color-mix(in srgb, #16a34a 22%, transparent);
-  color: #16a34a;
+.admin-editor-toolbar-slot .admin-toolbar-btn:hover {
+	background: var(--color-bg-tertiary);
+	color: var(--color-text-primary);
 }
-.admin-editor-nav-actions .admin-status-badge.status-synced {
-  background: color-mix(in srgb, #2563eb 22%, transparent);
-  color: #2563eb;
+.admin-editor-toolbar-slot .admin-toolbar-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
 .admin-top-bar-title {
 	font-weight: 700;

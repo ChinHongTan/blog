@@ -60,19 +60,24 @@ If you omit the title, the image is rendered as a normal `<img>` (no figure/capt
 **What it does:** Renders inline text with a color class (e.g. for labels like 每堂點名 / 不點名).
 
 **Syntax:** `[顯示的文字]{.類別}`  
-Supported classes: `.red`, `.green`, `.orange`
+
+**Colour table:** One row per hue (red, orange, yellow, green, teal, blue, purple, pink, grey), 5 shades each (1 = lightest, 5 = darkest).  
+Examples: `.red-1` … `.red-5`, `.orange-1` … `.orange-5`, `.green-1` … `.green-5`, `.teal-1` … `.teal-5`, `.blue-1` … `.blue-5`, `.purple-1` … `.purple-5`, `.pink-1` … `.pink-5`, `.grey-1` … `.grey-5`.  
+Legacy classes (still supported): `.red`, `.red-dark`, `.green`, `.orange`, `.blue`, `.purple`, `.gray`, and `-dark` variants.
 
 **Examples:**
 
 ```markdown
-[每堂點名]{.red}
-[不點名]{.green}
-[偶爾點名]{.orange}
+[每堂點名]{.red-3}
+[不點名]{.green-3}
+[偶爾點名]{.orange-3}
+[備註]{.blue-4}
+[標籤]{.purple-3}
 ```
 
 **Rendered:**  
-`<span class="red">每堂點名</span>` (or `.green` / `.orange`).  
-CSS in the blog styles these (and dark mode).
+`<span class="red-3">每堂點名</span>` (or any `.hue-N` class).  
+CSS in the blog styles these (and dark mode). You can pick a colour from the editor toolbar (Font colour) — the palette shows one row per hue, 5 shades per row.
 
 **Note:** This must **not** look like a link: no `(url)` after the `]`.  
 Use `[文字]{.red}` not `[文字](url){.red}`.
@@ -119,7 +124,7 @@ Use normal markdown inside (e.g. `**科號：**` instead of raw `<strong>`).
 |------------------|-----------------------------------------------------|
 | Custom heading ID| `## 標題 {#id}` at end of any `#`–`######` heading  |
 | Image + caption  | `![alt](url "caption")`                             |
-| Colored label    | `[文字]{.red}` or `{.green}` or `{.orange}`         |
+| Colored label    | `[文字]{.hue-N}` — one row per hue (red, orange, yellow, green, teal, blue, purple, pink, grey), N = 1 (light) … 5 (dark); legacy `.red` / `.red-dark` etc. still work |
 | Callouts         | `:::info` / `:::warning` / `:::success` / `:::error` + content + `:::` |
 | Line break       | `<br>` (raw HTML)                                  |
 

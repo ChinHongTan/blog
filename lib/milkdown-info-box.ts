@@ -281,26 +281,26 @@ function infoBoxPlugins(): MilkdownPlugin[] {
   ];
 }
 
-/** Slash menu: label and icon per kind. */
+/** Slash menu: label and icon per kind. Icons use fill-only paths so they survive DOMPurify (stroke is often stripped). */
 const INFO_BOX_MENU: Record<
   InfoBoxKind,
   { label: string; icon: string }
 > = {
   info: {
     label: "資訊框 (Info)",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16v-4"/><path d="M12 8h.01"/><circle cx="12" cy="12" r="10"/></svg>`,
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>`,
   },
   warning: {
     label: "警告框 (Warning)",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v2"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>`,
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2V9h2v5z"/></svg>`,
   },
   success: {
     label: "成功框 (Success)",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`,
   },
   error: {
     label: "錯誤框 (Error)",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>`,
   },
 };
 
@@ -351,4 +351,21 @@ export function infoBoxSlashItems(): Array<{
     id: `infoBox-${kind}`,
     ...infoBoxSlashItemForKind(kind),
   }));
+}
+
+/** Run insert info-box in editor context (for toolbar). */
+export function runInsertInfoBox(ctx: Ctx, kind: InfoBoxKind): void {
+  const commands = ctx.get(commandsCtx);
+  commands.call(clearTextInCurrentBlockCommand.key);
+  const infoBoxType = infoBoxSchema.type(ctx);
+  const paragraphType = paragraphSchema.type(ctx);
+  const emptyParagraph = paragraphType.create();
+  const node = infoBoxType.createAndFill(
+    { kind },
+    [emptyParagraph],
+    undefined
+  );
+  if (node) {
+    commands.call(addBlockTypeCommand.key, { nodeType: node });
+  }
 }

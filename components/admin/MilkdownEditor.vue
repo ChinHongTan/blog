@@ -25,25 +25,49 @@ withDefaults(
   { defaultValue: "" }
 );
 
+import type { EditorToolbarApi } from "./MilkdownEditorInner.vue";
+
 const emit = defineEmits<{
-  ready: [api: { getMarkdown: () => string; setMarkdown: (markdown: string) => void }];
+  ready: [api: EditorToolbarApi];
   markdownChange: [markdown: string];
 }>();
 
-const editorLoading = ref(true);
-let getMarkdownFn: (() => string) | null = null;
-let setMarkdownFn: ((markdown: string) => void) | null = null;
+export type { EditorToolbarApi } from "./MilkdownEditorInner.vue";
 
-function onReady(api: { getMarkdown: () => string; setMarkdown: (markdown: string) => void }) {
+const editorLoading = ref(true);
+let toolbarApi: EditorToolbarApi | null = null;
+
+function onReady(api: EditorToolbarApi) {
   editorLoading.value = false;
-  getMarkdownFn = api.getMarkdown;
-  setMarkdownFn = api.setMarkdown;
+  toolbarApi = api;
   emit("ready", api);
 }
 
 defineExpose({
-  getMarkdown: () => getMarkdownFn?.() ?? "",
-  setMarkdown: (markdown: string) => setMarkdownFn?.(markdown),
+  getMarkdown: () => toolbarApi?.getMarkdown() ?? "",
+  setMarkdown: (markdown: string) => toolbarApi?.setMarkdown(markdown),
+  undo: () => toolbarApi?.undo(),
+  redo: () => toolbarApi?.redo(),
+  wrapInHeading: (level: number) => toolbarApi?.wrapInHeading(level),
+  toggleBold: () => toolbarApi?.toggleBold(),
+  toggleItalic: () => toolbarApi?.toggleItalic(),
+  toggleStrikethrough: () => toolbarApi?.toggleStrikethrough(),
+  toggleLink: () => toolbarApi?.toggleLink(),
+  toggleInlineCode: () => toolbarApi?.toggleInlineCode(),
+  insertImage: (payload) => toolbarApi?.insertImage(payload),
+  insertImageBlock: () => toolbarApi?.insertImageBlock(),
+  getActiveFormatting: () => toolbarApi?.getActiveFormatting() ?? { bold: false, italic: false, strikethrough: false },
+  wrapInBlockquote: () => toolbarApi?.wrapInBlockquote(),
+  insertInfoBox: (kind) => toolbarApi?.insertInfoBox(kind),
+  insertTable: () => toolbarApi?.insertTable(),
+  wrapInBulletList: () => toolbarApi?.wrapInBulletList(),
+  wrapInOrderedList: () => toolbarApi?.wrapInOrderedList(),
+  wrapInTaskList: () => toolbarApi?.wrapInTaskList(),
+  insertHr: () => toolbarApi?.insertHr(),
+  insertCodeBlock: (language?: string) => toolbarApi?.insertCodeBlock(language),
+  insertMathBlock: () => toolbarApi?.insertMathBlock(),
+  applyTextColor: (className: string) => toolbarApi?.applyTextColor(className),
+  getActiveTextColor: () => toolbarApi?.getActiveTextColor() ?? null,
 });
 </script>
 
