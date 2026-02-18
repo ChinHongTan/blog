@@ -151,6 +151,7 @@
                   ref="milkdownRef"
                   :default-value="body"
                   @ready="onEditorReady"
+                  @markdown-change="onMilkdownMarkdownChange"
                 />
                 <div v-else class="admin-editor-loading">載入內容…</div>
               </ClientOnly>
@@ -222,6 +223,7 @@
                 ref="milkdownRef"
                 :default-value="body"
                 @ready="onEditorReady"
+                @markdown-change="onMilkdownMarkdownChange"
               />
               <div v-else class="admin-editor-loading">載入內容…</div>
             </ClientOnly>
@@ -330,8 +332,10 @@ const meta = reactive({
 const body = ref("");
 const rawBody = ref("");
 const viewMode = ref<"wysiwyg" | "raw">("wysiwyg");
-const milkdownRef = ref<{ getMarkdown: () => string } | null>(null);
+const milkdownRef = ref<{ getMarkdown: () => string; setMarkdown: (markdown: string) => void } | null>(null);
 const getMarkdownRef = ref<(() => string) | null>(null);
+/** When true, rawBody was just set from Milkdown — skip pushing back to Milkdown in rawBody watcher. */
+const rawBodyUpdateFromMilkdown = ref(false);
 const authors = ref<{ name: string; path: string; displayName?: string }[]>([]);
 const saving = ref(false);
 const propertiesOpen = ref(true);
@@ -512,8 +516,13 @@ const publishButtonLabel = computed(() => {
   return "發布變更";
 });
 
-function onEditorReady(api: { getMarkdown: () => string }) {
+function onEditorReady(api: { getMarkdown: () => string; setMarkdown: (markdown: string) => void }) {
   getMarkdownRef.value = api.getMarkdown;
+}
+
+function onMilkdownMarkdownChange(markdown: string) {
+  rawBodyUpdateFromMilkdown.value = true;
+  rawBody.value = markdown;
 }
 
 function buildFrontmatter(): string {
@@ -1052,10 +1061,42 @@ onMounted(async () => {
   window.addEventListener("beforeunload", beforeUnloadHandler);
 });
 
+/** Resize raw markdown textarea to fit content (no inner scrollbar). */
+function resizeRawTextarea() {
+  nextTick(() => {
+    document.querySelectorAll<HTMLTextAreaElement>(".admin-textarea").forEach((el) => {
+      el.style.height = "auto";
+      el.style.height = `${Math.max(el.scrollHeight, 50 * 16)}px`; /* at least 50vh in px approx */
+    });
+  });
+}
+
 watch(rawBody, () => {
+  if (rawBodyUpdateFromMilkdown.value) {
+    rawBodyUpdateFromMilkdown.value = false;
+    scheduleDebouncedLocalSave();
+    resizeRawTextarea();
+    return;
+  }
   if (docType.value === "post" && !canEditPost.value) return;
   scheduleDebouncedLocalSave();
+  resizeRawTextarea();
+  /* Do not push rawBody → Milkdown on every keystroke; it causes newlines and cursor jumps.
+   * Sync only when switching to wysiwyg (see viewMode watcher). */
 }, { flush: "post" });
+
+watch(viewMode, (mode, prevMode) => {
+  if (mode === "raw") {
+    resizeRawTextarea();
+    return;
+  }
+  /* Switching to wysiwyg: push current raw markdown into Milkdown so both stay in sync. */
+  if (prevMode === "raw") {
+    nextTick(() => {
+      milkdownRef.value?.setMarkdown?.(rawBody.value);
+    });
+  }
+});
 
 watch(pathQuery, (newPath, oldPath) => {
   if (newPath === oldPath) return;
@@ -1109,10 +1150,10 @@ onUnmounted(() => {
   width: 100%;
 }
 .admin-editor-body .admin-editor-main {
-  flex: 1;
   min-width: 0;
   overflow: visible;
   min-height: 60vh;
+  /* No flex: 1 — let editor grow with content so page scrolls instead of inner scrollbar */
 }
 
 /* Toolbar (inline, below properties) */
@@ -1681,36 +1722,36 @@ onUnmounted(() => {
 }
 .admin-editor-wysiwyg,
 .admin-editor-raw {
-  display: flex;
-  flex-direction: column;
+  display: block;
   min-height: 50vh;
-}
-.admin-editor-wysiwyg {
   overflow: visible;
 }
-.admin-editor-raw {
-  overflow: visible;
-}
-/* Raw markdown textarea: match blog .post-content font/size */
+/* Raw markdown textarea: match blog .post-content font/size; grows with content, no inner scroll */
 .admin-textarea {
   width: 100%;
   min-height: 50vh;
   padding: 0 0.25rem;
   border: none;
   resize: none;
+  overflow: hidden; /* Auto-grow via JS; no scrollbar */
   font-family: var(--font-body);
   font-size: 1.05rem;
   line-height: 1.8;
   background: transparent;
   color: var(--color-text-primary);
 }
-/* Editor area: no box, fill available space */
+/* Editor area: full length, no inner scroll — page scrolls */
 .admin-wysiwyg-site :deep(.milkdown),
 .admin-wysiwyg-site :deep([data-milkdown-root]) {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  min-height: 100%;
+  min-height: 50vh;
+  overflow: visible !important;
+}
+.admin-wysiwyg-site :deep(.milkdown .ProseMirror) {
+  overflow: visible !important;
+  min-height: 50vh;
 }
 /* Obsidian-style markdown reveal: grey source above focused block, hidden on blur */
 .admin-wysiwyg-site :deep(.milkdown-markdown-reveal) {

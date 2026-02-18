@@ -6,6 +6,7 @@
         v-show="!editorLoading"
         :default-value="defaultValue"
         @ready="onReady"
+        @markdown-change="emit('markdownChange', $event)"
       />
     </MilkdownProvider>
   </div>
@@ -25,30 +26,32 @@ withDefaults(
 );
 
 const emit = defineEmits<{
-  ready: [api: { getMarkdown: () => string }];
+  ready: [api: { getMarkdown: () => string; setMarkdown: (markdown: string) => void }];
+  markdownChange: [markdown: string];
 }>();
 
 const editorLoading = ref(true);
 let getMarkdownFn: (() => string) | null = null;
+let setMarkdownFn: ((markdown: string) => void) | null = null;
 
-function onReady(api: { getMarkdown: () => string }) {
+function onReady(api: { getMarkdown: () => string; setMarkdown: (markdown: string) => void }) {
   editorLoading.value = false;
   getMarkdownFn = api.getMarkdown;
+  setMarkdownFn = api.setMarkdown;
   emit("ready", api);
 }
 
 defineExpose({
   getMarkdown: () => getMarkdownFn?.() ?? "",
+  setMarkdown: (markdown: string) => setMarkdownFn?.(markdown),
 });
 </script>
 
 <style scoped>
 .milkdown-editor-wrap {
   position: relative;
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
+  min-height: 50vh;
+  display: block;
 }
 .milkdown-loading {
   position: absolute;
@@ -60,10 +63,10 @@ defineExpose({
   font-size: 0.875rem;
 }
 .milkdown-editor-wrap :deep([data-milkdown-root]) {
-  flex: 1;
-  min-height: 0;
+  min-height: 50vh;
   padding: 0;
   background: transparent;
   border: none;
+  overflow: visible;
 }
 </style>

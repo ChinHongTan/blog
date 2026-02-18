@@ -6,6 +6,7 @@
 import type { Ctx } from "@milkdown/ctx";
 import { Milkdown, useEditor } from "@milkdown/vue";
 import { Crepe, CrepeFeature } from "@milkdown/crepe";
+import { replaceAll } from "@milkdown/kit/utils";
 import { watch, onBeforeUnmount } from "vue";
 import { infoBoxFeature, infoBoxSlashItems } from "~/lib/milkdown-info-box";
 import { markdownRevealPlugin } from "~/lib/milkdown-markdown-reveal";
@@ -18,7 +19,8 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  ready: [api: { getMarkdown: () => string }];
+  ready: [api: { getMarkdown: () => string; setMarkdown: (markdown: string) => void }];
+  markdownChange: [markdown: string];
 }>();
 
 const zhTWConfig = {
@@ -97,8 +99,18 @@ watch(
   loading,
   (v) => {
     if (v === false && builderInstance) {
+      builderInstance.on((listener) => {
+        listener.markdownUpdated((_ctx, markdown) => {
+          emit("markdownChange", markdown);
+        });
+      });
       emit("ready", {
         getMarkdown: () => builderInstance!.getMarkdown(),
+        setMarkdown: (markdown: string) => {
+          if (builderInstance) {
+            builderInstance.editor.action(replaceAll(markdown));
+          }
+        },
       });
     }
   },
@@ -111,5 +123,8 @@ onBeforeUnmount(() => {
 
 defineExpose({
   getMarkdown: () => builderInstance?.getMarkdown() ?? "",
+  setMarkdown: (markdown: string) => {
+    if (builderInstance) builderInstance.editor.action(replaceAll(markdown));
+  },
 });
 </script>
