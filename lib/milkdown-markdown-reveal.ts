@@ -3,10 +3,9 @@
  * When the editor has focus and the cursor/selection is in a block,
  * show that block's markdown in grey above it. Hide when focus leaves.
  */
-import type { Ctx } from "@milkdown/ctx";
 import type { EditorView } from "@milkdown/prose/view";
 import type { Serializer } from "@milkdown/transformer";
-import type { Schema } from "@milkdown/prose/model";
+import type { Fragment, Schema } from "@milkdown/prose/model";
 import { SerializerReady, schemaCtx, serializerCtx } from "@milkdown/kit/core";
 import { Plugin, PluginKey } from "@milkdown/kit/prose/state";
 import { Decoration, DecorationSet } from "@milkdown/kit/prose/view";
@@ -14,12 +13,23 @@ import { $proseAsync } from "@milkdown/kit/utils";
 
 const REVEAL_PLUGIN_KEY = new PluginKey("MILKDOWN_MARKDOWN_REVEAL");
 
+/** Table node type: if cursor is inside a table, skip markdown reveal (renders weirdly). */
+const TABLE_NODE_NAME = "table";
+
+function isInsideTable($from: { depth: number; node: (d: number) => { type: { name: string } } }): boolean {
+  for (let d = 1; d <= $from.depth; d++) {
+    if ($from.node(d).type.name === TABLE_NODE_NAME) return true;
+  }
+  return false;
+}
+
 function getBlockRange(
   view: EditorView
 ): { from: number; to: number } | null {
   const { state } = view;
   const { selection } = state;
   const $from = selection.$from;
+  if (isInsideTable($from)) return null;
   for (let d = $from.depth; d > 0; d--) {
     const node = $from.node(d);
     if (node.type.isBlock) {
@@ -35,7 +45,7 @@ function getBlockRange(
 function serializeBlockRange(
   schema: Schema,
   serializer: Serializer,
-  state: { doc: { slice: (from: number, to: number, b: boolean) => { content: unknown } } },
+  state: { doc: { slice: (from: number, to: number, b: boolean) => { content: Fragment } } },
   from: number,
   to: number
 ): string {
