@@ -20,10 +20,10 @@
     <section v-if="localDrafts.length > 0" class="admin-continue-writing">
       <h3 class="admin-continue-writing-title">繼續撰寫</h3>
       <div class="admin-draft-cards">
-        <div v-for="d in localDrafts" :key="d.key" class="admin-draft-card">
+        <div v-for="d in localDrafts" :key="d.key" class="admin-draft-card admin-draft-card-local">
           <NuxtLink :to="d.editorLink" class="admin-draft-card-link">
-            <span class="admin-draft-card-badge" :class="{ 'admin-draft-card-badge-unsynced': d.isPublishedPath }">
-              {{ d.isPublishedPath ? "本機有未同步變更" : "草稿" }}
+            <span class="admin-draft-card-badge admin-draft-card-badge-local" :class="{ 'admin-draft-card-badge-unsynced': d.isPublishedPath }">
+              {{ d.isPublishedPath ? "本機有未同步變更" : "本機草稿" }}
             </span>
             <span class="admin-draft-card-title">{{ d.title }}</span>
             <p class="admin-draft-card-excerpt">{{ d.excerpt }}</p>
@@ -32,6 +32,23 @@
           <button type="button" class="admin-draft-card-trash" aria-label="捨棄本機草稿" @click.prevent="openDiscardConfirm(d)">
             <Icon name="heroicons:trash" size="16" />
           </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- GitHub 草稿（僅顯示我的） -->
+    <section v-if="githubDraftsMine.length > 0" class="admin-continue-writing">
+      <h3 class="admin-continue-writing-title">GitHub 草稿</h3>
+      <div class="admin-draft-cards">
+        <div v-for="g in githubDraftsMine" :key="g.path" class="admin-draft-card admin-draft-card-github">
+          <NuxtLink :to="g.editorLink" class="admin-draft-card-link">
+            <span class="admin-draft-card-badge admin-draft-card-badge-github" :class="{ 'admin-draft-card-badge-has-local': hasLocalDraftForPath(g.path) }">
+              {{ hasLocalDraftForPath(g.path) ? "本機亦有未同步版本" : "GitHub 草稿" }}
+            </span>
+            <span class="admin-draft-card-title">{{ g.title }}</span>
+            <p class="admin-draft-card-excerpt">{{ g.authorDisplayName }}</p>
+            <span class="admin-draft-card-time">{{ g.relativeDate }}</span>
+          </NuxtLink>
         </div>
       </div>
     </section>
@@ -118,7 +135,7 @@
           </tr>
         </tbody>
       </table>
-      <p v-if="filteredTableRows.length === 0 && localDrafts.length === 0" class="admin-posts-empty">尚無文章</p>
+      <p v-if="filteredTableRows.length === 0 && localDrafts.length === 0 && githubDraftsMine.length === 0" class="admin-posts-empty">尚無文章</p>
       <p v-else-if="filterMineOnly && filteredTableRows.length === 0 && tableRows.length > 0" class="admin-posts-empty">沒有符合「只顯示我的文章」的文章</p>
     </div>
   </div>
@@ -149,6 +166,16 @@ interface LocalDraftItem {
   isPublishedPath: boolean;
   pathPart: string;
   savedAt: number;
+}
+
+interface GitHubDraftCardItem {
+  path: string;
+  title: string;
+  authorDisplayName: string;
+  authorAvatar: string;
+  relativeDate: string;
+  editorLink: string;
+  dateMs: number;
 }
 
 type TableRow = {
@@ -254,6 +281,28 @@ function isLocalOnlyDraftPath(pathPart: string): boolean {
   return pathPart === "new" || pathPart.startsWith("content/drafts/");
 }
 
+/** GitHub 上的草稿且作者為當前登入用戶，用於頂部卡片。 */
+const githubDraftsMine = computed<GitHubDraftCardItem[]>(() => {
+  const index = postIndex.value;
+  const authorId = currentUserAuthorId.value;
+  if (!authorId) return [];
+  return index
+    .filter((p) => p.draft && p.author.toLowerCase() === authorId.toLowerCase())
+    .map((p) => {
+      const dateMs = new Date(p.date).getTime();
+      return {
+        path: p.path,
+        title: p.title,
+        authorDisplayName: p.authorDisplayName || p.author || "—",
+        authorAvatar: p.authorAvatar || "",
+        relativeDate: getRelativeDate(p.date),
+        editorLink: `/admin/editor?type=post&path=${encodeURIComponent(p.path)}`,
+        dateMs: Number.isNaN(dateMs) ? 0 : dateMs,
+      };
+    })
+    .sort((a, b) => b.dateMs - a.dateMs);
+});
+
 const tableRows = computed<TableRow[]>(() => {
   const drafts = localDrafts.value;
   const index = postIndex.value;
@@ -262,7 +311,7 @@ const tableRows = computed<TableRow[]>(() => {
 
   for (const p of index) {
     const hasLocal = hasLocalDraftForPath(p.path);
-    const statusLabel = hasLocal ? "本機草稿" : p.draft ? "草稿" : "已發布";
+    const statusLabel = hasLocal ? "本機草稿" : p.draft ? "GitHub 草稿" : "已發布";
     const statusClass = hasLocal ? "admin-posts-badge-local" : p.draft ? "admin-posts-badge-draft" : "admin-posts-badge-published";
     const isMine = !!authorId && p.author.toLowerCase() === authorId.toLowerCase();
     const dateMs = new Date(p.date).getTime();
@@ -545,7 +594,10 @@ onActivated(() => {
   background: color-mix(in srgb, #eab308 28%, transparent);
   color: #a16207;
 }
-.admin-posts-badge-draft,
+.admin-posts-badge-draft {
+  background: color-mix(in srgb, #64748b 24%, transparent);
+  color: #475569;
+}
 .admin-posts-badge-published {
   background: color-mix(in srgb, #2563eb 22%, transparent);
   color: #2563eb;
@@ -579,9 +631,14 @@ onActivated(() => {
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   background: var(--color-bg-primary);
-  border: 1px solid #eab308;
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.admin-draft-card-local {
+  border: 1px solid #eab308;
+}
+.admin-draft-card-github {
+  border: 1px solid #64748b;
 }
 .admin-draft-card-link {
   flex: 1;
@@ -595,14 +652,24 @@ onActivated(() => {
   font-size: 0.6875rem;
   font-weight: 600;
   padding: 0.15rem 0.4rem;
-  background: color-mix(in srgb, #eab308 25%, transparent);
-  color: #a16207;
   border-radius: 0.2rem;
   margin-bottom: 0.35rem;
+}
+.admin-draft-card-badge-local {
+  background: color-mix(in srgb, #eab308 25%, transparent);
+  color: #a16207;
+}
+.admin-draft-card-badge-github {
+  background: color-mix(in srgb, #64748b 24%, transparent);
+  color: #475569;
 }
 .admin-draft-card-badge-unsynced {
   background: color-mix(in srgb, #2563eb 22%, transparent);
   color: #2563eb;
+}
+.admin-draft-card-badge-has-local {
+  background: color-mix(in srgb, #eab308 22%, transparent);
+  color: #a16207;
 }
 .admin-draft-card-title {
   display: block;

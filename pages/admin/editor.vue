@@ -243,12 +243,12 @@
       </div>
     </div>
 
-    <!-- 已發布 + 本機有草稿：選擇使用 GitHub 版本或本機版本 -->
+    <!-- 已發布/草稿 + 本機有版本：選擇使用 GitHub 版本或本機版本 -->
     <Teleport to="body">
       <div v-if="showVersionChoiceModal" class="admin-confirm-overlay" @click.self="useGitHubVersion">
         <div class="admin-confirm-modal" @click.stop>
           <h3 class="admin-confirm-title">選擇版本</h3>
-          <p class="admin-confirm-text">此文章在 GitHub 已發布，且本機有未同步的版本。要使用哪一個？</p>
+          <p class="admin-confirm-text">{{ versionChoiceIsDraft ? "此草稿在 GitHub 與本機都有版本。要使用哪一個？" : "此文章在 GitHub 已發布，且本機有未同步的版本。要使用哪一個？" }}</p>
           <div class="admin-confirm-actions">
             <button type="button" class="admin-btn admin-btn-primary" @click="useGitHubVersion">使用 GitHub 上的版本</button>
             <button type="button" class="admin-btn admin-btn-ghost" @click="useLocalVersion">使用本機版本</button>
@@ -447,8 +447,10 @@ function onDeleteConfirmOverlayClick(e: MouseEvent) {
   }, 500);
 }
 const showRecoveryBar = ref(false);
-/** 已發布文章 + 本機有草稿時，詢問使用 GitHub 版本或本機版本。 */
+/** 已發布文章或 GitHub 草稿 + 本機有版本時，詢問使用 GitHub 版本或本機版本。 */
 const showVersionChoiceModal = ref(false);
+/** 版本選擇情境為「GitHub 草稿 vs 本機草稿」（true）或「已發布 vs 本機」（false）。 */
+const versionChoiceIsDraft = computed(() => !!pathQuery.value?.startsWith("content/drafts/"));
 /** 為 true 時不寫入 localStorage，避免載入 API 後觸發 watcher 覆蓋本機草稿。 */
 const versionChoicePending = ref(false);
 /** 載入時若本機較新，存 server 的 lastModified 供恢復列比較。 */
@@ -687,7 +689,7 @@ function loadFromApi(): Promise<void> {
       const raw = res.content || "";
       const match = raw.match(/^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/);
       const rawDraftForChoice = typeof localStorage !== "undefined" ? localStorage.getItem(draftKey.value) : null;
-      const willShowVersionChoice = !!(rawDraftForChoice && docType.value === "post" && pathQuery.value?.startsWith("content/blog/"));
+      const willShowVersionChoice = !!(rawDraftForChoice && docType.value === "post" && (pathQuery.value?.startsWith("content/blog/") || pathQuery.value?.startsWith("content/drafts/")));
       if (willShowVersionChoice) {
         versionChoicePending.value = true;
         if (debounceSaveTimer) {
@@ -752,7 +754,7 @@ function loadFromApi(): Promise<void> {
         const serverAuthor = meta.author;
         const rawDraft = typeof localStorage !== "undefined" ? localStorage.getItem(draftKey.value) : null;
         if (rawDraft && docType.value === "post") {
-          if (pathQuery.value && pathQuery.value.startsWith("content/blog/")) {
+          if (pathQuery.value && (pathQuery.value.startsWith("content/blog/") || pathQuery.value.startsWith("content/drafts/"))) {
             showVersionChoiceModal.value = true;
             return;
           }
@@ -939,7 +941,7 @@ async function confirmDeleteDraft() {
         sha = fileRes?.sha;
       }
       if (sha) {
-        await $fetch("/api/admin/repo/files.delete", {
+        await $fetch("/api/admin/repo/files-delete", {
           method: "POST",
           body: {
             path: pathQuery.value,
