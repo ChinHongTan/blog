@@ -2,7 +2,18 @@
   <div class="admin-list-page">
     <div class="admin-list-bar">
       <h2 class="admin-list-title">文章</h2>
-      <NuxtLink to="/admin/editor?type=post" class="admin-list-add-btn">新增</NuxtLink>
+      <div class="admin-list-bar-actions">
+        <button
+          type="button"
+          class="admin-filter-toggle"
+          :class="{ active: filterMineOnly }"
+          :aria-pressed="filterMineOnly"
+          @click="filterMineOnly = !filterMineOnly"
+        >
+          只顯示我的文章
+        </button>
+        <NuxtLink to="/admin/editor?type=post" class="admin-list-add-btn">新增</NuxtLink>
+      </div>
     </div>
 
     <!-- 繼續撰寫：本機草稿 -->
@@ -49,14 +60,67 @@
     </Teleport>
 
     <div v-if="loading" class="admin-list-loading">載入中…</div>
-    <ul v-else class="admin-list">
-      <li v-for="p in postList" :key="p.path" class="admin-list-item">
-        <NuxtLink :to="`/admin/editor?type=post&path=${encodeURIComponent(p.path)}`" class="admin-list-link">
-          {{ p.name }}
-        </NuxtLink>
-      </li>
-      <li v-if="postList.length === 0 && localDrafts.length === 0" class="admin-list-empty">尚無文章</li>
-    </ul>
+    <div v-else class="admin-posts-table-wrap">
+      <table class="admin-posts-table" role="table">
+        <thead>
+          <tr>
+            <th scope="col" class="admin-posts-th admin-posts-th-author">作者</th>
+            <th scope="col" class="admin-posts-th admin-posts-th-title">標題</th>
+            <th scope="col" class="admin-posts-th admin-posts-th-status">狀態</th>
+            <th scope="col" class="admin-posts-th admin-posts-th-date">日期</th>
+            <th scope="col" class="admin-posts-th admin-posts-th-actions">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in filteredTableRows" :key="row.path || row.draftKey" class="admin-posts-tr">
+            <td class="admin-posts-td admin-posts-td-author">
+              <NuxtLink :to="row.editorLink" class="admin-posts-row-link">
+                <span class="admin-posts-avatar-wrap" aria-hidden="true">
+                  <img v-if="row.authorAvatar" :src="row.authorAvatar" alt="" class="admin-posts-avatar" width="32" height="32" />
+                  <span v-else class="admin-posts-avatar admin-posts-avatar-fallback">{{ row.authorInitial }}</span>
+                </span>
+                <span class="admin-posts-author-name">{{ row.authorDisplayName || "—" }}</span>
+              </NuxtLink>
+            </td>
+            <td class="admin-posts-td admin-posts-td-title">
+              <NuxtLink :to="row.editorLink" class="admin-posts-title-link">
+                {{ row.title }}
+              </NuxtLink>
+            </td>
+            <td class="admin-posts-td admin-posts-td-status">
+              <span class="admin-posts-badge" :class="row.statusClass">{{ row.statusLabel }}</span>
+            </td>
+            <td class="admin-posts-td admin-posts-td-date">
+              <NuxtLink :to="row.editorLink" class="admin-posts-date-link">
+                {{ row.relativeDate }}
+              </NuxtLink>
+            </td>
+            <td class="admin-posts-td admin-posts-td-actions">
+              <NuxtLink
+                v-if="row.isMine"
+                :to="row.editorLink"
+                class="admin-posts-action-btn admin-posts-action-edit"
+                title="編輯"
+              >
+                <Icon name="heroicons:pencil-square" size="18" />
+                <span class="admin-posts-action-label">編輯</span>
+              </NuxtLink>
+              <NuxtLink
+                v-else
+                :to="row.editorLink"
+                class="admin-posts-action-btn admin-posts-action-view"
+                title="檢視（唯讀，無法上傳）"
+              >
+                <Icon name="heroicons:eye" size="18" />
+                <span class="admin-posts-action-label">檢視</span>
+              </NuxtLink>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p v-if="filteredTableRows.length === 0 && localDrafts.length === 0" class="admin-posts-empty">尚無文章</p>
+      <p v-else-if="filterMineOnly && filteredTableRows.length === 0 && tableRows.length > 0" class="admin-posts-empty">沒有符合「只顯示我的文章」的文章</p>
+    </div>
   </div>
 </template>
 
@@ -65,20 +129,50 @@ definePageMeta({ layout: "admin" });
 
 const DRAFT_KEY_PREFIX = "admin-draft-post-";
 
+interface PostIndexItem {
+  title: string;
+  author: string;
+  authorDisplayName: string;
+  authorAvatar: string;
+  date: string;
+  path: string;
+  slug: string;
+  draft: boolean;
+}
+
 interface LocalDraftItem {
   key: string;
   title: string;
   excerpt: string;
   relativeTime: string;
   editorLink: string;
-  /** 本機草稿對應的是已發布文章（content/blog/），與下方文章列表同篇。 */
   isPublishedPath: boolean;
+  pathPart: string;
+  savedAt: number;
 }
 
-const postList = ref<{ name: string; path: string; stem: string }[]>([]);
+type TableRow = {
+  path: string;
+  draftKey?: string;
+  editorLink: string;
+  viewLink: string;
+  title: string;
+  author: string;
+  authorDisplayName: string;
+  authorAvatar: string;
+  authorInitial: string;
+  statusLabel: string;
+  statusClass: string;
+  relativeDate: string;
+  isMine: boolean;
+};
+
+const postIndex = ref<PostIndexItem[]>([]);
 const loading = ref(true);
 const localDrafts = ref<LocalDraftItem[]>([]);
 const discardConfirmDraft = ref<LocalDraftItem | null>(null);
+const currentUserAuthorId = ref<string | null>(null);
+const filterMineOnly = ref(false);
 
 function getRelativeTime(ms: number): string {
   const now = Date.now();
@@ -88,6 +182,12 @@ function getRelativeTime(ms: number): string {
   if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / 3600000)} 小時前`;
   if (diff < 7 * 24 * 60 * 60 * 1000) return `${Math.floor(diff / 86400000)} 天前`;
   return new Date(ms).toLocaleDateString("zh-TW");
+}
+
+function getRelativeDate(isoDate: string): string {
+  const ms = new Date(isoDate).getTime();
+  if (Number.isNaN(ms)) return isoDate;
+  return getRelativeTime(ms);
 }
 
 function loadLocalDrafts() {
@@ -117,18 +217,14 @@ function loadLocalDrafts() {
         relativeTime: `編輯於 ${getRelativeTime(savedAt)}`,
         editorLink,
         isPublishedPath,
+        pathPart,
+        savedAt,
       });
     } catch {
       /* skip invalid */
     }
   }
-  items.sort((a, b) => {
-    const rawA = localStorage.getItem(a.key);
-    const rawB = localStorage.getItem(b.key);
-    const savedAtA = rawA ? (() => { try { return JSON.parse(rawA).savedAt ?? 0; } catch { return 0; } })() : 0;
-    const savedAtB = rawB ? (() => { try { return JSON.parse(rawB).savedAt ?? 0; } catch { return 0; } })() : 0;
-    return savedAtB - savedAtA;
-  });
+  items.sort((a, b) => b.savedAt - a.savedAt);
   localDrafts.value = items;
 }
 
@@ -148,28 +244,89 @@ function confirmDiscardDraft() {
   }
 }
 
-function discardLocalDraft(key: string) {
-  try {
-    localStorage.removeItem(key);
-    loadLocalDrafts();
-  } catch {
-    /* ignore */
-  }
+function hasLocalDraftForPath(path: string): boolean {
+  return localDrafts.value.some((d) => d.pathPart === path);
 }
+
+function isLocalOnlyDraftPath(pathPart: string): boolean {
+  return pathPart === "new" || pathPart.startsWith("content/drafts/");
+}
+
+const tableRows = computed<TableRow[]>(() => {
+  const drafts = localDrafts.value;
+  const index = postIndex.value;
+  const authorId = currentUserAuthorId.value;
+  const rows: TableRow[] = [];
+
+  for (const p of index) {
+    const hasLocal = hasLocalDraftForPath(p.path);
+    const statusLabel = hasLocal ? "本機草稿" : p.draft ? "草稿" : "已發布";
+    const statusClass = hasLocal ? "admin-posts-badge-local" : p.draft ? "admin-posts-badge-draft" : "admin-posts-badge-published";
+    const isMine = !!authorId && p.author.toLowerCase() === authorId.toLowerCase();
+    rows.push({
+      path: p.path,
+      editorLink: `/admin/editor?type=post&path=${encodeURIComponent(p.path)}`,
+      viewLink: p.slug || "",
+      title: p.title,
+      author: p.author,
+      authorDisplayName: p.authorDisplayName || p.author || "—",
+      authorAvatar: p.authorAvatar || "",
+      authorInitial: (p.authorDisplayName || p.author || "?")[0]?.toUpperCase() ?? "?",
+      statusLabel,
+      statusClass,
+      relativeDate: getRelativeDate(p.date),
+      isMine,
+    });
+  }
+
+  for (const d of drafts) {
+    if (!isLocalOnlyDraftPath(d.pathPart)) continue;
+    rows.unshift({
+      path: "",
+      draftKey: d.key,
+      editorLink: d.editorLink,
+      viewLink: "",
+      title: d.title,
+      author: "",
+      authorDisplayName: "—",
+      authorAvatar: "",
+      authorInitial: "?",
+      statusLabel: "本機草稿",
+      statusClass: "admin-posts-badge-local",
+      relativeDate: getRelativeTime(d.savedAt),
+      isMine: true,
+    });
+  }
+
+  // Sort: current user's posts first, then others
+  rows.sort((a, b) => (a.isMine === b.isMine ? 0 : a.isMine ? -1 : 1));
+  return rows;
+});
+
+const filteredTableRows = computed<TableRow[]>(() => {
+  if (!filterMineOnly.value) return tableRows.value;
+  return tableRows.value.filter((r) => r.isMine);
+});
 
 async function load() {
   loading.value = true;
   try {
-    postList.value = await $fetch<{ name: string; path: string; stem: string }[]>("/api/admin/repo/list?path=content/blog").catch(() => []);
-    if (!Array.isArray(postList.value)) postList.value = [];
+    postIndex.value = await $fetch<PostIndexItem[]>("/api/admin/posts-index").catch(() => []);
+    if (!Array.isArray(postIndex.value)) postIndex.value = [];
   } finally {
     loading.value = false;
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   load();
   loadLocalDrafts();
+  try {
+    const profile = await $fetch<{ authorId?: string | null }>("/api/admin/profile/me").catch(() => null);
+    currentUserAuthorId.value = profile?.authorId ?? null;
+  } catch {
+    currentUserAuthorId.value = null;
+  }
 });
 
 onActivated(loadLocalDrafts);
@@ -177,7 +334,7 @@ onActivated(loadLocalDrafts);
 
 <style scoped>
 .admin-list-page {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 .admin-list-bar {
@@ -193,6 +350,30 @@ onActivated(loadLocalDrafts);
   font-weight: 600;
   color: var(--color-text-primary);
   margin: 0;
+}
+.admin-list-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.admin-filter-toggle {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-border-light);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.admin-filter-toggle:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-text-tertiary);
+}
+.admin-filter-toggle.active {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
 }
 .admin-list-add-btn {
   padding: 0.4rem 0.75rem;
@@ -211,31 +392,158 @@ onActivated(loadLocalDrafts);
   text-align: center;
   color: var(--color-text-tertiary);
 }
-.admin-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+
+/* Data table */
+.admin-posts-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border-light);
+  border-radius: 0.5rem;
+  background: var(--color-bg-primary);
 }
-.admin-list-item {
-  margin-bottom: 0.25rem;
-}
-.admin-list-link {
-  display: block;
-  padding: 0.5rem 0.75rem;
-  color: var(--color-text-primary);
-  text-decoration: none;
-  border-radius: 0.375rem;
+.admin-posts-table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 0.9375rem;
 }
-.admin-list-link:hover {
-  background: var(--color-bg-tertiary);
+.admin-posts-th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border-light);
+  white-space: nowrap;
+}
+.admin-posts-th-author {
+  width: 1%;
+}
+.admin-posts-th-status {
+  width: 1%;
+}
+.admin-posts-th-date {
+  width: 1%;
+}
+.admin-posts-th-actions {
+  width: 1%;
+  text-align: right;
+}
+.admin-posts-tr {
+  border-bottom: 1px solid var(--color-border-light);
+}
+.admin-posts-tr:last-child {
+  border-bottom: none;
+}
+.admin-posts-td {
+  padding: 0.65rem 1rem;
+  vertical-align: middle;
+}
+.admin-posts-row-link,
+.admin-posts-title-link,
+.admin-posts-date-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+.admin-posts-row-link:hover,
+.admin-posts-title-link:hover,
+.admin-posts-date-link:hover {
   color: var(--color-primary);
 }
-.admin-list-empty {
+.admin-posts-title-link {
+  font-weight: 500;
+  min-width: 0;
+}
+.admin-posts-title-link:hover {
+  text-decoration: underline;
+}
+.admin-posts-date-link {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+.admin-posts-date-link:hover {
+  color: var(--color-primary);
+}
+.admin-posts-avatar-wrap {
+  flex-shrink: 0;
+}
+.admin-posts-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+.admin-posts-avatar-fallback {
+  background: color-mix(in srgb, var(--color-primary) 25%, transparent);
+  color: var(--color-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.admin-posts-author-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+.admin-posts-td-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+.admin-posts-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-border-light);
+  border-radius: 0.375rem;
+  text-decoration: none;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.admin-posts-action-btn:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+.admin-posts-action-edit {
+  color: var(--color-primary);
+  border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+.admin-posts-action-edit:hover {
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+}
+.admin-posts-action-label {
+  font-weight: 500;
+}
+.admin-posts-badge {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  white-space: nowrap;
+}
+.admin-posts-badge-local {
+  background: color-mix(in srgb, #eab308 28%, transparent);
+  color: #a16207;
+}
+.admin-posts-badge-draft,
+.admin-posts-badge-published {
+  background: color-mix(in srgb, #2563eb 22%, transparent);
+  color: #2563eb;
+}
+.admin-posts-empty {
   padding: 2rem;
   text-align: center;
   color: var(--color-text-tertiary);
   font-size: 0.9375rem;
+  margin: 0;
 }
 
 /* 繼續撰寫：本機草稿卡片 */
@@ -417,14 +725,5 @@ onActivated(loadLocalDrafts);
   background: #dc2626;
   border-color: #dc2626;
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-}
-.admin-btn-danger {
-  background: #dc2626;
-  border-color: #dc2626;
-  color: #fff;
-}
-.admin-btn-danger:hover {
-  background: #b91c1c;
-  border-color: #b91c1c;
 }
 </style>
