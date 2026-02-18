@@ -18,7 +18,7 @@ watch(() => props.currentAuthor, async (authorName) => {
   } else {
     // Default to main site info when on homepage
     authorProfile.value = {
-      name: '七糯糯的小站',
+      name: '星谷雜貨店',
       bio: '分享生活點滴的小小天地。',
       avatar: '/images/uploads/103467998_p0 copy.png'
     };

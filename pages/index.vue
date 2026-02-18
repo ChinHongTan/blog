@@ -308,7 +308,7 @@ onBeforeUnmount(() => {
 						<div class="sidebar-profile">
 							<img
 								src="/images/uploads/103467998_p0 copy.png"
-								alt="七糯糯的小站"
+								alt="星谷雜貨店"
 								class="site-avatar"
 							>
 							<h2 class="site-name">星谷雜貨店</h2>

@@ -160,7 +160,7 @@ onUnmounted(() => {
 						alt="Logo"
 						class="logo-image"
 					>
-					<span>七糯糯的小站</span>
+					<span>星谷雜貨店</span>
 				</NuxtLink>
 				<div class="header-actions">
 					<nav class="main-nav">
@@ -263,7 +263,7 @@ onUnmounted(() => {
 				<footer v-if="!isAdminRoute" class="site-footer">
 					<div class="footer-info">
 						<p>
-							© 2025 七糯糯的小站.
+							© 2025 星谷雜貨店.
 							<a
 								href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
 								target="_blank"

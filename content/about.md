@@ -1,9 +1,9 @@
 ---
 title: 關於本站
-description: 了解更多關於七糯糯的小站
+description: 了解更多關於星谷雜貨店
 date: 2025-10-25T19:35:00.000+08:00
 ---
-歡迎來到七糯糯的小站！這是一個分享想法、經驗和故事的地方。
+歡迎來到星谷雜貨店！這是一個分享想法、經驗和故事的地方。
 
 ## 這是什麼地方？
 
@@ -26,7 +26,7 @@ date: 2025-10-25T19:35:00.000+08:00
 
 ## 關於網站
 
-七糯糯的小站，基於 [Nuxt](https://nuxt.com) 和 [Decap CMS](https://decapcms.org) 的 SSR 網站，託管在 [Vercel](https://vercel.com) 上。
+星谷雜貨店，基於 [Nuxt](https://nuxt.com) 和 [Decap CMS](https://decapcms.org) 的 SSR 網站，託管在 [Vercel](https://vercel.com) 上。
 
 ### 開源精神
 
