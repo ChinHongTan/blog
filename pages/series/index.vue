@@ -73,7 +73,7 @@ const seriesList = computed(() => {
 });
 
 useHead({
-	title: "專欄 - 七糯糯的小站",
+	title: "專欄 - 星谷雜貨店",
 });
 </script>
 

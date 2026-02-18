@@ -27,7 +27,7 @@ type DisplayPost = BlogCollectionItem & {
 
 const route = useRoute();
 const fullDescription =
-	"我們是一群認識的小夥伴。這裡收錄大家的日常冒險、靈感筆記和生活記錄。";
+	"這裡有生活，也有故事，隨便看看吧。";
 
 const { data: posts, refresh: refreshPosts } = await useAsyncData<BlogCollectionItem[]>("posts", () =>
 	queryCollection("blog").order("date", "DESC").all()
@@ -232,36 +232,18 @@ const scrollToPosts = () => {
 };
 
 onMounted(() => {
-	let isDeleting = false;
 	const typeSpeed = 100;
-	const deleteSpeed = 50;
-	const pauseEnd = 2000;
-	const pauseStart = 500;
 
 	const typeLoop = () => {
 		const currentText = typedDescription.value;
 		const fullText = fullDescription;
 
-		if (isDeleting) {
-			if (currentText.length > 0) {
-				typedDescription.value = currentText.slice(0, -1);
-				typingTimer = setTimeout(typeLoop, deleteSpeed);
-			} else {
-				isDeleting = false;
-				typingTimer = setTimeout(typeLoop, pauseStart);
-			}
+		if (currentText.length < fullText.length) {
+			typedDescription.value = fullText.slice(0, currentText.length + 1);
+			typingTimer = setTimeout(typeLoop, typeSpeed + Math.random() * 50);
 		} else {
-			if (currentText.length < fullText.length) {
-				typedDescription.value = fullText.slice(0, currentText.length + 1);
-				typingTimer = setTimeout(typeLoop, typeSpeed + Math.random() * 50);
-			} else {
-				isDeleting = true;
-				isTypingDone.value = true;
-				typingTimer = setTimeout(() => {
-					isTypingDone.value = false;
-					typeLoop();
-				}, pauseEnd);
-			}
+			// Done typing — leave text as is, no delete phase
+			isTypingDone.value = true;
 		}
 	};
 
@@ -307,7 +289,7 @@ onBeforeUnmount(() => {
 
 		<section class="welcome-screen">
 			<div class="welcome-content">
-				<h1 class="welcome-title">七糯糯的小站</h1>
+				<h1 class="welcome-title">星谷雜貨店</h1>
 				<p class="typing-line" :class="{ finished: isTypingDone }">
 					{{ typedDescription }}
 				</p>
@@ -329,7 +311,7 @@ onBeforeUnmount(() => {
 								alt="七糯糯的小站"
 								class="site-avatar"
 							>
-							<h2 class="site-name">七糯糯的小站</h2>
+							<h2 class="site-name">星谷雜貨店</h2>
 							<p class="site-motto">分享生活點滴的小小天地。</p>
 						</div>
 					</div>

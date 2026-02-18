@@ -62,7 +62,7 @@ function getAuthorAvatar(authorId: string): string {
 }
 
 useHead({
-	title: `專欄 - ${seriesName.value} - 七糯糯的小站`,
+	title: `專欄 - ${seriesName.value} - 星谷雜貨店`,
 });
 </script>
 

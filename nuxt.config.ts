@@ -32,7 +32,7 @@ export default defineNuxtConfig({
 
   site: {
     url: 'https://blog.chinono.dev',
-    title: '七糯糯的小站',
+    title: '星谷雜貨店',
     description: '记录学习和生活的点滴',
     defaultLanguage: 'zh-CN'
   },
@@ -73,7 +73,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: '七糯糯的小站',
+      title: '星谷雜貨店',
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
       ]

@@ -160,7 +160,7 @@ const sortedPosts = computed(() => {
 });
 
 useHead({
-	title: `${authorDisplayName.value} - 作者 - 七糯糯的小站`,
+	title: `${authorDisplayName.value} - 作者 - 星谷雜貨店`,
 });
 </script>
 

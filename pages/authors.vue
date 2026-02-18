@@ -23,7 +23,7 @@ const authorPostCounts = computed(() => {
 });
 
 useHead({
-	title: "作者 - 七糯糯的小站",
+	title: "作者 - 星谷雜貨店",
 });
 </script>
 
