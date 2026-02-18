@@ -23,6 +23,17 @@ export default defineContentConfig({
                 }),
 		    })
         ),
+		drafts: defineCollection({
+            type: "page",
+            source: "drafts/*.md",
+            schema: z.object({
+                title: z.string().optional(),
+                description: z.string().optional(),
+                author: z.string().optional(),
+                date: z.string().optional(),
+                path: z.string().optional()
+            }),
+        }),
 		authors: defineCollection(
             asSitemapCollection({
                 type: "page",

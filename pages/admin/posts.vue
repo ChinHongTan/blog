@@ -165,6 +165,8 @@ type TableRow = {
   statusClass: string;
   relativeDate: string;
   isMine: boolean;
+  /** For sorting: newest first */
+  dateMs: number;
 };
 
 const postIndex = ref<PostIndexItem[]>([]);
@@ -263,6 +265,7 @@ const tableRows = computed<TableRow[]>(() => {
     const statusLabel = hasLocal ? "本機草稿" : p.draft ? "草稿" : "已發布";
     const statusClass = hasLocal ? "admin-posts-badge-local" : p.draft ? "admin-posts-badge-draft" : "admin-posts-badge-published";
     const isMine = !!authorId && p.author.toLowerCase() === authorId.toLowerCase();
+    const dateMs = new Date(p.date).getTime();
     rows.push({
       path: p.path,
       editorLink: `/admin/editor?type=post&path=${encodeURIComponent(p.path)}`,
@@ -276,12 +279,15 @@ const tableRows = computed<TableRow[]>(() => {
       statusClass,
       relativeDate: getRelativeDate(p.date),
       isMine,
+      dateMs: Number.isNaN(dateMs) ? 0 : dateMs,
     });
   }
 
+  const indexPaths = new Set(index.map((p) => p.path));
   for (const d of drafts) {
     if (!isLocalOnlyDraftPath(d.pathPart)) continue;
-    rows.unshift({
+    if (indexPaths.has(d.pathPart)) continue;
+    rows.push({
       path: "",
       draftKey: d.key,
       editorLink: d.editorLink,
@@ -295,11 +301,12 @@ const tableRows = computed<TableRow[]>(() => {
       statusClass: "admin-posts-badge-local",
       relativeDate: getRelativeTime(d.savedAt),
       isMine: true,
+      dateMs: d.savedAt,
     });
   }
 
-  // Sort: current user's posts first, then others
-  rows.sort((a, b) => (a.isMine === b.isMine ? 0 : a.isMine ? -1 : 1));
+  // Sort by date (newest first)
+  rows.sort((a, b) => b.dateMs - a.dateMs);
   return rows;
 });
 
@@ -329,7 +336,10 @@ onMounted(async () => {
   }
 });
 
-onActivated(loadLocalDrafts);
+onActivated(() => {
+  load();
+  loadLocalDrafts();
+});
 </script>
 
 <style scoped>
@@ -393,12 +403,10 @@ onActivated(loadLocalDrafts);
   color: var(--color-text-tertiary);
 }
 
-/* Data table */
+/* Table (frameless: no card border/background) */
 .admin-posts-table-wrap {
-  overflow-x: auto;
-  border: 1px solid var(--color-border-light);
-  border-radius: 0.5rem;
-  background: var(--color-bg-primary);
+  margin: 0;
+  padding: 0;
 }
 .admin-posts-table {
   width: 100%;
@@ -428,9 +436,13 @@ onActivated(loadLocalDrafts);
 }
 .admin-posts-tr {
   border-bottom: 1px solid var(--color-border-light);
+  transition: background 0.15s ease;
 }
 .admin-posts-tr:last-child {
   border-bottom: none;
+}
+.admin-posts-tr:hover {
+  background: color-mix(in srgb, var(--color-primary) 0.08, var(--color-bg-primary));
 }
 .admin-posts-td {
   padding: 0.65rem 1rem;

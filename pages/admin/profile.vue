@@ -3,24 +3,51 @@
     <div v-if="loading" class="admin-profile-loading">載入中…</div>
     <div v-else-if="!profileMe" class="admin-profile-loading">無法載入個人資料，請重新登入。</div>
     <template v-else>
-      <!-- Sticky header: banner + avatar + name (always visible) -->
+      <!-- Sticky header: banner + avatar + name (always visible). Drop or click to upload. -->
       <div class="admin-profile-header">
-        <div class="admin-profile-banner-wrap" @click="imagePickerMode = 'banner'; showImagePicker = true">
+        <div
+          class="admin-profile-banner-wrap"
+          @dragover.prevent="bannerDragOver = true"
+          @dragleave="bannerDragOver = false"
+          @drop.prevent="onBannerDrop"
+          @click="bannerFileInput?.click()"
+        >
+          <input
+            ref="bannerFileInput"
+            type="file"
+            accept="image/*"
+            class="admin-profile-file-input"
+            @change="onBannerFileChange"
+          >
           <div class="admin-profile-banner" :class="{ empty: !form.banner }">
             <img v-if="form.banner" :src="form.banner" alt="" >
             <div v-else class="admin-profile-banner-placeholder" />
           </div>
           <div class="admin-profile-banner-overlay">
             <Icon name="heroicons:pencil-square" size="24" />
-            <span>編輯</span>
+            <span>{{ bannerUploading ? "上傳中…" : "拖曳或點擊上傳" }}</span>
           </div>
         </div>
         <div class="admin-profile-identity">
-          <div class="admin-profile-avatar-wrap" @click="imagePickerMode = 'avatar'; showImagePicker = true">
+          <div
+            class="admin-profile-avatar-wrap"
+            @dragover.prevent="avatarDragOver = true"
+            @dragleave="avatarDragOver = false"
+            @drop.prevent="onAvatarDrop"
+            @click.stop="avatarFileInput?.click()"
+          >
+            <input
+              ref="avatarFileInput"
+              type="file"
+              accept="image/*"
+              class="admin-profile-file-input"
+              @click.stop
+              @change="onAvatarFileChange"
+            >
             <img :src="form.avatar || profileMe?.avatar_url" :alt="form.name" class="admin-profile-avatar" >
             <div class="admin-profile-avatar-overlay">
               <Icon name="heroicons:pencil-square" size="20" />
-              <span>編輯</span>
+              <span>{{ avatarUploading ? "上傳中…" : "上傳" }}</span>
             </div>
           </div>
           <input
@@ -108,15 +135,6 @@
       </div>
     </template>
 
-    <Teleport to="body">
-      <div v-if="showImagePicker" class="image-picker-overlay" @click.self="showImagePicker = false">
-        <div class="image-picker-panel">
-          <h3>選擇或上傳圖片</h3>
-          <AdminImagePicker @select="onImageSelect" />
-          <button type="button" class="admin-btn admin-btn-ghost mt-2" @click="showImagePicker = false">關閉</button>
-        </div>
-      </div>
-    </Teleport>
   </div>
 </template>
 
@@ -144,9 +162,13 @@ const profileMe = ref<ProfileMe | null>(null);
 const loading = ref(true);
 const saving = ref(false);
 const contentReady = ref(false);
-const showImagePicker = ref(false);
-const imagePickerMode = ref<"banner" | "avatar">("banner");
 const activeTab = ref<"settings" | "about">("settings");
+const { uploadImage: uploadBanner, uploading: bannerUploading } = useUploadImage();
+const { uploadImage: uploadAvatar, uploading: avatarUploading } = useUploadImage();
+const bannerFileInput = ref<HTMLInputElement | null>(null);
+const avatarFileInput = ref<HTMLInputElement | null>(null);
+const bannerDragOver = ref(false);
+const avatarDragOver = ref(false);
 const milkdownRef = ref<{ getMarkdown: () => string } | null>(null);
 const getMarkdownRef = ref<(() => string) | null>(null);
 
@@ -235,10 +257,44 @@ async function save() {
   }
 }
 
-function onImageSelect(path: string) {
-  if (imagePickerMode.value === "banner") form.banner = path;
-  else form.avatar = path;
-  showImagePicker.value = false;
+async function onBannerDrop(e: DragEvent) {
+  bannerDragOver.value = false;
+  const file = e.dataTransfer?.files?.[0];
+  if (!file?.type.startsWith("image/")) return;
+  try {
+    form.banner = await uploadBanner(file);
+  } catch (err) {
+    console.error(err);
+    alert("上傳失敗");
+  }
+}
+
+function onBannerFileChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = "";
+  if (!file) return;
+  uploadBanner(file).then((path) => { form.banner = path; }).catch((err) => { console.error(err); alert("上傳失敗"); });
+}
+
+async function onAvatarDrop(e: DragEvent) {
+  avatarDragOver.value = false;
+  const file = e.dataTransfer?.files?.[0];
+  if (!file?.type.startsWith("image/")) return;
+  try {
+    form.avatar = await uploadAvatar(file);
+  } catch (err) {
+    console.error(err);
+    alert("上傳失敗");
+  }
+}
+
+function onAvatarFileChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = "";
+  if (!file) return;
+  uploadAvatar(file).then((path) => { form.avatar = path; }).catch((err) => { console.error(err); alert("上傳失敗"); });
 }
 
 onMounted(load);
@@ -536,30 +592,11 @@ html.dark .admin-profile-editor-wrap :deep(.milkdown-markdown-reveal) {
   background: transparent;
 }
 
-.mt-2 {
-  margin-top: 0.5rem;
-}
-
-.image-picker-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.image-picker-panel {
-  background: var(--color-bg-primary);
-  padding: 1.5rem;
-  border-radius: 12px;
-  min-width: 560px;
-  width: 85vw;
-  max-width: 900px;
-  min-height: 420px;
-  max-height: 85vh;
-  overflow: auto;
-  box-shadow: var(--shadow-lg);
+.admin-profile-file-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 </style>

@@ -111,23 +111,33 @@
           </Transition>
         </div>
 
-        <!-- Hero image: below table, above editor. Empty slot or blog-style hero with glass title. Click to choose/change. -->
+        <!-- Featured image: drop zone + upload or paste URL. No media library. -->
         <div
-          class="admin-hero-slot"
-          :class="{ empty: !meta.featured_image }"
-          role="button"
-          tabindex="0"
-          @click="imagePickerMode = 'featured'; showImagePicker = true"
-          @keydown.enter="imagePickerMode = 'featured'; showImagePicker = true"
-          @keydown.space.prevent="imagePickerMode = 'featured'; showImagePicker = true"
+          class="admin-hero-slot admin-hero-upload"
+          :class="{ empty: !meta.featured_image, 'admin-hero-uploading': featuredUploading }"
+          @dragover.prevent="heroDragOver = true"
+          @dragleave="heroDragOver = false"
+          @drop.prevent="onFeaturedDrop"
+          @click="featuredFileInput?.click()"
         >
+          <input
+            ref="featuredFileInput"
+            type="file"
+            accept="image/*"
+            class="admin-hero-file-input"
+            @change="onFeaturedFileChange"
+          >
           <template v-if="meta.featured_image">
             <img :src="meta.featured_image" :alt="meta.title || '精選圖片'" >
             <div class="admin-hero-title-wrap">
               <h2 class="admin-hero-title">{{ meta.title || "未命名" }}</h2>
             </div>
+            <div class="admin-hero-replace-hint">點擊或拖曳替換</div>
           </template>
-          <span v-else class="admin-hero-empty-label">點擊選擇精選圖片</span>
+          <template v-else>
+            <span class="admin-hero-empty-label">拖曳圖片到這裡，或點擊上傳</span>
+            <span v-if="featuredUploading" class="admin-hero-uploading-label">上傳中…</span>
+          </template>
         </div>
 
         <!-- Editor full width -->
@@ -175,15 +185,24 @@
             <input v-model="meta.bio" type="text" class="admin-input" placeholder="一行簡介" >
           </div>
           <div class="admin-form-row">
-            <label>頭像網址</label>
-            <div class="admin-input-group">
-              <input v-model="meta.avatar" type="text" class="admin-input" placeholder="/images/avatar.png" >
-              <button type="button" class="admin-btn admin-btn-sm" @click="imagePickerMode = 'avatar'; showImagePicker = true">選擇</button>
+            <label>頭像</label>
+            <div class="admin-input-group admin-upload-row">
+              <input v-model="meta.avatar" type="text" class="admin-input" placeholder="/images/uploads/avatar.png" >
+              <input ref="authorAvatarFileInput" type="file" accept="image/*" class="admin-upload-hidden" @change="onAuthorAvatarFileChange">
+              <button type="button" class="admin-btn admin-btn-sm" :disabled="avatarUploading" @click="authorAvatarFileInput?.click()">
+                {{ avatarUploading ? "上傳中…" : "上傳" }}
+              </button>
             </div>
           </div>
           <div class="admin-form-row">
-            <label>橫幅網址</label>
-            <input v-model="meta.banner" type="text" class="admin-input" placeholder="/images/banner.jpg" >
+            <label>橫幅</label>
+            <div class="admin-input-group admin-upload-row">
+              <input v-model="meta.banner" type="text" class="admin-input" placeholder="/images/uploads/banner.jpg" >
+              <input ref="authorBannerFileInput" type="file" accept="image/*" class="admin-upload-hidden" @change="onAuthorBannerFileChange">
+              <button type="button" class="admin-btn admin-btn-sm" :disabled="bannerUploading" @click="authorBannerFileInput?.click()">
+                {{ bannerUploading ? "上傳中…" : "上傳" }}
+              </button>
+            </div>
           </div>
           <div class="admin-form-row">
             <label>GitHub</label>
@@ -263,17 +282,6 @@
       </div>
     </Teleport>
 
-    <Teleport to="body">
-      <div v-if="showImagePicker" class="image-picker-overlay" @click.self="showImagePicker = false">
-        <div class="image-picker-panel">
-          <h3>選擇或上傳圖片</h3>
-          <AdminImagePicker
-            @select="onImageSelect"
-          />
-          <button type="button" class="admin-btn admin-btn-ghost mt-2" @click="showImagePicker = false">關閉</button>
-        </div>
-      </div>
-    </Teleport>
   </div>
 </template>
 
@@ -326,10 +334,14 @@ const milkdownRef = ref<{ getMarkdown: () => string } | null>(null);
 const getMarkdownRef = ref<(() => string) | null>(null);
 const authors = ref<{ name: string; path: string; displayName?: string }[]>([]);
 const saving = ref(false);
-const showImagePicker = ref(false);
-type ImagePickerMode = "content" | "avatar" | "featured";
-const imagePickerMode = ref<ImagePickerMode>("content");
 const propertiesOpen = ref(true);
+const { uploadImage, uploading: featuredUploading } = useUploadImage();
+const { uploadImage: uploadImageAvatar, uploading: avatarUploading } = useUploadImage();
+const { uploadImage: uploadImageBanner, uploading: bannerUploading } = useUploadImage();
+const featuredFileInput = ref<HTMLInputElement | null>(null);
+const authorAvatarFileInput = ref<HTMLInputElement | null>(null);
+const authorBannerFileInput = ref<HTMLInputElement | null>(null);
+const heroDragOver = ref(false);
 const tagInputRef = ref<HTMLInputElement | null>(null);
 const seriesInputRef = ref<HTMLInputElement | null>(null);
 const fileSha = ref<string | undefined>(undefined);
@@ -812,6 +824,7 @@ async function publish() {
       fileSha.value = res?.sha;
       try {
         localStorage.removeItem(draftKey.value);
+        localStorage.removeItem(`admin-draft-post-${toPath}`);
       } catch {
         /* ignore */
       }
@@ -826,6 +839,9 @@ async function publish() {
       fileSha.value = res?.sha ?? fileSha.value;
       try {
         localStorage.removeItem(draftKey.value);
+        if (docType.value === "post" && path) {
+          localStorage.removeItem(`admin-draft-post-${path}`);
+        }
       } catch {
         /* ignore */
       }
@@ -916,15 +932,26 @@ async function confirmDeleteDraft() {
   showDeleteDraftConfirm.value = false;
   deletingDraft.value = true;
   try {
-    if (isDraftOnGitHub.value && pathQuery.value && fileSha.value) {
-      await $fetch("/api/admin/repo/files.delete", {
-        method: "POST",
-        body: {
-          path: pathQuery.value,
-          sha: fileSha.value,
-          message: `Delete draft ${pathQuery.value}`,
-        },
-      });
+    if (isDraftOnGitHub.value && pathQuery.value) {
+      let sha = fileSha.value;
+      if (!sha) {
+        const fileRes = await $fetch<{ sha?: string }>(`/api/admin/repo/files?path=${encodeURIComponent(pathQuery.value)}`);
+        sha = fileRes?.sha;
+      }
+      if (sha) {
+        await $fetch("/api/admin/repo/files.delete", {
+          method: "POST",
+          body: {
+            path: pathQuery.value,
+            sha,
+            message: `Delete draft ${pathQuery.value}`,
+          },
+        });
+      } else {
+        alert("無法取得檔案 SHA，請重新開啟此草稿後再試。");
+        deletingDraft.value = false;
+        return;
+      }
     }
     try {
       localStorage.removeItem(draftKey.value);
@@ -940,17 +967,50 @@ async function confirmDeleteDraft() {
   }
 }
 
-function onImageSelect(path: string) {
-  if (imagePickerMode.value === "featured") {
-    meta.featured_image = path;
-  } else if (docType.value === "author" || imagePickerMode.value === "avatar") {
-    meta.avatar = path;
-  } else {
-    const insert = `\n![image](${path})\n`;
-    rawBody.value += insert;
-    if (viewMode.value === "wysiwyg") body.value = rawBody.value;
+async function onFeaturedDrop(e: DragEvent) {
+  heroDragOver.value = false;
+  const file = e.dataTransfer?.files?.[0];
+  if (!file?.type.startsWith("image/")) return;
+  try {
+    meta.featured_image = await uploadImage(file);
+  } catch (err) {
+    console.error(err);
+    alert("上傳失敗");
   }
-  showImagePicker.value = false;
+}
+
+function onFeaturedFileChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = "";
+  if (!file) return;
+  uploadImage(file).then((path) => { meta.featured_image = path; }).catch((err) => { console.error(err); alert("上傳失敗"); });
+}
+
+async function onAuthorAvatarFileChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = "";
+  if (!file) return;
+  try {
+    meta.avatar = await uploadImageAvatar(file);
+  } catch (err) {
+    console.error(err);
+    alert("上傳失敗");
+  }
+}
+
+async function onAuthorBannerFileChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = "";
+  if (!file) return;
+  try {
+    meta.banner = await uploadImageBanner(file);
+  } catch (err) {
+    console.error(err);
+    alert("上傳失敗");
+  }
 }
 
 watch(
@@ -994,6 +1054,16 @@ watch(rawBody, () => {
   if (docType.value === "post" && !canEditPost.value) return;
   scheduleDebouncedLocalSave();
 }, { flush: "post" });
+
+watch(pathQuery, (newPath, oldPath) => {
+  if (newPath === oldPath) return;
+  if (filePath.value) {
+    contentReady.value = false;
+    loadFromApi().finally(() => {
+      contentReady.value = true;
+    });
+  }
+});
 
 onUnmounted(() => {
   if (bodyCheckInterval) clearInterval(bodyCheckInterval);
@@ -1357,6 +1427,42 @@ onUnmounted(() => {
 .admin-hero-empty-label {
   font-size: 0.875rem;
   color: var(--color-text-tertiary);
+}
+.admin-hero-upload {
+  cursor: pointer;
+}
+.admin-hero-file-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.admin-hero-replace-hint {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 1rem;
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+.admin-hero-uploading-label {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-primary);
+}
+.admin-hero-uploading {
+  opacity: 0.85;
+}
+.admin-upload-hidden {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.admin-upload-row {
+  position: relative;
 }
 .admin-hero-title-wrap {
   position: absolute;
@@ -1900,42 +2006,4 @@ html.dark .admin-wysiwyg-site :deep(.milkdown .milkdown-table-block thead),
 html.dark .admin-wysiwyg-site :deep(.milkdown-table-block thead) {
   background: color-mix(in srgb, var(--color-bg-tertiary) 80%, transparent);
 }
-.image-picker-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-.image-picker-panel {
-  background: var(--color-bg-primary);
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  min-width: 560px;
-  width: 85vw;
-  max-width: 900px;
-  min-height: 420px;
-  max-height: 85vh;
-  overflow: auto;
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  flex-direction: column;
-}
-.image-picker-panel .image-picker {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-.image-picker-panel .image-picker-list {
-  flex: 1;
-  min-height: 320px;
-}
-.image-picker-panel h3 {
-  margin: 0 0 1rem;
-  font-size: 1.125rem;
-}
-.mt-2 { margin-top: 0.5rem; }
 </style>
