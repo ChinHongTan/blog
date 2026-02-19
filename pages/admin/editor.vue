@@ -2086,6 +2086,55 @@ html.dark .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-error) {
 .admin-wysiwyg-site :deep(.milkdown span.purple-dark), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.purple-dark) { color: #6b21a8; }
 .admin-wysiwyg-site :deep(.milkdown span.gray), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.gray) { color: #6b7280; }
 .admin-wysiwyg-site :deep(.milkdown span.gray-dark), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.gray-dark) { color: #374151; }
+/* Underline and highlight [text]{.underline} / [text]{.highlight} */
+.admin-wysiwyg-site :deep(.milkdown span.underline), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.underline) { text-decoration: underline; text-underline-offset: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.highlight), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.highlight) { background-color: #fef08a; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+/* Font background [text]{.bg-hue-n} — text colour by background luminance for readability */
+.admin-wysiwyg-site :deep(.milkdown span.bg-red-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-red-1) { background-color: #fecaca; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-red-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-red-2) { background-color: #f87171; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-red-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-red-3) { background-color: #dc2626; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-red-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-red-4) { background-color: #b91c1c; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-red-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-red-5) { background-color: #7f1d1d; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-orange-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-orange-1) { background-color: #fed7aa; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-orange-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-orange-2) { background-color: #fb923c; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-orange-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-orange-3) { background-color: #ea580c; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-orange-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-orange-4) { background-color: #c2410c; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-orange-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-orange-5) { background-color: #9a3412; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-yellow-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-yellow-1) { background-color: #fef08a; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-yellow-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-yellow-2) { background-color: #facc15; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-yellow-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-yellow-3) { background-color: #eab308; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-yellow-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-yellow-4) { background-color: #ca8a04; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-yellow-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-yellow-5) { background-color: #a16207; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-green-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-green-1) { background-color: #bbf7d0; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-green-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-green-2) { background-color: #4ade80; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-green-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-green-3) { background-color: #22c55e; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-green-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-green-4) { background-color: #16a34a; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-green-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-green-5) { background-color: #15803d; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-teal-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-teal-1) { background-color: #99f6e4; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-teal-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-teal-2) { background-color: #2dd4bf; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-teal-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-teal-3) { background-color: #14b8a6; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-teal-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-teal-4) { background-color: #0d9488; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-teal-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-teal-5) { background-color: #0f766e; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-blue-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-blue-1) { background-color: #bfdbfe; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-blue-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-blue-2) { background-color: #60a5fa; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-blue-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-blue-3) { background-color: #2563eb; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-blue-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-blue-4) { background-color: #1d4ed8; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-blue-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-blue-5) { background-color: #1e3a8a; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-purple-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-purple-1) { background-color: #e9d5ff; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-purple-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-purple-2) { background-color: #c084fc; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-purple-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-purple-3) { background-color: #a855f7; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-purple-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-purple-4) { background-color: #7c3aed; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-purple-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-purple-5) { background-color: #6b21a8; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-pink-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-pink-1) { background-color: #fbcfe8; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-pink-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-pink-2) { background-color: #f472b6; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-pink-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-pink-3) { background-color: #ec4899; color: #fff; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-pink-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-pink-4) { background-color: #db2777; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-pink-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-pink-5) { background-color: #be185d; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-grey-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-grey-1) { background-color: #e5e7eb; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-grey-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-grey-2) { background-color: #9ca3af; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-grey-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-grey-3) { background-color: #6b7280; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-grey-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-grey-4) { background-color: #4b5563; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.admin-wysiwyg-site :deep(.milkdown span.bg-grey-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-grey-5) { background-color: #374151; padding: 0 0.15em; border-radius: 2px; color: #fff; }
 /* Editor tables: match blog .post-content table styling */
 .admin-wysiwyg-site :deep(.milkdown .milkdown-table-block),
 .admin-wysiwyg-site :deep(.milkdown-table-block) {

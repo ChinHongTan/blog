@@ -82,6 +82,12 @@ CSS in the blog styles these (and dark mode). You can pick a colour from the edi
 **Note:** This must **not** look like a link: no `(url)` after the `]`.  
 Use `[文字]{.red}` not `[文字](url){.red}`.
 
+**Additional span classes (same syntax, applied from the editor toolbar):**
+
+- **Underline:** `[text]{.underline}` — underlines the text.
+- **Highlight:** `[text]{.highlight}` — yellow highlight background.
+- **Font background colour:** `[text]{.bg-hue-N}` — same hue/shade palette as text colour but as background (e.g. `.bg-yellow-2`, `.bg-red-3`). Use the “文字背景色” (font background) dropdown in the toolbar.
+
 ---
 
 ## 4. Callout blocks (info / warning / success / error)
@@ -125,6 +131,9 @@ Use normal markdown inside (e.g. `**科號：**` instead of raw `<strong>`).
 | Custom heading ID| `## 標題 {#id}` at end of any `#`–`######` heading  |
 | Image + caption  | `![alt](url "caption")`                             |
 | Colored label    | `[文字]{.hue-N}` — one row per hue (red, orange, yellow, green, teal, blue, purple, pink, grey), N = 1 (light) … 5 (dark); legacy `.red` / `.red-dark` etc. still work |
+| Underline        | `[文字]{.underline}` — underline (toolbar: 底線) |
+| Highlight        | `[文字]{.highlight}` — yellow highlight (toolbar: 螢光) |
+| Font background  | `[文字]{.bg-hue-N}` — background colour (toolbar: 文字背景色) |
 | Callouts         | `:::info` / `:::warning` / `:::success` / `:::error` + content + `:::` |
 | Line break       | `<br>` (raw HTML)                                  |
 

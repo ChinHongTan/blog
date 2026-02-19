@@ -40,3 +40,14 @@ export const EDITOR_COLOR_ROWS: EditorColorRow[] = ROWS.map(({ hue, label, shade
 
 /** Flat list of all presets (e.g. for CSS generation or fallback). */
 export const EDITOR_COLOR_PRESETS: EditorColorPreset[] = EDITOR_COLOR_ROWS.flatMap((row) => row.presets);
+
+/** Same palette for font background: class names prefixed with bg- (e.g. bg-yellow-2). */
+export const EDITOR_BG_COLOR_ROWS: EditorColorRow[] = ROWS.map(({ hue, label, shades }) => ({
+  hue,
+  label,
+  presets: shades.map((hex, i) => ({
+    class: `bg-${hue}-${i + 1}`,
+    hex,
+    label: `${label} ${i + 1}`,
+  })),
+}));

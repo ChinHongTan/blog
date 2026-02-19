@@ -1530,6 +1530,56 @@ html.dark .post-content :deep(span.purple-dark) { color: #a78bfa; }
 html.dark .post-content :deep(span.gray), html.dark .post-content :deep(span.grey) { color: #9ca3af; }
 html.dark .post-content :deep(span.gray-dark) { color: #d1d5db; }
 
+/* Underline and highlight [text]{.underline} / [text]{.highlight} */
+.post-content :deep(span.underline) { text-decoration: underline; text-underline-offset: 2px; }
+.post-content :deep(span.highlight) { background-color: #fef08a; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+/* Font background [text]{.bg-hue-n} — text colour by background luminance for readability */
+.post-content :deep(span.bg-red-1) { background-color: #fecaca; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-red-2) { background-color: #f87171; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-red-3) { background-color: #dc2626; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-red-4) { background-color: #b91c1c; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-red-5) { background-color: #7f1d1d; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-orange-1) { background-color: #fed7aa; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-orange-2) { background-color: #fb923c; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-orange-3) { background-color: #ea580c; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-orange-4) { background-color: #c2410c; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-orange-5) { background-color: #9a3412; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-yellow-1) { background-color: #fef08a; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-yellow-2) { background-color: #facc15; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-yellow-3) { background-color: #eab308; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-yellow-4) { background-color: #ca8a04; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-yellow-5) { background-color: #a16207; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-green-1) { background-color: #bbf7d0; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-green-2) { background-color: #4ade80; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-green-3) { background-color: #22c55e; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-green-4) { background-color: #16a34a; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-green-5) { background-color: #15803d; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-teal-1) { background-color: #99f6e4; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-teal-2) { background-color: #2dd4bf; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-teal-3) { background-color: #14b8a6; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-teal-4) { background-color: #0d9488; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-teal-5) { background-color: #0f766e; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-blue-1) { background-color: #bfdbfe; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-blue-2) { background-color: #60a5fa; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-blue-3) { background-color: #2563eb; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-blue-4) { background-color: #1d4ed8; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-blue-5) { background-color: #1e3a8a; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-purple-1) { background-color: #e9d5ff; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-purple-2) { background-color: #c084fc; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-purple-3) { background-color: #a855f7; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-purple-4) { background-color: #7c3aed; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-purple-5) { background-color: #6b21a8; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-pink-1) { background-color: #fbcfe8; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-pink-2) { background-color: #f472b6; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-pink-3) { background-color: #ec4899; color: #fff; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-pink-4) { background-color: #db2777; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-pink-5) { background-color: #be185d; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-grey-1) { background-color: #e5e7eb; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-grey-2) { background-color: #9ca3af; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+.post-content :deep(span.bg-grey-3) { background-color: #6b7280; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-grey-4) { background-color: #4b5563; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+.post-content :deep(span.bg-grey-5) { background-color: #374151; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+
 .post-content :deep(.youtube-embed) {
 	position: relative;
 	padding-bottom: 56.25%;

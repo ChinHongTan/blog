@@ -155,6 +155,16 @@ export const applySpanClassCommand = $command<string>("ApplySpanClass", (ctx) =>
   return true;
 });
 
+/** Command to remove spanClass mark from the current selection. */
+export const removeSpanClassCommand = $command("RemoveSpanClass", (ctx) => () => (state, dispatch) => {
+  const { from, to } = state.selection;
+  const markType = spanClassSchema.type(ctx);
+  if (from >= to) return false;
+  const tr = state.tr.removeMark(from, to, markType);
+  if (dispatch) dispatch(tr);
+  return true;
+});
+
 /** Plugins to register: mark schema + remark parse/stringify + command. */
 export function spanClassPlugins(): MilkdownPlugin[] {
   return [
@@ -162,6 +172,7 @@ export function spanClassPlugins(): MilkdownPlugin[] {
     spanClassSchema.mark,
     spanClassRemarkPlugin(),
     applySpanClassCommand,
+    removeSpanClassCommand,
   ];
 }
 

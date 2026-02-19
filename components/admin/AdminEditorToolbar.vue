@@ -14,11 +14,11 @@
     </button>
     <span class="admin-toolbar-sep" aria-hidden="true" />
 
-    <!-- H2, H3: numerals so they look distinct -->
-    <button type="button" class="admin-toolbar-btn admin-toolbar-btn-num" data-tooltip="標題 2" aria-label="標題 2" @click="api?.wrapInHeading?.(2)">
+    <!-- H2, H3: numerals so they look distinct; active when current block is that heading; click again to unwrap to paragraph -->
+    <button type="button" class="admin-toolbar-btn admin-toolbar-btn-num" :class="{ 'admin-toolbar-btn-active': activeHeadingLevel === 2 }" data-tooltip="標題 2" aria-label="標題 2" @click="onHeadingClick(2)">
       <span>2</span>
     </button>
-    <button type="button" class="admin-toolbar-btn admin-toolbar-btn-num" data-tooltip="標題 3" aria-label="標題 3" @click="api?.wrapInHeading?.(3)">
+    <button type="button" class="admin-toolbar-btn admin-toolbar-btn-num" :class="{ 'admin-toolbar-btn-active': activeHeadingLevel === 3 }" data-tooltip="標題 3" aria-label="標題 3" @click="onHeadingClick(3)">
       <span>3</span>
     </button>
     <!-- Hn dropdown: 4, 5, 6 (no tooltip on parent) -->
@@ -27,18 +27,18 @@
       @mouseenter="enterDropdown('hn')"
       @mouseleave="scheduleCloseDropdown"
     >
-      <button type="button" class="admin-toolbar-btn admin-toolbar-btn-num">
+      <button type="button" class="admin-toolbar-btn admin-toolbar-btn-num" :class="{ 'admin-toolbar-btn-active': activeHeadingLevel >= 4 && activeHeadingLevel <= 6 }">
         <span>Hn</span>
         <Icon name="heroicons:chevron-down" size="12" class="admin-toolbar-chevron" />
       </button>
       <div v-show="openDropdown === 'hn'" class="admin-toolbar-dropdown admin-toolbar-dropdown-row" role="menu">
-        <button type="button" class="admin-toolbar-btn admin-toolbar-dropdown-icon" data-tooltip="標題 4" aria-label="標題 4" role="menuitem" @click="api?.wrapInHeading?.(4); openDropdown = null">
+        <button type="button" class="admin-toolbar-btn admin-toolbar-dropdown-icon" :class="{ 'admin-toolbar-btn-active': activeHeadingLevel === 4 }" data-tooltip="標題 4" aria-label="標題 4" role="menuitem" @click="onHeadingClick(4); openDropdown = null">
           <span>4</span>
         </button>
-        <button type="button" class="admin-toolbar-btn admin-toolbar-dropdown-icon" data-tooltip="標題 5" aria-label="標題 5" role="menuitem" @click="api?.wrapInHeading?.(5); openDropdown = null">
+        <button type="button" class="admin-toolbar-btn admin-toolbar-dropdown-icon" :class="{ 'admin-toolbar-btn-active': activeHeadingLevel === 5 }" data-tooltip="標題 5" aria-label="標題 5" role="menuitem" @click="onHeadingClick(5); openDropdown = null">
           <span>5</span>
         </button>
-        <button type="button" class="admin-toolbar-btn admin-toolbar-dropdown-icon" data-tooltip="標題 6" aria-label="標題 6" role="menuitem" @click="api?.wrapInHeading?.(6); openDropdown = null">
+        <button type="button" class="admin-toolbar-btn admin-toolbar-dropdown-icon" :class="{ 'admin-toolbar-btn-active': activeHeadingLevel === 6 }" data-tooltip="標題 6" aria-label="標題 6" role="menuitem" @click="onHeadingClick(6); openDropdown = null">
           <span>6</span>
         </button>
       </div>
@@ -56,12 +56,12 @@
     <button type="button" class="admin-toolbar-btn" :class="{ 'admin-toolbar-btn-active': activeFormatting?.strikethrough }" data-tooltip="刪除線" aria-label="刪除線" @click="api?.toggleStrikethrough?.()">
       <Icon name="heroicons:strikethrough" size="18" />
     </button>
-    <!-- Underline: not supported in Markdown -->
-    <button type="button" class="admin-toolbar-btn" data-tooltip="底線（Markdown 不支援）" aria-label="底線（Markdown 不支援）" disabled>
+    <!-- Underline: uses [text]{.underline}; click again to remove -->
+    <button type="button" class="admin-toolbar-btn" :class="{ 'admin-toolbar-btn-active': activeTextColor === 'underline' }" data-tooltip="底線" aria-label="底線" @click="onSpanClassClick('underline')">
       <Icon name="heroicons:underline" size="18" />
     </button>
-    <!-- Highlight: not supported -->
-    <button type="button" class="admin-toolbar-btn" data-tooltip="螢光（Markdown 不支援）" aria-label="螢光（Markdown 不支援）" disabled>
+    <!-- Highlight: uses [text]{.highlight}; click again to remove -->
+    <button type="button" class="admin-toolbar-btn" :class="{ 'admin-toolbar-btn-active': activeTextColor === 'highlight' }" data-tooltip="螢光" aria-label="螢光" @click="onSpanClassClick('highlight')">
       <Icon name="heroicons:paint-brush" size="18" />
     </button>
 
@@ -179,24 +179,37 @@
             :title="preset.label ?? preset.class"
             :aria-label="preset.label ?? preset.class"
             @mousedown.prevent
-            @click="api?.applyTextColor?.(preset.class)"
+            @click="onSpanClassClick(preset.class)"
           />
         </div>
       </div>
     </div>
 
-    <!-- Font background: not supported (no tooltip on parent) -->
+    <!-- Font background: uses [text]{.bg-hue-n} -->
     <div
       class="admin-toolbar-dropdown-wrap"
       @mouseenter="enterDropdown('fontBg')"
       @mouseleave="scheduleCloseDropdown"
     >
-      <button type="button" class="admin-toolbar-btn" disabled>
+      <button type="button" class="admin-toolbar-btn" data-tooltip="文字背景色" aria-label="文字背景色" @mousedown.prevent>
         <Icon name="heroicons:square-2-stack" size="18" />
         <Icon name="heroicons:chevron-down" size="12" class="admin-toolbar-chevron" />
       </button>
-      <div v-show="openDropdown === 'fontBg'" class="admin-toolbar-dropdown admin-toolbar-dropdown-row" role="menu">
-        <span class="admin-toolbar-dropdown-hint">Markdown 不支援背景色</span>
+      <div v-show="openDropdown === 'fontBg'" class="admin-toolbar-dropdown admin-toolbar-dropdown-colors" role="menu">
+        <div v-for="row in editorBgColorRows" :key="'bg-' + row.hue" class="admin-toolbar-color-row">
+          <button
+            v-for="preset in row.presets"
+            :key="preset.class"
+            type="button"
+            class="admin-toolbar-color-swatch"
+            :class="{ 'admin-toolbar-color-swatch-active': activeTextColor === preset.class }"
+            :style="{ backgroundColor: preset.hex }"
+            :title="preset.label ?? preset.class"
+            :aria-label="preset.label ?? preset.class"
+            @mousedown.prevent
+            @click="onSpanClassClick(preset.class)"
+          />
+        </div>
       </div>
     </div>
 
@@ -218,7 +231,7 @@
 
 <script setup lang="ts">
 import type { EditorToolbarApi } from "./MilkdownEditorInner.vue";
-import { EDITOR_COLOR_ROWS } from "~/lib/editor-colors";
+import { EDITOR_COLOR_ROWS, EDITOR_BG_COLOR_ROWS } from "~/lib/editor-colors";
 
 const props = defineProps<{
   api: EditorToolbarApi | null;
@@ -227,6 +240,7 @@ const props = defineProps<{
 const openDropdown = ref<"hn" | "quote" | "advanced" | "lists" | "fontColor" | "fontBg" | null>(null);
 
 const editorColorRows = EDITOR_COLOR_ROWS;
+const editorBgColorRows = EDITOR_BG_COLOR_ROWS;
 
 const activeFormatting = ref<{ bold: boolean; italic: boolean; strikethrough: boolean }>({
   bold: false,
@@ -235,6 +249,7 @@ const activeFormatting = ref<{ bold: boolean; italic: boolean; strikethrough: bo
 });
 
 const activeTextColor = ref<string | null>(null);
+const activeHeadingLevel = ref<number>(0);
 
 const ACTIVE_POLL_INTERVAL_MS = 200;
 let activePollTimer: ReturnType<typeof setInterval> | null = null;
@@ -244,6 +259,24 @@ function pollActiveFormatting() {
   if (next) activeFormatting.value = next;
   const color = props.api?.getActiveTextColor?.();
   activeTextColor.value = color ?? null;
+  const level = props.api?.getActiveHeadingLevel?.();
+  activeHeadingLevel.value = level ?? 0;
+}
+
+function onHeadingClick(level: number) {
+  if (activeHeadingLevel.value === level) {
+    props.api?.setBlockTypeToParagraph?.();
+  } else {
+    props.api?.wrapInHeading?.(level);
+  }
+}
+
+function onSpanClassClick(className: string) {
+  if (activeTextColor.value === className) {
+    props.api?.removeTextColor?.();
+  } else {
+    props.api?.applyTextColor?.(className);
+  }
 }
 
 onMounted(() => {

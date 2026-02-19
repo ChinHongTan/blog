@@ -17,10 +17,12 @@ import {
   clearTextInCurrentBlockCommand,
   codeBlockSchema,
   emphasisSchema,
+  headingSchema,
   hrSchema,
   isMarkSelectedCommand,
   listItemSchema,
   orderedListSchema,
+  paragraphSchema,
   selectTextNearPosCommand,
   setBlockTypeCommand,
   strongSchema,
@@ -44,6 +46,7 @@ import {
   spanClassFeature,
   spanClassSchema,
   applySpanClassCommand,
+  removeSpanClassCommand,
 } from "~/lib/milkdown-span-class";
 import { markdownRevealPlugin } from "~/lib/milkdown-markdown-reveal";
 
@@ -60,6 +63,8 @@ export type EditorToolbarApi = {
   undo: () => void;
   redo: () => void;
   wrapInHeading: (level: number) => void;
+  getActiveHeadingLevel: () => number;
+  setBlockTypeToParagraph: () => void;
   toggleBold: () => void;
   toggleItalic: () => void;
   toggleStrikethrough: () => void;
@@ -78,6 +83,7 @@ export type EditorToolbarApi = {
   insertCodeBlock: (language?: string) => void;
   insertMathBlock: () => void;
   applyTextColor: (className: string) => void;
+  removeTextColor: () => void;
   getActiveTextColor: () => string | null;
 };
 
@@ -186,6 +192,28 @@ watch(
         wrapInHeading: (level: number) =>
           runCommand((ctx) =>
             ctx.get(commandsCtx).call(wrapInHeadingCommand.key, level)
+          ),
+        getActiveHeadingLevel: () => {
+          let level = 0;
+          builderInstance?.editor.action((ctx) => {
+            const view = ctx.get(editorViewCtx);
+            const headingType = headingSchema.type(ctx);
+            const { $from } = view.state.selection;
+            for (let d = $from.depth; d > 0; d--) {
+              const node = $from.node(d);
+              if (node.type === headingType) {
+                level = (node.attrs?.level as number) ?? 1;
+                return;
+              }
+            }
+          });
+          return level;
+        },
+        setBlockTypeToParagraph: () =>
+          runCommand((ctx) =>
+            ctx.get(commandsCtx).call(setBlockTypeCommand.key, {
+              nodeType: paragraphSchema.type(ctx),
+            })
           ),
         toggleBold: () =>
           runCommand((ctx) => ctx.get(commandsCtx).call(toggleStrongCommand.key)),
@@ -303,6 +331,10 @@ watch(
           runCommand((ctx) =>
             ctx.get(commandsCtx).call(applySpanClassCommand.key, className)
           ),
+        removeTextColor: () =>
+          runCommand((ctx) =>
+            ctx.get(commandsCtx).call(removeSpanClassCommand.key)
+          ),
         getActiveTextColor: () => {
           let result: string | null = null;
           try {
@@ -341,6 +373,28 @@ defineExpose({
   wrapInHeading: (level: number) =>
     runCommand((ctx) =>
       ctx.get(commandsCtx).call(wrapInHeadingCommand.key, level)
+    ),
+  getActiveHeadingLevel: () => {
+    let level = 0;
+    builderInstance?.editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      const headingType = headingSchema.type(ctx);
+      const { $from } = view.state.selection;
+      for (let d = $from.depth; d > 0; d--) {
+        const node = $from.node(d);
+        if (node.type === headingType) {
+          level = (node.attrs?.level as number) ?? 1;
+          return;
+        }
+      }
+    });
+    return level;
+  },
+  setBlockTypeToParagraph: () =>
+    runCommand((ctx) =>
+      ctx.get(commandsCtx).call(setBlockTypeCommand.key, {
+        nodeType: paragraphSchema.type(ctx),
+      })
     ),
   toggleBold: () =>
     runCommand((ctx) => ctx.get(commandsCtx).call(toggleStrongCommand.key)),
@@ -455,6 +509,10 @@ defineExpose({
   applyTextColor: (className: string) =>
     runCommand((ctx) =>
       ctx.get(commandsCtx).call(applySpanClassCommand.key, className)
+    ),
+  removeTextColor: () =>
+    runCommand((ctx) =>
+      ctx.get(commandsCtx).call(removeSpanClassCommand.key)
     ),
   getActiveTextColor: () => {
     let result: string | null = null;

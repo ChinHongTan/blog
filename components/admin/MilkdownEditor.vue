@@ -49,6 +49,8 @@ defineExpose({
   undo: () => toolbarApi?.undo(),
   redo: () => toolbarApi?.redo(),
   wrapInHeading: (level: number) => toolbarApi?.wrapInHeading(level),
+  getActiveHeadingLevel: () => toolbarApi?.getActiveHeadingLevel() ?? 0,
+  setBlockTypeToParagraph: () => toolbarApi?.setBlockTypeToParagraph(),
   toggleBold: () => toolbarApi?.toggleBold(),
   toggleItalic: () => toolbarApi?.toggleItalic(),
   toggleStrikethrough: () => toolbarApi?.toggleStrikethrough(),
@@ -67,6 +69,7 @@ defineExpose({
   insertCodeBlock: (language?: string) => toolbarApi?.insertCodeBlock(language),
   insertMathBlock: () => toolbarApi?.insertMathBlock(),
   applyTextColor: (className: string) => toolbarApi?.applyTextColor(className),
+  removeTextColor: () => toolbarApi?.removeTextColor(),
   getActiveTextColor: () => toolbarApi?.getActiveTextColor() ?? null,
 });
 </script>
