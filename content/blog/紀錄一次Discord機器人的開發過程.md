@@ -1,7 +1,7 @@
 ---
 title: 紀錄一次Discord機器人的開發過程
 description: 閒著沒事幹當作練習～
-date: 2026-02-22T09:31:12.988Z
+date: 2026-02-22T09:31:22.018Z
 author: chinono
 path: /blog/紀錄一次Discord機器人的開發過程
 featured_image: /images/uploads/1771752251524-108199050_p0.jpg
@@ -19,12 +19,14 @@ featured_image: /images/uploads/1771752251524-108199050_p0.jpg
 
 ## 1. 介紹
 
-如果你在 2026 年還想弄一個能在 Discord 語音頻道裡播歌的機器人，馬上就會意識到這是一件苦差事。自從 Groovy 和 Rythm 在 2021 年被 YouTube 官方強制下線後，開發音樂機器人就成了一場開發者與YouTube 的軍備競賽。我曾經用的 **[`node-ytdl-core`](https://github.com/fent/node-ytdl-core)**已在2024年8月正式停止開發，而其他的 package ：**[`play-dl`](https://github.com/play-dl/play-dl)**和**[`ytdl-core`](https://github.com/distubejs/ytdl-core)**也紛紛停止開發了。
+如果你在 2026 年還想弄一個能在 Discord 語音頻道裡播歌的機器人，馬上就會意識到這是一件苦差事。自從 Groovy 和 Rythm 在 2021 年被 YouTube 官方強制下線後，開發音樂機器人就成了一場開發者與YouTube 的軍備競賽。我曾經用的 \*\*[`node-ytdl-core`](https://github.com/fent/node-ytdl-core)**已在2024年8月正式停止開發，而其他的 package ：**[`play-dl`](https://github.com/play-dl/play-dl)**和**[`ytdl-core`](https://github.com/distubejs/ytdl-core)\*\*也紛紛停止開發了。
 
 想用以前的老套路，下載仍然有在更新的 package 直接抓去 YouTube 音源放到 Discord 裡播放，也有許多缺點：
 
 * **極度脆弱：** YouTube 現在會主動打擊爬蟲。他們會頻繁更改客戶端、加密演算法，甚至對資料中心的 IP 進行嚴格的限流。這意味著機器人可能昨天還好好的，今天早上起來就滿地報錯。
+
 * **效能問題：** Node.js 是一個單執行緒（Single-threaded）的執行環境，不是設計來做繁重媒體處理的。讓它一邊下載音訊、解碼，還要重新編碼並即時推送到 Discord，只要同時服務幾個不同的伺服器，CPU 就要撐不住開始哀嚎了。Java 比 JavaScript 效能要好得多。
+
 * **職責過載：** 機器人要負責監聽 Discord 訊息事件、爬取 YouTube、處理音軌，還要維持語音頻道的串流。只要其中一個環節崩潰，整個機器人就會直接斷線。
 
 ## 2. Lavalink
