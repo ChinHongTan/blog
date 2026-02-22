@@ -1,7 +1,7 @@
 ---
 title: 紀錄一次Discord機器人的開發過程
 description: 閒著沒事幹當作練習～
-date: 2026-02-22T15:36:46.376Z
+date: 2026-02-22T16:38:03.321Z
 author: chinono
 path: /blog/紀錄一次Discord機器人的開發過程
 featured_image: /images/uploads/1771752251524-108199050_p0.jpg
@@ -9,7 +9,7 @@ featured_image: /images/uploads/1771752251524-108199050_p0.jpg
 
 ###### ~~每次都要找些好看的封面圖還挺麻煩的，就當是美圖分享吧~~
 
-最近假期在家真的閒到發慌。家裡管得嚴，加上妹妹正在準備升學考試，為了不吵到她，我在家也不太好意思一直打遊戲。結果呢，唯一的娛樂活動反而變成了寫程式~~（蛤~~
+最近假期在家真的閒到發慌。家裡管得嚴，加上妹妹正在準備升學考試，為了不吵到她，我在家也不太好意思一直打遊戲。結果呢，唯一的娛樂活動反而變成了寫程式\~\~（蛤\~\~
 
 剛好，把我這個小破站翻新完之後，突然覺得有點空虛，沒有什麼別的事要做了。於是，在發呆了一下午之後還是決定：不如再來試著重新寫一次 Discord 音樂機器人好了。
 
@@ -23,7 +23,7 @@ featured_image: /images/uploads/1771752251524-108199050_p0.jpg
 
 如果你在 2026 年還想弄一個能在 Discord 語音頻道裡播歌的機器人，查完資料你就會發現，這是一件苦差事。
 
-自從 Groovy 和 Rythm 在 2021 年被 YouTube 官方強制下線後，開發音樂機器人就成了一場開發者與YouTube 的軍備競賽。以前方便好用的 **[`node-ytdl-core`](https://github.com/fent/node-ytdl-core)**在2024年就掛掉了**，而其他的替代品 ：**[`play-dl`](https://github.com/play-dl/play-dl)和[`ytdl-core`](https://github.com/distubejs/ytdl-core)也紛紛停止開發了。
+自從 Groovy 和 Rythm 在 2021 年被 YouTube 官方強制下線後，開發音樂機器人就成了一場開發者與YouTube 的軍備競賽。以前方便好用的 **[`node-ytdl-core`](https://github.com/fent/node-ytdl-core)在2024年就掛掉了**，而其他的替代品 ：[`play-dl`](https://github.com/play-dl/play-dl)和[`ytdl-core`](https://github.com/distubejs/ytdl-core)也紛紛停止開發了。
 
 想用以前的老套路，硬找個還活著的 package 來下載 YouTube 音源再塞給 Discord，你會遇到一堆問題：
 
@@ -66,11 +66,11 @@ Music-bot/
 
 運行邏輯大約是這樣的：
 
-![0.97](blob\:https://blog.chinono.dev/2b162400-31c0-4fe4-bebd-9cc8ca080af7)
+![1.00](https://raw.githubusercontent.com/ChinHongTan/blog/main/public/images/uploads/1771778271569-Screenshot_2026-02-23_at_12.36.38_AM.png)
 
 機器人代碼意外的非常簡單。只需要用到 `Shoukaku`（負責跟 Lavalink 溝通）和 `discord.js`（負責跟 Discord 溝通），就可以開始動工了。
 
-一個最基本~~（陽春）~~的機器人代碼（只有`/play` 和 `/stop`指令）：
+一個最基本\~\~（陽春）\~\~的機器人代碼（只有`/play` 和 `/stop`指令）：
 
 ```JavaScript
 import {
