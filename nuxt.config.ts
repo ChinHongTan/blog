@@ -42,6 +42,19 @@ export default defineNuxtConfig({
   content: {
     build: {
       markdown: {
+        highlight: {
+          theme: {
+            default: 'github-light',
+            dark: 'github-dark',
+          },
+          langs: [
+            'json', 'js', 'ts', 'html', 'css', 'vue', 'diff', 'shell',
+            'markdown', 'yaml', 'bash', 'ini', 'python', 'java', 'c',
+            'cpp', 'csharp', 'go', 'rust', 'sql', 'graphql', 'docker',
+            'xml', 'jsx', 'tsx', 'scss', 'less', 'ruby', 'php', 'swift',
+            'kotlin', 'lua', 'r', 'perl', 'toml',
+          ],
+        },
         remarkPlugins: {
           'remark-directive': {
             instance: remarkDirective

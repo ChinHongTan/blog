@@ -50,6 +50,8 @@ import {
 } from "~/lib/milkdown-span-class";
 import { markdownRevealPlugin } from "~/lib/milkdown-markdown-reveal";
 
+const { uploadImage } = useUploadImage();
+
 const props = withDefaults(
   defineProps<{
     defaultValue?: string;
@@ -92,8 +94,24 @@ const emit = defineEmits<{
   markdownChange: [markdown: string];
 }>();
 
+async function handleImageUpload(file: File): Promise<string> {
+  const path = await uploadImage(file);
+  const config = useRuntimeConfig();
+  const repo = config.public.githubRepo as string;
+  return `https://raw.githubusercontent.com/${repo}/main/public${path}`;
+}
+
 const zhTWConfig = {
   [CrepeFeature.Placeholder]: { text: "請輸入內容…" },
+  [CrepeFeature.ImageBlock]: {
+    onUpload: handleImageUpload,
+    blockOnUpload: handleImageUpload,
+    inlineOnUpload: handleImageUpload,
+    blockUploadButton: "上傳圖片",
+    inlineUploadButton: "上傳圖片",
+    blockUploadPlaceholderText: "點擊上傳或輸入圖片網址",
+    inlineUploadPlaceholderText: "點擊上傳或輸入圖片網址",
+  },
   [CrepeFeature.CodeMirror]: {
     searchPlaceholder: "搜尋語言",
     noResultText: "無結果",

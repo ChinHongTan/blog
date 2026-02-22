@@ -234,18 +234,31 @@ code {
 }
 
 pre {
-    background: var(--color-text-primary);
-    color: #f8fafc;
     padding: 1.5rem;
     border-radius: 8px;
     overflow-x: auto;
     margin: 1.5rem 0;
 }
 
+pre:not(.shiki) {
+    background: #24292e;
+    color: #e1e4e8;
+}
+
 pre code {
     background: transparent;
     padding: 0;
     color: inherit;
+}
+
+/* Shiki dual-theme support: switch to dark colors in dark mode */
+html.dark .shiki,
+html.dark .shiki span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 
 /* Selection color */

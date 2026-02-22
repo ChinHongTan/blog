@@ -1611,9 +1611,15 @@ html.dark .post-content :deep(span.gray-dark) { color: #d1d5db; }
 
 .post-content :deep(pre) {
 	margin: 1.5rem 0;
-	background: var(--color-text-primary);
 	border-radius: 8px;
 	box-shadow: var(--shadow-md);
+	padding: 1.5rem;
+	overflow-x: auto;
+}
+
+.post-content :deep(pre:not(.shiki)) {
+	background: #24292e;
+	color: #e1e4e8;
 }
 
 .post-content :deep(code) {

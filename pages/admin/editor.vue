@@ -137,7 +137,7 @@
             @change="onFeaturedFileChange"
           >
           <template v-if="meta.featured_image">
-            <img :src="meta.featured_image" :alt="meta.title || '精選圖片'" >
+            <img :src="featuredImagePreviewUrl" :alt="meta.title || '精選圖片'" >
             <div class="admin-hero-title-wrap">
               <h2 class="admin-hero-title">{{ meta.title || "未命名" }}</h2>
             </div>
@@ -360,6 +360,19 @@ const propertiesOpen = ref(true);
 const { uploadImage, uploading: featuredUploading } = useUploadImage();
 const { uploadImage: uploadImageAvatar, uploading: avatarUploading } = useUploadImage();
 const { uploadImage: uploadImageBanner, uploading: bannerUploading } = useUploadImage();
+
+const runtimeConfig = useRuntimeConfig();
+
+function toPreviewUrl(path: string | undefined): string {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const repo = runtimeConfig.public.githubRepo as string;
+  return `https://raw.githubusercontent.com/${repo}/main/public${path}`;
+}
+
+const featuredImagePreviewUrl = computed(() => toPreviewUrl(meta.featured_image));
+const avatarPreviewUrl = computed(() => toPreviewUrl(meta.avatar));
+const bannerPreviewUrl = computed(() => toPreviewUrl(meta.banner));
 const featuredFileInput = ref<HTMLInputElement | null>(null);
 const authorAvatarFileInput = ref<HTMLInputElement | null>(null);
 const authorBannerFileInput = ref<HTMLInputElement | null>(null);
