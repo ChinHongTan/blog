@@ -2,6 +2,7 @@ interface PostMeta {
   title: string;
   description: string;
   date: string;
+  edited_at: string;
   author: string;
   path: string;
   series: string[];
@@ -26,6 +27,7 @@ export function buildPostFrontmatter(meta: PostMeta): string {
   if (meta.title) lines.push(`title: ${meta.title}`);
   if (meta.description) lines.push(`description: ${meta.description}`);
   if (meta.date) lines.push(`date: ${meta.date}`);
+  if (meta.edited_at) lines.push(`edited_at: ${meta.edited_at}`);
   if (meta.author) lines.push(`author: ${meta.author}`);
   if (meta.path) lines.push(`path: ${meta.path}`);
   if (meta.featured_image) lines.push(`featured_image: ${meta.featured_image}`);
@@ -79,10 +81,9 @@ export function parseFrontmatter(raw: string, docType: string): { meta: Partial<
     const seriesMatch = raw.match(/series:\s*\n((?:\s+-\s*.+\n?)+)/);
     if (seriesMatch) {
       result.series = seriesMatch[1]
-        .replace(/^\s*-\s*/gm, "")
-        .trim()
-        .split(/\n\s*-\s*/)
-        .map((s) => s.trim())
+        .split(/\n/)
+        .map((s) => s.replace(/^\s*-\s*/, "").trim())
+        .map((s) => s.replace(/^["']|["']$/g, ""))
         .filter(Boolean);
     }
   }
@@ -91,10 +92,9 @@ export function parseFrontmatter(raw: string, docType: string): { meta: Partial<
     const tagsMatch = raw.match(/tags:\s*\n((?:\s+-\s*.+\n?)+)/);
     if (tagsMatch) {
       result.tags = tagsMatch[1]
-        .replace(/^\s*-\s*/gm, "")
-        .trim()
-        .split(/\n\s*-\s*/)
-        .map((s) => s.trim())
+        .split(/\n/)
+        .map((s) => s.replace(/^\s*-\s*/, "").trim())
+        .map((s) => s.replace(/^["']|["']$/g, ""))
         .filter(Boolean);
     }
   }

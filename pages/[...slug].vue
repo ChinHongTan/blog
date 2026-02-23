@@ -445,6 +445,16 @@ onMounted(() => {
 										})
 									}}
 								</span>
+								<span v-if="page.edited_at" class="meta-item">
+									<Icon name="heroicons:pencil-square" size="16" />
+									Edited {{
+										new Date(page.edited_at).toLocaleDateString("en-US", {
+											month: "long",
+											day: "numeric",
+											year: "numeric",
+										})
+									}}
+								</span>
 								<span class="meta-item">
 									<Icon name="heroicons:clock" size="16" />
 									{{ readingTime }} 分鐘閱讀

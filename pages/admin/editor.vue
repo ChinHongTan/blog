@@ -115,6 +115,10 @@
                 >
               </div>
             </div>
+            <div v-if="meta.edited_at" class="admin-property-tr">
+              <span class="admin-property-name">最後編輯</span>
+              <span class="admin-property-cell admin-property-readonly">{{ formatEditedAt(meta.edited_at) }}</span>
+            </div>
           </div>
             </div>
           </Transition>
@@ -325,6 +329,7 @@ const meta = reactive({
   title: "",
   description: "",
   date: "",
+  edited_at: "",
   author: "",
   path: "",
   series: [] as string[],
@@ -386,6 +391,14 @@ function focusTagInput() {
 }
 function focusSeriesInput() {
   seriesInputRef.value?.focus();
+}
+function formatEditedAt(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString("zh-TW", {
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit",
+    });
+  } catch { return iso; }
 }
 function addTag() {
   const el = tagInputRef.value;
@@ -769,7 +782,11 @@ function loadFromApi(): Promise<void> {
 async function publish() {
   if (docType.value === "post") {
     if (!meta.title) syncTitleFromFirstH1();
-    meta.date = new Date().toISOString();
+    if (meta.date) {
+      meta.edited_at = new Date().toISOString();
+    } else {
+      meta.date = new Date().toISOString();
+    }
     meta.author = currentUserAuthorId.value ?? meta.author;
     if (!pathQuery.value) {
       meta.path = `/blog/${slugifyTitle(meta.title)}`;
@@ -1355,6 +1372,10 @@ onUnmounted(() => {
 .admin-property-cell:focus {
   outline: 1px solid var(--color-primary);
   outline-offset: 1px;
+}
+.admin-property-readonly {
+  opacity: 0.7;
+  cursor: default;
 }
 .admin-property-cell-flex {
   display: flex;

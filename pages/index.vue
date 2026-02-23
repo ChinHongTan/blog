@@ -466,6 +466,16 @@ onBeforeUnmount(() => {
 													})
 												}}
 											</span>
+											<span v-if="post.edited_at" class="meta-item post-date post-edited-at">
+												<Icon name="heroicons:pencil-square" size="15" class="meta-icon" />
+												{{
+													new Date(post.edited_at).toLocaleDateString("zh-TW", {
+														year: "numeric",
+														month: "2-digit",
+														day: "2-digit",
+													})
+												}}
+											</span>
 											<div
 												v-if="Array.isArray(post.tags) && post.tags.length"
 												class="tags-group"

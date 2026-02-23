@@ -17,6 +17,7 @@ export default defineContentConfig({
                     date: z.coerce.date(),
                     draft: z.boolean().optional(),
                     featured_image: z.string().optional(),
+                    edited_at: z.coerce.date().optional(),
                     tags: z.array(z.string()).optional(),
                     series: z.array(z.string()).optional(),
                     path: z.string().optional()
