@@ -459,6 +459,10 @@ onMounted(() => {
 									<Icon name="heroicons:clock" size="16" />
 									{{ readingTime }} 分鐘閱讀
 								</span>
+								<span class="meta-item">
+									<Icon name="heroicons:eye" size="16" />
+									<span id="vercount_value_page_pv">-</span> 次瀏覽
+								</span>
 							</div>
 						</div>
 

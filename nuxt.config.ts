@@ -93,6 +93,9 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap' },
+      ],
+      script: [
+        { src: 'https://events.vercount.one/js', defer: true },
       ]
     }
   },
@@ -116,11 +119,11 @@ export default defineNuxtConfig({
       headers: {
         'Content-Security-Policy': [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://events.vercount.one",
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
           "font-src 'self' https://fonts.gstatic.com",
           "img-src 'self' data: https: blob:",
-          "connect-src 'self' https://waline.chinono.dev https://api.github.com https://placehold.co https://raw.githubusercontent.com",
+          "connect-src 'self' https://waline.chinono.dev https://api.github.com https://placehold.co https://raw.githubusercontent.com https://events.vercount.one",
           "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
         ].join('; '),
         'X-Content-Type-Options': 'nosniff',
