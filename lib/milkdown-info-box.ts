@@ -100,7 +100,7 @@ function isContainerDirective(
 
 export const infoBoxAttr = $nodeAttr("infoBox");
 
-export const infoBoxSchema = $nodeSchema("infoBox", (ctx) => ({
+export const infoBoxSchema = $nodeSchema("infoBox", (_ctx) => ({
   content: "block+",
   group: "block",
   defining: true,
@@ -193,7 +193,7 @@ function remarkDirectiveStringify(): MilkdownPlugin {
 
 /** Input rule: typing :::info at start of line converts to an info box. */
 const infoBoxInputRule = $inputRule((ctx) =>
-  new InputRule(/^:::info\s*$/, (state, _match, start, end) => {
+  new InputRule(/^:::info\s*$/, (state, _match, start, _end) => {
     const $start = state.doc.resolve(start);
     const blockStart = $start.start();
     const blockEnd = $start.end();

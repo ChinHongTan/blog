@@ -5,7 +5,7 @@
  */
 import { visit } from 'unist-util-visit'
 
-const TRAILING_ID = /\s+\{\#([^}]+)\}\s*$/
+const TRAILING_ID = /\s+\{#([^}]+)\}\s*$/
 
 export default function remarkHeadingId() {
   return (tree) => {

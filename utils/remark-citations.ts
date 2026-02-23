@@ -61,10 +61,12 @@ export default function remarkCitations() {
           })
         }
 
-        // Add citation as HTML
+        // Deterministic ID using citation key for SSR hydration stability
+        const instanceIndex = matches.slice(0, matches.indexOf(match) + 1)
+          .filter(m => (m[2] || m[3]) === key).length;
         newNodes.push({
           type: 'html',
-          value: `<sup class="citation"><a href="#ref-${citation.number}" id="cite-${citation.number}-${Math.random().toString(36).substr(2, 9)}">${citation.number}</a></sup>`
+          value: `<sup class="citation"><a href="#ref-${citation.number}" id="cite-${citation.number}-${instanceIndex}">${citation.number}</a></sup>`
         })
 
         lastIndex = matchIndex + match[0].length
@@ -120,7 +122,7 @@ export default function remarkCitations() {
                 // Insert backlink HTML at the beginning
                 firstChild.children.unshift({
                   type: 'html',
-                  value: `<span id="ref-${refNumber}" class="reference-number"></span><a href="#cite-${refNumber}" class="backlink" aria-label="Back to citation ${refNumber}">↩</a> `
+                  value: `<span id="ref-${refNumber}" class="reference-number"></span><a href="#cite-${refNumber}-1" class="backlink" aria-label="Back to citation ${refNumber}">↩</a> `
                 } as Html)
               }
             }

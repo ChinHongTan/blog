@@ -1,5 +1,8 @@
 import { readMultipartFormData } from "h3";
-import { getOctokit, getRepoOwnerRepo } from "../../../utils/github";
+import { getOctokit, getRepoOwnerRepo, validateAdminPath } from "../../../utils/github";
+
+const ALLOWED_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif"]);
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export default defineEventHandler(async (event) => {
   const octokit = getOctokit(event);
@@ -11,9 +14,17 @@ export default defineEventHandler(async (event) => {
   if (!file?.data) {
     throw createError({ statusCode: 400, message: "No file uploaded" });
   }
+  if (file.data.length > MAX_FILE_SIZE) {
+    throw createError({ statusCode: 400, message: "File too large (max 5MB)" });
+  }
   const name = file.filename || "image.png";
+  const ext = name.includes(".") ? `.${name.split(".").pop()!.toLowerCase()}` : "";
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    throw createError({ statusCode: 400, message: `File type not allowed. Accepted: ${[...ALLOWED_EXTENSIONS].join(", ")}` });
+  }
   const safeName = `${Date.now()}-${name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
   const path = `${pathPrefix}/${safeName}`;
+  validateAdminPath(path);
   const content = Buffer.from(file.data).toString("base64");
   try {
     await octokit.repos.createOrUpdateFileContents({

@@ -1,5 +1,5 @@
 import { readBody } from "h3";
-import { getOctokit, getRepoOwnerRepo } from "../../../utils/github";
+import { getOctokit, getRepoOwnerRepo, validateAdminPath } from "../../../utils/github";
 
 export default defineEventHandler(async (event) => {
   const octokit = getOctokit(event);
@@ -10,6 +10,7 @@ export default defineEventHandler(async (event) => {
   if (!path || !sha) {
     throw createError({ statusCode: 400, message: "path and sha are required" });
   }
+  validateAdminPath(path);
   const commitMessage = message || `Delete ${path}`;
   try {
     await octokit.repos.deleteFile({ owner, repo, path, sha, message: commitMessage });

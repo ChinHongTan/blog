@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { BlogCollectionItem } from "@nuxt/content";
+import type { AuthorCollectionItem, DisplayPost } from "~/types/content";
 import { useTheme } from "#imports";
 import { getAuthorId } from "~/composables/useAuthorId";
 
@@ -9,25 +10,27 @@ const _heroImageSrc = computed(() =>
 	theme.value === "dark" ? "/images/background_dark.jpg" : "/images/background_light.jpg"
 );
 
-type AuthorCollectionItem = {
-	name?: string;
-	bio?: string;
-	avatar?: string;
-	path?: string;
-	[key: string]: unknown;
-};
-
-type DisplayPost = BlogCollectionItem & {
-	path: string;
-	authorAvatar?: string;
-	authorBio?: string;
-	/** Display name (from author file); post.author is the immutable ID */
-	authorDisplayName?: string;
-};
-
 const route = useRoute();
 const fullDescription =
 	"這裡有生活，也有故事，隨便看看吧。";
+
+useHead({
+	title: "星谷雜貨店",
+	meta: [
+		{ name: "description", content: fullDescription },
+	],
+});
+
+useSeoMeta({
+	ogTitle: "星谷雜貨店",
+	ogDescription: fullDescription,
+	ogType: "website",
+	ogUrl: "https://blog.chinono.dev",
+	ogImage: "/images/background_light.jpg",
+	twitterCard: "summary_large_image",
+	twitterTitle: "星谷雜貨店",
+	twitterDescription: fullDescription,
+});
 
 const { data: posts, refresh: refreshPosts } = await useAsyncData<BlogCollectionItem[]>("posts", () =>
 	queryCollection("blog").order("date", "DESC").all()
@@ -144,6 +147,27 @@ const filteredPosts = computed<DisplayPost[]>(() => {
 
 	return filtered;
 });
+
+const POSTS_PER_PAGE = 12;
+const currentPage = ref(1);
+
+watch([tagFilter, yearFilter, authorFilter, categoryFilter, searchQuery], () => {
+	currentPage.value = 1;
+});
+
+const paginatedPosts = computed(() => {
+	const start = 0;
+	const end = currentPage.value * POSTS_PER_PAGE;
+	return filteredPosts.value.slice(start, end);
+});
+
+const hasMorePosts = computed(() =>
+	currentPage.value * POSTS_PER_PAGE < filteredPosts.value.length
+);
+
+function loadMore() {
+	currentPage.value++;
+}
 
 const activeFilter = computed(() => {
 	if (tagFilter.value) return `標籤：${tagFilter.value}`;
@@ -399,7 +423,7 @@ onBeforeUnmount(() => {
 
 					<div v-if="filteredPosts.length > 0" class="posts-grid">
 						<article
-							v-for="post in filteredPosts"
+							v-for="post in paginatedPosts"
 							:key="post.id"
 							class="post-card"
 						>
@@ -466,8 +490,13 @@ onBeforeUnmount(() => {
 							</div>
 						</article>
 					</div>
+					<div v-if="hasMorePosts" class="load-more-wrap">
+						<button type="button" class="load-more-btn" @click="loadMore">
+							載入更多文章
+						</button>
+					</div>
 
-					<div v-else class="no-results">
+					<div v-else-if="filteredPosts.length === 0" class="no-results">
 						<Icon name="heroicons:magnifying-glass-circle" size="48" />
 						<p>找不到相關內容。試試其他搜尋！</p>
 					</div>
@@ -1189,5 +1218,27 @@ onBeforeUnmount(() => {
 	.post-readmore {
 		margin-left: auto;
 	}
+}
+
+.load-more-wrap {
+	display: flex;
+	justify-content: center;
+	margin-top: 2rem;
+}
+.load-more-btn {
+	padding: 0.75rem 2rem;
+	font-size: 0.95rem;
+	font-weight: 500;
+	color: var(--color-text-primary);
+	background: var(--color-bg-primary);
+	border: 1px solid var(--color-border-light);
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+.load-more-btn:hover {
+	background: var(--color-bg-blue-tint);
+	border-color: var(--color-primary);
+	color: var(--color-primary-dark);
 }
 </style>

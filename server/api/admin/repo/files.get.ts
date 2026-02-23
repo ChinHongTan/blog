@@ -1,5 +1,5 @@
 import { getQuery } from "h3";
-import { getOctokit, getRepoOwnerRepo } from "../../../utils/github";
+import { getOctokit, getRepoOwnerRepo, validateAdminPath } from "../../../utils/github";
 
 export default defineEventHandler(async (event) => {
   const octokit = getOctokit(event);
@@ -10,6 +10,7 @@ export default defineEventHandler(async (event) => {
   if (!path) {
     throw createError({ statusCode: 400, message: "path is required" });
   }
+  validateAdminPath(path);
   try {
     const [contentResponse, commitsResponse] = await Promise.all([
       octokit.repos.getContent({ owner, repo, path }),

@@ -141,6 +141,8 @@
 <script setup lang="ts">
 definePageMeta({ layout: "admin" });
 
+const toast = useToast();
+
 type ProfileMe = {
   login: string;
   name: string | null;
@@ -251,7 +253,7 @@ async function save() {
     await load();
   } catch (e) {
     console.error(e);
-    alert("儲存失敗，請查看主控台。");
+    toast.error("儲存失敗，請查看主控台。");
   } finally {
     saving.value = false;
   }
@@ -265,7 +267,7 @@ async function onBannerDrop(e: DragEvent) {
     form.banner = await uploadBanner(file);
   } catch (err) {
     console.error(err);
-    alert("上傳失敗");
+    toast.error("上傳失敗");
   }
 }
 
@@ -274,7 +276,7 @@ function onBannerFileChange(e: Event) {
   const file = input.files?.[0];
   input.value = "";
   if (!file) return;
-  uploadBanner(file).then((path) => { form.banner = path; }).catch((err) => { console.error(err); alert("上傳失敗"); });
+  uploadBanner(file).then((path) => { form.banner = path; }).catch((err) => { console.error(err); toast.error("上傳失敗"); });
 }
 
 async function onAvatarDrop(e: DragEvent) {
@@ -285,7 +287,7 @@ async function onAvatarDrop(e: DragEvent) {
     form.avatar = await uploadAvatar(file);
   } catch (err) {
     console.error(err);
-    alert("上傳失敗");
+    toast.error("上傳失敗");
   }
 }
 
@@ -294,7 +296,7 @@ function onAvatarFileChange(e: Event) {
   const file = input.files?.[0];
   input.value = "";
   if (!file) return;
-  uploadAvatar(file).then((path) => { form.avatar = path; }).catch((err) => { console.error(err); alert("上傳失敗"); });
+  uploadAvatar(file).then((path) => { form.avatar = path; }).catch((err) => { console.error(err); toast.error("上傳失敗"); });
 }
 
 onMounted(load);

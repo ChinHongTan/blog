@@ -1,6 +1,6 @@
 export function useAdminAuth() {
-  const user = ref<{ login: string; name: string | null; avatar_url: string } | null>(null);
-  const loading = ref(true);
+  const user = useState<{ login: string; name: string | null; avatar_url: string } | null>("admin-user", () => null);
+  const loading = useState<boolean>("admin-loading", () => true);
 
   async function fetchUser() {
     loading.value = true;
@@ -27,7 +27,9 @@ export function useAdminAuth() {
   }
 
   onMounted(() => {
-    fetchUser();
+    if (user.value === null && loading.value) {
+      fetchUser();
+    }
   });
 
   return { user, loading, fetchUser, login, logout };

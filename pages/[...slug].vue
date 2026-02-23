@@ -101,6 +101,31 @@ const isBlogPost = computed(
 // Check if page has a date but is not a blog post (like static pages with last updated date)
 const hasDate = computed(() => page.value && "date" in page.value);
 
+useHead(() => ({
+	title: page.value?.title ? `${page.value.title} | 星谷雜貨店` : "星谷雜貨店",
+}));
+
+useSeoMeta(() => {
+	const title = page.value?.title ?? "星谷雜貨店";
+	const description =
+		(page.value as Record<string, unknown> | null)?.description as string | undefined ??
+		title;
+	const image =
+		(page.value as Record<string, unknown> | null)?.featured_image as string | undefined;
+	const url = `https://blog.chinono.dev${route.path}`;
+	return {
+		ogTitle: title,
+		ogDescription: description,
+		ogUrl: url,
+		ogType: "article",
+		ogImage: image,
+		twitterCard: image ? "summary_large_image" : "summary",
+		twitterTitle: title,
+		twitterDescription: description,
+		description,
+	};
+});
+
 // Fetch author profile if author name exists and it's a blog post
 const authorProfile =
 	page.value && "author" in page.value && page.value.author
@@ -224,18 +249,15 @@ useHead({
 	],
 });
 
-onMounted(() => {
+onMounted(async () => {
 	if (isBlogPost.value) {
-		import("https://unpkg.com/@waline/client@v3/dist/waline.js").then(
-			({ init }) => {
-				init({
-					el: "#waline",
-					serverURL: "https://waline.chinono.dev",
-					lang: "zh-TW",
-					dark: "html.dark",
-				});
-			}
-		);
+		const { init } = await import("@waline/client");
+		init({
+			el: "#waline",
+			serverURL: "https://waline.chinono.dev",
+			lang: "zh-TW",
+			dark: "html.dark",
+		});
 	}
 });
 
@@ -510,7 +532,7 @@ onMounted(() => {
 
 		<!-- Scroll Progress Widget (Lower Right) -->
 		<div class="floating-scroll-widget">
-			<div class="progress-ring-container" @click="scrollToTop">
+			<button type="button" class="progress-ring-container" aria-label="回到頂部" @click="scrollToTop">
 				<svg class="progress-ring" width="48" height="48" viewBox="0 0 48 48">
 					<circle
 						class="progress-ring-circle-bg"
@@ -536,7 +558,7 @@ onMounted(() => {
 					<span class="progress-text">{{ Math.round(scrollPercentage) }}</span>
 					<Icon name="heroicons:arrow-up" class="back-to-top-icon" />
 				</div>
-			</div>
+			</button>
 		</div>
 
 	</div>
@@ -1270,6 +1292,7 @@ html.dark .post-content :deep(thead) {
 	position: relative;
 	width: 48px;
 	height: 48px;
+	padding: 0;
 	border-radius: 50%;
 	background: color-mix(in srgb, var(--color-bg-primary) 80%, transparent);
 	backdrop-filter: blur(8px);
@@ -1277,6 +1300,8 @@ html.dark .post-content :deep(thead) {
 	box-shadow: var(--shadow-md);
 	cursor: pointer;
 	transition: all 0.2s ease;
+	font: inherit;
+	color: inherit;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1404,181 +1429,7 @@ html.dark .post-content :deep(.info-box-error) {
 	color: #fecaca;
 }
 
-/* Colored label spans [text]{.red-1} … {.grey-5}: one row per hue, 5 shades (1=light, 5=dark) */
-.post-content :deep(span.red-1), .post-content :deep(span.red-2), .post-content :deep(span.red-3), .post-content :deep(span.red-4), .post-content :deep(span.red-5),
-.post-content :deep(span.orange-1), .post-content :deep(span.orange-2), .post-content :deep(span.orange-3), .post-content :deep(span.orange-4), .post-content :deep(span.orange-5),
-.post-content :deep(span.yellow-1), .post-content :deep(span.yellow-2), .post-content :deep(span.yellow-3), .post-content :deep(span.yellow-4), .post-content :deep(span.yellow-5),
-.post-content :deep(span.green-1), .post-content :deep(span.green-2), .post-content :deep(span.green-3), .post-content :deep(span.green-4), .post-content :deep(span.green-5),
-.post-content :deep(span.teal-1), .post-content :deep(span.teal-2), .post-content :deep(span.teal-3), .post-content :deep(span.teal-4), .post-content :deep(span.teal-5),
-.post-content :deep(span.blue-1), .post-content :deep(span.blue-2), .post-content :deep(span.blue-3), .post-content :deep(span.blue-4), .post-content :deep(span.blue-5),
-.post-content :deep(span.purple-1), .post-content :deep(span.purple-2), .post-content :deep(span.purple-3), .post-content :deep(span.purple-4), .post-content :deep(span.purple-5),
-.post-content :deep(span.pink-1), .post-content :deep(span.pink-2), .post-content :deep(span.pink-3), .post-content :deep(span.pink-4), .post-content :deep(span.pink-5),
-.post-content :deep(span.grey-1), .post-content :deep(span.grey-2), .post-content :deep(span.grey-3), .post-content :deep(span.grey-4), .post-content :deep(span.grey-5) { font-weight: 500; }
-.post-content :deep(span.red-1) { color: #fecaca; }
-.post-content :deep(span.red-2) { color: #f87171; }
-.post-content :deep(span.red-3) { color: #dc2626; }
-.post-content :deep(span.red-4) { color: #b91c1c; }
-.post-content :deep(span.red-5) { color: #7f1d1d; }
-.post-content :deep(span.orange-1) { color: #fed7aa; }
-.post-content :deep(span.orange-2) { color: #fb923c; }
-.post-content :deep(span.orange-3) { color: #ea580c; }
-.post-content :deep(span.orange-4) { color: #c2410c; }
-.post-content :deep(span.orange-5) { color: #9a3412; }
-.post-content :deep(span.yellow-1) { color: #fef08a; }
-.post-content :deep(span.yellow-2) { color: #facc15; }
-.post-content :deep(span.yellow-3) { color: #eab308; }
-.post-content :deep(span.yellow-4) { color: #ca8a04; }
-.post-content :deep(span.yellow-5) { color: #a16207; }
-.post-content :deep(span.green-1) { color: #bbf7d0; }
-.post-content :deep(span.green-2) { color: #4ade80; }
-.post-content :deep(span.green-3) { color: #22c55e; }
-.post-content :deep(span.green-4) { color: #16a34a; }
-.post-content :deep(span.green-5) { color: #15803d; }
-.post-content :deep(span.teal-1) { color: #99f6e4; }
-.post-content :deep(span.teal-2) { color: #2dd4bf; }
-.post-content :deep(span.teal-3) { color: #14b8a6; }
-.post-content :deep(span.teal-4) { color: #0d9488; }
-.post-content :deep(span.teal-5) { color: #0f766e; }
-.post-content :deep(span.blue-1) { color: #bfdbfe; }
-.post-content :deep(span.blue-2) { color: #60a5fa; }
-.post-content :deep(span.blue-3) { color: #2563eb; }
-.post-content :deep(span.blue-4) { color: #1d4ed8; }
-.post-content :deep(span.blue-5) { color: #1e3a8a; }
-.post-content :deep(span.purple-1) { color: #e9d5ff; }
-.post-content :deep(span.purple-2) { color: #c084fc; }
-.post-content :deep(span.purple-3) { color: #a855f7; }
-.post-content :deep(span.purple-4) { color: #7c3aed; }
-.post-content :deep(span.purple-5) { color: #6b21a8; }
-.post-content :deep(span.pink-1) { color: #fbcfe8; }
-.post-content :deep(span.pink-2) { color: #f472b6; }
-.post-content :deep(span.pink-3) { color: #ec4899; }
-.post-content :deep(span.pink-4) { color: #db2777; }
-.post-content :deep(span.pink-5) { color: #be185d; }
-.post-content :deep(span.grey-1) { color: #e5e7eb; }
-.post-content :deep(span.grey-2) { color: #9ca3af; }
-.post-content :deep(span.grey-3) { color: #6b7280; }
-.post-content :deep(span.grey-4) { color: #4b5563; }
-.post-content :deep(span.grey-5) { color: #374151; }
-html.dark .post-content :deep(span.red-1) { color: #fecaca; }
-html.dark .post-content :deep(span.red-2) { color: #f87171; }
-html.dark .post-content :deep(span.red-3) { color: #fca5a5; }
-html.dark .post-content :deep(span.red-4) { color: #f87171; }
-html.dark .post-content :deep(span.red-5) { color: #f87171; }
-html.dark .post-content :deep(span.orange-1) { color: #fed7aa; }
-html.dark .post-content :deep(span.orange-2) { color: #fb923c; }
-html.dark .post-content :deep(span.orange-3) { color: #fdba74; }
-html.dark .post-content :deep(span.orange-4) { color: #fb923c; }
-html.dark .post-content :deep(span.orange-5) { color: #fb923c; }
-html.dark .post-content :deep(span.yellow-1) { color: #fef08a; }
-html.dark .post-content :deep(span.yellow-2) { color: #facc15; }
-html.dark .post-content :deep(span.yellow-3) { color: #fde047; }
-html.dark .post-content :deep(span.yellow-4) { color: #facc15; }
-html.dark .post-content :deep(span.yellow-5) { color: #facc15; }
-html.dark .post-content :deep(span.green-1) { color: #bbf7d0; }
-html.dark .post-content :deep(span.green-2) { color: #4ade80; }
-html.dark .post-content :deep(span.green-3) { color: #86efac; }
-html.dark .post-content :deep(span.green-4) { color: #4ade80; }
-html.dark .post-content :deep(span.green-5) { color: #4ade80; }
-html.dark .post-content :deep(span.teal-1) { color: #99f6e4; }
-html.dark .post-content :deep(span.teal-2) { color: #2dd4bf; }
-html.dark .post-content :deep(span.teal-3) { color: #5eead4; }
-html.dark .post-content :deep(span.teal-4) { color: #2dd4bf; }
-html.dark .post-content :deep(span.teal-5) { color: #2dd4bf; }
-html.dark .post-content :deep(span.blue-1) { color: #bfdbfe; }
-html.dark .post-content :deep(span.blue-2) { color: #60a5fa; }
-html.dark .post-content :deep(span.blue-3) { color: #93c5fd; }
-html.dark .post-content :deep(span.blue-4) { color: #60a5fa; }
-html.dark .post-content :deep(span.blue-5) { color: #60a5fa; }
-html.dark .post-content :deep(span.purple-1) { color: #e9d5ff; }
-html.dark .post-content :deep(span.purple-2) { color: #c084fc; }
-html.dark .post-content :deep(span.purple-3) { color: #c4b5fd; }
-html.dark .post-content :deep(span.purple-4) { color: #a78bfa; }
-html.dark .post-content :deep(span.purple-5) { color: #a78bfa; }
-html.dark .post-content :deep(span.pink-1) { color: #fbcfe8; }
-html.dark .post-content :deep(span.pink-2) { color: #f472b6; }
-html.dark .post-content :deep(span.pink-3) { color: #f9a8d4; }
-html.dark .post-content :deep(span.pink-4) { color: #f472b6; }
-html.dark .post-content :deep(span.pink-5) { color: #f472b6; }
-html.dark .post-content :deep(span.grey-1) { color: #e5e7eb; }
-html.dark .post-content :deep(span.grey-2) { color: #9ca3af; }
-html.dark .post-content :deep(span.grey-3) { color: #d1d5db; }
-html.dark .post-content :deep(span.grey-4) { color: #9ca3af; }
-html.dark .post-content :deep(span.grey-5) { color: #d1d5db; }
-/* Backward compatibility: old class names */
-.post-content :deep(span.red) { color: #dc2626; font-weight: 500; }
-.post-content :deep(span.red-dark) { color: #7f1d1d; font-weight: 500; }
-.post-content :deep(span.orange) { color: #ea580c; font-weight: 500; }
-.post-content :deep(span.orange-dark) { color: #9a3412; font-weight: 500; }
-.post-content :deep(span.green) { color: #22c55e; font-weight: 500; }
-.post-content :deep(span.green-dark) { color: #15803d; font-weight: 500; }
-.post-content :deep(span.blue) { color: #2563eb; font-weight: 500; }
-.post-content :deep(span.blue-dark) { color: #1e3a8a; font-weight: 500; }
-.post-content :deep(span.purple) { color: #a855f7; font-weight: 500; }
-.post-content :deep(span.purple-dark) { color: #6b21a8; font-weight: 500; }
-.post-content :deep(span.gray), .post-content :deep(span.grey) { color: #6b7280; font-weight: 500; }
-.post-content :deep(span.gray-dark) { color: #374151; font-weight: 500; }
-html.dark .post-content :deep(span.red) { color: #f87171; }
-html.dark .post-content :deep(span.red-dark) { color: #f87171; }
-html.dark .post-content :deep(span.orange) { color: #fb923c; }
-html.dark .post-content :deep(span.orange-dark) { color: #fb923c; }
-html.dark .post-content :deep(span.green) { color: #4ade80; }
-html.dark .post-content :deep(span.green-dark) { color: #4ade80; }
-html.dark .post-content :deep(span.blue) { color: #60a5fa; }
-html.dark .post-content :deep(span.blue-dark) { color: #60a5fa; }
-html.dark .post-content :deep(span.purple) { color: #a78bfa; }
-html.dark .post-content :deep(span.purple-dark) { color: #a78bfa; }
-html.dark .post-content :deep(span.gray), html.dark .post-content :deep(span.grey) { color: #9ca3af; }
-html.dark .post-content :deep(span.gray-dark) { color: #d1d5db; }
-
-/* Underline and highlight [text]{.underline} / [text]{.highlight} */
-.post-content :deep(span.underline) { text-decoration: underline; text-underline-offset: 2px; }
-.post-content :deep(span.highlight) { background-color: #fef08a; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-/* Font background [text]{.bg-hue-n} — text colour by background luminance for readability */
-.post-content :deep(span.bg-red-1) { background-color: #fecaca; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-red-2) { background-color: #f87171; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-red-3) { background-color: #dc2626; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-red-4) { background-color: #b91c1c; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-red-5) { background-color: #7f1d1d; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-orange-1) { background-color: #fed7aa; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-orange-2) { background-color: #fb923c; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-orange-3) { background-color: #ea580c; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-orange-4) { background-color: #c2410c; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-orange-5) { background-color: #9a3412; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-yellow-1) { background-color: #fef08a; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-yellow-2) { background-color: #facc15; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-yellow-3) { background-color: #eab308; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-yellow-4) { background-color: #ca8a04; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-yellow-5) { background-color: #a16207; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-green-1) { background-color: #bbf7d0; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-green-2) { background-color: #4ade80; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-green-3) { background-color: #22c55e; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-green-4) { background-color: #16a34a; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-green-5) { background-color: #15803d; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-teal-1) { background-color: #99f6e4; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-teal-2) { background-color: #2dd4bf; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-teal-3) { background-color: #14b8a6; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-teal-4) { background-color: #0d9488; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-teal-5) { background-color: #0f766e; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-blue-1) { background-color: #bfdbfe; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-blue-2) { background-color: #60a5fa; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-blue-3) { background-color: #2563eb; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-blue-4) { background-color: #1d4ed8; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-blue-5) { background-color: #1e3a8a; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-purple-1) { background-color: #e9d5ff; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-purple-2) { background-color: #c084fc; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-purple-3) { background-color: #a855f7; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-purple-4) { background-color: #7c3aed; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-purple-5) { background-color: #6b21a8; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-pink-1) { background-color: #fbcfe8; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-pink-2) { background-color: #f472b6; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-pink-3) { background-color: #ec4899; color: #fff; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-pink-4) { background-color: #db2777; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-pink-5) { background-color: #be185d; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-grey-1) { background-color: #e5e7eb; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-grey-2) { background-color: #9ca3af; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.post-content :deep(span.bg-grey-3) { background-color: #6b7280; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-grey-4) { background-color: #4b5563; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.post-content :deep(span.bg-grey-5) { background-color: #374151; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+/* Color span styles are in ~/assets/css/color-spans.css (loaded globally) */
 
 .post-content :deep(.youtube-embed) {
 	position: relative;

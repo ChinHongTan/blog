@@ -1,12 +1,9 @@
 import { getOctokit, getRepoOwnerRepo } from "../../utils/github";
 
 /**
- * Posts index for admin list. Uses only GitHub API (no queryCollection) so it
- * works on Vercel serverless where Nuxt Content's better-sqlite3 native module fails.
- * Fetches file lists and parses frontmatter from GitHub for title/author/date.
+ * Posts index for admin list. Uses Git Trees API to fetch all content in a
+ * single call, then fetches file contents in parallel batches to avoid N+1.
  */
-
-type ListItem = { name: string; path: string };
 
 function fallbackAvatarUrl(label: string, size = 40): string {
   const initial = (label?.trim()?.[0] ?? "A").toUpperCase();
@@ -21,12 +18,15 @@ function parseFrontmatter(raw: string): Record<string, string> {
   front.split("\n").forEach((line) => {
     const m = line.match(/^(\w+):\s*(.*)$/);
     if (m) {
-      const key = m[1];
-      const val = m[2].trim().replace(/^["']|["']$/g, "");
-      out[key] = val;
+      out[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
     }
   });
   return out;
+}
+
+async function fetchBlobContent(octokit: ReturnType<typeof getOctokit>, owner: string, repo: string, sha: string): Promise<string> {
+  const { data } = await octokit!.git.getBlob({ owner, repo, file_sha: sha });
+  return Buffer.from(data.content, "base64").toString("utf-8");
 }
 
 export default defineEventHandler(async (event) => {
@@ -34,93 +34,74 @@ export default defineEventHandler(async (event) => {
   if (!octokit) throw createError({ statusCode: 401, message: "Not authenticated" });
   const { owner, repo } = getRepoOwnerRepo(event);
 
-  const [blogRes, draftsRes, authorsRes] = await Promise.all([
-    octokit.repos.getContent({ owner, repo, path: "content/blog" }).catch(() => ({ data: [] })),
-    octokit.repos.getContent({ owner, repo, path: "content/drafts" }).catch(() => ({ data: [] })),
-    octokit.repos.getContent({ owner, repo, path: "content/authors" }).catch(() => ({ data: [] })),
-  ]);
+  // Single API call: fetch the entire repo tree
+  const { data: refData } = await octokit.git.getRef({ owner, repo, ref: "heads/main" }).catch(() =>
+    octokit.git.getRef({ owner, repo, ref: "heads/master" })
+  );
+  const treeSha = refData.object.sha;
+  const { data: treeData } = await octokit.git.getTree({ owner, repo, tree_sha: treeSha, recursive: "1" });
 
-  const blogFiles = (Array.isArray(blogRes.data) ? blogRes.data : []) as ListItem[];
-  const draftFiles = (Array.isArray(draftsRes.data) ? draftsRes.data : []) as ListItem[];
-  const authorFiles = (Array.isArray(authorsRes.data) ? authorsRes.data : []) as ListItem[];
+  const contentFiles = treeData.tree.filter(
+    (item) => item.type === "blob" && item.path?.endsWith(".md")
+  );
 
-  const mdBlog = blogFiles.filter((f) => f.name.endsWith(".md"));
-  const mdDrafts = draftFiles.filter((f) => f.name.endsWith(".md"));
+  const blogFiles = contentFiles.filter((f) => f.path?.startsWith("content/blog/"));
+  const draftFiles = contentFiles.filter((f) => f.path?.startsWith("content/drafts/"));
+  const authorFiles = contentFiles.filter((f) => f.path?.startsWith("content/authors/"));
 
+  // Fetch all file contents in parallel using blob SHAs (much faster than getContent)
   const authorDir: Record<string, { name?: string; avatar?: string }> = {};
   await Promise.all(
-    authorFiles
-      .filter((f) => f.name.endsWith(".md"))
-      .map(async (f) => {
-        try {
-          const { data } = await octokit.repos.getContent({ owner, repo, path: f.path });
-          if (Array.isArray(data) || !("content" in data) || !data.content) return;
-          const raw = Buffer.from(data.content, "base64").toString("utf-8");
-          const fm = parseFrontmatter(raw);
-          const id = f.path.replace(/^content\/authors\/?/i, "").replace(/\.md$/i, "").trim();
-          if (id) authorDir[id] = { name: fm.name ?? fm.title, avatar: fm.avatar };
-        } catch {
-          /* ignore */
-        }
-      })
+    authorFiles.map(async (f) => {
+      if (!f.sha || !f.path) return;
+      try {
+        const raw = await fetchBlobContent(octokit, owner, repo, f.sha);
+        const fm = parseFrontmatter(raw);
+        const id = f.path.replace(/^content\/authors\/?/i, "").replace(/\.md$/i, "").trim();
+        if (id) authorDir[id] = { name: fm.name ?? fm.title, avatar: fm.avatar };
+      } catch { /* ignore */ }
+    })
   );
 
   type Row = { title: string; author: string; authorDisplayName: string; authorAvatar: string; date: string; path: string; slug: string; draft: boolean };
 
-  async function fetchMeta(path: string): Promise<Record<string, string>> {
-    try {
-      const { data } = await octokit.repos.getContent({ owner, repo, path });
-      if (Array.isArray(data) || !("content" in data) || !data.content) return {};
-      const raw = Buffer.from(data.content, "base64").toString("utf-8");
-      return parseFrontmatter(raw);
-    } catch {
-      return {};
-    }
+  function toRow(f: { path?: string; sha?: string | null }, fm: Record<string, string>, isDraft: boolean): Row {
+    const path = f.path!;
+    const stem = path.split("/").pop()?.replace(/\.md$/, "") ?? "";
+    const author = fm.author ?? "";
+    const profile = author ? authorDir[author] : undefined;
+    return {
+      title: (fm.title ?? "").trim() || stem || (isDraft ? "(草稿)" : "(無標題)"),
+      author,
+      authorDisplayName: profile?.name ?? author ?? "—",
+      authorAvatar: profile?.avatar ?? (author ? fallbackAvatarUrl(author) : fallbackAvatarUrl("?")),
+      date: fm.date ?? new Date(0).toISOString(),
+      path,
+      slug: isDraft ? "" : `/${stem}`,
+      draft: isDraft,
+    };
   }
 
-  const blogRows: Row[] = await Promise.all(
-    mdBlog.map(async (f) => {
-      const stem = f.name.replace(/\.md$/, "");
-      const path = f.path;
-      const fm = await fetchMeta(path);
-      const author = fm.author ?? "";
-      const profile = author ? authorDir[author] : undefined;
-      return {
-        title: (fm.title ?? "").trim() || stem || "(無標題)",
-        author,
-        authorDisplayName: profile?.name ?? author ?? "—",
-        authorAvatar: profile?.avatar ?? (author ? fallbackAvatarUrl(author) : fallbackAvatarUrl("?")),
-        date: fm.date ?? new Date(0).toISOString(),
-        path,
-        slug: `/${stem}`,
-        draft: false,
-      };
-    })
-  );
+  const [blogRows, draftRows] = await Promise.all([
+    Promise.all(blogFiles.map(async (f) => {
+      if (!f.sha) return null;
+      try {
+        const raw = await fetchBlobContent(octokit, owner, repo, f.sha);
+        return toRow(f, parseFrontmatter(raw), false);
+      } catch { return null; }
+    })),
+    Promise.all(draftFiles.map(async (f) => {
+      if (!f.sha) return null;
+      try {
+        const raw = await fetchBlobContent(octokit, owner, repo, f.sha);
+        return toRow(f, parseFrontmatter(raw), true);
+      } catch { return null; }
+    })),
+  ]);
 
-  const draftRows: Row[] = await Promise.all(
-    mdDrafts.map(async (f) => {
-      const stem = f.name.replace(/\.md$/, "");
-      const path = f.path;
-      const fm = await fetchMeta(path);
-      const author = fm.author ?? "";
-      const profile = author ? authorDir[author] : undefined;
-      return {
-        title: (fm.title ?? "").trim() || stem || "(草稿)",
-        author,
-        authorDisplayName: profile?.name ?? author ?? "—",
-        authorAvatar: profile?.avatar ?? (author ? fallbackAvatarUrl(author) : fallbackAvatarUrl("?")),
-        date: fm.date ?? new Date(0).toISOString(),
-        path,
-        slug: "",
-        draft: true,
-      };
-    })
-  );
-
-  const list = [...blogRows, ...draftRows].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  const list = [...blogRows, ...draftRows]
+    .filter((r): r is Row => r !== null)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return list;
 });

@@ -17,6 +17,7 @@ import { MilkdownProvider } from "@milkdown/vue";
 import "@milkdown/crepe/theme/common/style.css";
 import "@milkdown/crepe/theme/nord.css";
 import { ref } from "vue";
+import type { EditorToolbarApi } from "./MilkdownEditorInner.vue";
 
 withDefaults(
   defineProps<{
@@ -24,8 +25,6 @@ withDefaults(
   }>(),
   { defaultValue: "" }
 );
-
-import type { EditorToolbarApi } from "./MilkdownEditorInner.vue";
 
 const emit = defineEmits<{
   ready: [api: EditorToolbarApi];

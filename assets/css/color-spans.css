@@ -1,0 +1,183 @@
+/* Colored label spans: [text]{.red-1} … {.grey-5}
+   9 hues x 5 shades (1=light, 5=dark), plus backward-compat aliases and background variants. */
+
+span.red-1, span.red-2, span.red-3, span.red-4, span.red-5,
+span.orange-1, span.orange-2, span.orange-3, span.orange-4, span.orange-5,
+span.yellow-1, span.yellow-2, span.yellow-3, span.yellow-4, span.yellow-5,
+span.green-1, span.green-2, span.green-3, span.green-4, span.green-5,
+span.teal-1, span.teal-2, span.teal-3, span.teal-4, span.teal-5,
+span.blue-1, span.blue-2, span.blue-3, span.blue-4, span.blue-5,
+span.purple-1, span.purple-2, span.purple-3, span.purple-4, span.purple-5,
+span.pink-1, span.pink-2, span.pink-3, span.pink-4, span.pink-5,
+span.grey-1, span.grey-2, span.grey-3, span.grey-4, span.grey-5 { font-weight: 500; }
+
+/* Foreground colors — light mode */
+span.red-1 { color: #fecaca; }
+span.red-2 { color: #f87171; }
+span.red-3 { color: #dc2626; }
+span.red-4 { color: #b91c1c; }
+span.red-5 { color: #7f1d1d; }
+span.orange-1 { color: #fed7aa; }
+span.orange-2 { color: #fb923c; }
+span.orange-3 { color: #ea580c; }
+span.orange-4 { color: #c2410c; }
+span.orange-5 { color: #9a3412; }
+span.yellow-1 { color: #fef08a; }
+span.yellow-2 { color: #facc15; }
+span.yellow-3 { color: #eab308; }
+span.yellow-4 { color: #ca8a04; }
+span.yellow-5 { color: #a16207; }
+span.green-1 { color: #bbf7d0; }
+span.green-2 { color: #4ade80; }
+span.green-3 { color: #22c55e; }
+span.green-4 { color: #16a34a; }
+span.green-5 { color: #15803d; }
+span.teal-1 { color: #99f6e4; }
+span.teal-2 { color: #2dd4bf; }
+span.teal-3 { color: #14b8a6; }
+span.teal-4 { color: #0d9488; }
+span.teal-5 { color: #0f766e; }
+span.blue-1 { color: #bfdbfe; }
+span.blue-2 { color: #60a5fa; }
+span.blue-3 { color: #2563eb; }
+span.blue-4 { color: #1d4ed8; }
+span.blue-5 { color: #1e3a8a; }
+span.purple-1 { color: #e9d5ff; }
+span.purple-2 { color: #c084fc; }
+span.purple-3 { color: #a855f7; }
+span.purple-4 { color: #7c3aed; }
+span.purple-5 { color: #6b21a8; }
+span.pink-1 { color: #fbcfe8; }
+span.pink-2 { color: #f472b6; }
+span.pink-3 { color: #ec4899; }
+span.pink-4 { color: #db2777; }
+span.pink-5 { color: #be185d; }
+span.grey-1 { color: #e5e7eb; }
+span.grey-2 { color: #9ca3af; }
+span.grey-3 { color: #6b7280; }
+span.grey-4 { color: #4b5563; }
+span.grey-5 { color: #374151; }
+
+/* Foreground colors — dark mode */
+html.dark span.red-1 { color: #fecaca; }
+html.dark span.red-2 { color: #f87171; }
+html.dark span.red-3 { color: #fca5a5; }
+html.dark span.red-4 { color: #f87171; }
+html.dark span.red-5 { color: #f87171; }
+html.dark span.orange-1 { color: #fed7aa; }
+html.dark span.orange-2 { color: #fb923c; }
+html.dark span.orange-3 { color: #fdba74; }
+html.dark span.orange-4 { color: #fb923c; }
+html.dark span.orange-5 { color: #fb923c; }
+html.dark span.yellow-1 { color: #fef08a; }
+html.dark span.yellow-2 { color: #facc15; }
+html.dark span.yellow-3 { color: #fde047; }
+html.dark span.yellow-4 { color: #facc15; }
+html.dark span.yellow-5 { color: #facc15; }
+html.dark span.green-1 { color: #bbf7d0; }
+html.dark span.green-2 { color: #4ade80; }
+html.dark span.green-3 { color: #86efac; }
+html.dark span.green-4 { color: #4ade80; }
+html.dark span.green-5 { color: #4ade80; }
+html.dark span.teal-1 { color: #99f6e4; }
+html.dark span.teal-2 { color: #2dd4bf; }
+html.dark span.teal-3 { color: #5eead4; }
+html.dark span.teal-4 { color: #2dd4bf; }
+html.dark span.teal-5 { color: #2dd4bf; }
+html.dark span.blue-1 { color: #bfdbfe; }
+html.dark span.blue-2 { color: #60a5fa; }
+html.dark span.blue-3 { color: #93c5fd; }
+html.dark span.blue-4 { color: #60a5fa; }
+html.dark span.blue-5 { color: #60a5fa; }
+html.dark span.purple-1 { color: #e9d5ff; }
+html.dark span.purple-2 { color: #c084fc; }
+html.dark span.purple-3 { color: #c4b5fd; }
+html.dark span.purple-4 { color: #a78bfa; }
+html.dark span.purple-5 { color: #a78bfa; }
+html.dark span.pink-1 { color: #fbcfe8; }
+html.dark span.pink-2 { color: #f472b6; }
+html.dark span.pink-3 { color: #f9a8d4; }
+html.dark span.pink-4 { color: #f472b6; }
+html.dark span.pink-5 { color: #f472b6; }
+html.dark span.grey-1 { color: #e5e7eb; }
+html.dark span.grey-2 { color: #9ca3af; }
+html.dark span.grey-3 { color: #d1d5db; }
+html.dark span.grey-4 { color: #9ca3af; }
+html.dark span.grey-5 { color: #d1d5db; }
+
+/* Backward compatibility: old class names */
+span.red { color: #dc2626; font-weight: 500; }
+span.red-dark { color: #7f1d1d; font-weight: 500; }
+span.orange { color: #ea580c; font-weight: 500; }
+span.orange-dark { color: #9a3412; font-weight: 500; }
+span.green { color: #22c55e; font-weight: 500; }
+span.green-dark { color: #15803d; font-weight: 500; }
+span.blue { color: #2563eb; font-weight: 500; }
+span.blue-dark { color: #1e3a8a; font-weight: 500; }
+span.purple { color: #a855f7; font-weight: 500; }
+span.purple-dark { color: #6b21a8; font-weight: 500; }
+span.gray, span.grey { color: #6b7280; font-weight: 500; }
+span.gray-dark { color: #374151; font-weight: 500; }
+html.dark span.red { color: #f87171; }
+html.dark span.red-dark { color: #f87171; }
+html.dark span.orange { color: #fb923c; }
+html.dark span.orange-dark { color: #fb923c; }
+html.dark span.green { color: #4ade80; }
+html.dark span.green-dark { color: #4ade80; }
+html.dark span.blue { color: #60a5fa; }
+html.dark span.blue-dark { color: #60a5fa; }
+html.dark span.purple { color: #a78bfa; }
+html.dark span.purple-dark { color: #a78bfa; }
+html.dark span.gray, html.dark span.grey { color: #9ca3af; }
+html.dark span.gray-dark { color: #d1d5db; }
+
+/* Underline and highlight */
+span.underline { text-decoration: underline; text-underline-offset: 2px; }
+span.highlight { background-color: #fef08a; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+
+/* Background color variants */
+span.bg-red-1 { background-color: #fecaca; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-red-2 { background-color: #f87171; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-red-3 { background-color: #dc2626; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-red-4 { background-color: #b91c1c; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-red-5 { background-color: #7f1d1d; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-orange-1 { background-color: #fed7aa; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-orange-2 { background-color: #fb923c; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-orange-3 { background-color: #ea580c; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-orange-4 { background-color: #c2410c; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-orange-5 { background-color: #9a3412; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-yellow-1 { background-color: #fef08a; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-yellow-2 { background-color: #facc15; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-yellow-3 { background-color: #eab308; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-yellow-4 { background-color: #ca8a04; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-yellow-5 { background-color: #a16207; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-green-1 { background-color: #bbf7d0; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-green-2 { background-color: #4ade80; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-green-3 { background-color: #22c55e; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-green-4 { background-color: #16a34a; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-green-5 { background-color: #15803d; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-teal-1 { background-color: #99f6e4; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-teal-2 { background-color: #2dd4bf; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-teal-3 { background-color: #14b8a6; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-teal-4 { background-color: #0d9488; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-teal-5 { background-color: #0f766e; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-blue-1 { background-color: #bfdbfe; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-blue-2 { background-color: #60a5fa; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-blue-3 { background-color: #2563eb; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-blue-4 { background-color: #1d4ed8; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-blue-5 { background-color: #1e3a8a; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-purple-1 { background-color: #e9d5ff; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-purple-2 { background-color: #c084fc; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-purple-3 { background-color: #a855f7; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-purple-4 { background-color: #7c3aed; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-purple-5 { background-color: #6b21a8; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-pink-1 { background-color: #fbcfe8; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-pink-2 { background-color: #f472b6; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-pink-3 { background-color: #ec4899; color: #fff; padding: 0 0.15em; border-radius: 2px; }
+span.bg-pink-4 { background-color: #db2777; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-pink-5 { background-color: #be185d; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-grey-1 { background-color: #e5e7eb; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-grey-2 { background-color: #9ca3af; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
+span.bg-grey-3 { background-color: #6b7280; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-grey-4 { background-color: #4b5563; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+span.bg-grey-5 { background-color: #374151; padding: 0 0.15em; border-radius: 2px; color: #fff; }

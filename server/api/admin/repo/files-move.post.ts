@@ -1,5 +1,5 @@
 import { readBody } from "h3";
-import { getOctokit, getRepoOwnerRepo } from "../../../utils/github";
+import { getOctokit, getRepoOwnerRepo, validateAdminPath } from "../../../utils/github";
 
 export default defineEventHandler(async (event) => {
   const octokit = getOctokit(event);
@@ -10,6 +10,8 @@ export default defineEventHandler(async (event) => {
   if (!fromPath || !toPath) {
     throw createError({ statusCode: 400, message: "fromPath and toPath are required" });
   }
+  validateAdminPath(fromPath);
+  validateAdminPath(toPath);
   const commitMessage = message || `Move ${fromPath} to ${toPath}`;
   try {
     const { data: fileData } = await octokit.repos.getContent({ owner, repo, path: fromPath });

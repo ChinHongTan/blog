@@ -303,6 +303,7 @@ definePageMeta({ layout: "admin" });
 
 const route = useRoute();
 useAdminAuth();
+const toast = useToast();
 const docType = computed(() => (route.query.type as string) || "post");
 const slug = computed(() => (route.query.slug as string) || "");
 const pathQuery = computed(() => (route.query.path as string) || "");
@@ -318,10 +319,7 @@ const canEditPost = computed(() => {
   return postAuthor === me;
 });
 
-function slugifyTitle(title: string): string {
-  const s = (title || "").trim().replace(/\s+/g, "-").replace(/[/\\?*:|<>"]/g, "");
-  return s || "untitled";
-}
+// slugifyTitle, buildFrontmatter, parseFrontmatter are auto-imported from composables/useEditorFrontmatter
 
 const meta = reactive({
   title: "",
@@ -371,8 +369,8 @@ function toPreviewUrl(path: string | undefined): string {
 }
 
 const featuredImagePreviewUrl = computed(() => toPreviewUrl(meta.featured_image));
-const avatarPreviewUrl = computed(() => toPreviewUrl(meta.avatar));
-const bannerPreviewUrl = computed(() => toPreviewUrl(meta.banner));
+const _avatarPreviewUrl = computed(() => toPreviewUrl(meta.avatar));
+const _bannerPreviewUrl = computed(() => toPreviewUrl(meta.banner));
 const featuredFileInput = ref<HTMLInputElement | null>(null);
 const authorAvatarFileInput = ref<HTMLInputElement | null>(null);
 const authorBannerFileInput = ref<HTMLInputElement | null>(null);
@@ -556,32 +554,8 @@ function onMilkdownMarkdownChange(markdown: string) {
   rawBody.value = markdown;
 }
 
-function buildFrontmatter(): string {
-  const lines: string[] = ["---"];
-  if (docType.value === "post") {
-    if (meta.title) lines.push(`title: ${meta.title}`);
-    if (meta.description) lines.push(`description: ${meta.description}`);
-    if (meta.date) lines.push(`date: ${meta.date}`);
-    if (meta.author) lines.push(`author: ${meta.author}`);
-    if (meta.path) lines.push(`path: ${meta.path}`);
-    if (meta.featured_image) lines.push(`featured_image: ${meta.featured_image}`);
-    if (meta.series.length) lines.push(`series:\n  - ${meta.series.join("\n  - ")}`);
-    if (meta.tags.length) lines.push(`tags:\n  - ${meta.tags.join("\n  - ")}`);
-  } else if (docType.value === "author") {
-    if (meta.name) lines.push(`name: ${meta.name}`);
-    if (meta.email) lines.push(`email: ${meta.email}`);
-    if (meta.bio) lines.push(`bio: "${(meta.bio || "").replace(/"/g, '\\"')}"`);
-    if (meta.avatar) lines.push(`avatar: ${meta.avatar}`);
-    if (meta.banner) lines.push(`banner: ${meta.banner}`);
-    if (meta.github || meta.website) {
-      lines.push("social:");
-      if (meta.github) lines.push(`  github: ${meta.github}`);
-      lines.push("  twitter: \"\"");
-      if (meta.website) lines.push(`  website: ${meta.website}`);
-    }
-  }
-  lines.push("---");
-  return lines.join("\n");
+function buildFrontmatterStr(): string {
+  return buildFrontmatter(docType.value, meta);
 }
 
 function getBodyContent(): string {
@@ -727,7 +701,6 @@ function loadFromApi(): Promise<void> {
       fileSha.value = res.sha;
       serverLastModified.value = res.lastModified ?? null;
       const raw = res.content || "";
-      const match = raw.match(/^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/);
       const rawDraftForChoice = typeof localStorage !== "undefined" ? localStorage.getItem(draftKey.value) : null;
       const willShowVersionChoice = !!(rawDraftForChoice && docType.value === "post" && (pathQuery.value?.startsWith("content/blog/") || pathQuery.value?.startsWith("content/drafts/")));
       if (willShowVersionChoice) {
@@ -737,55 +710,14 @@ function loadFromApi(): Promise<void> {
           debounceSaveTimer = null;
         }
       }
-      if (match) {
-        const front = match[1];
-        body.value = match[2].trim();
-        rawBody.value = match[2].trim();
-        front.split("\n").forEach((line) => {
-          const m = line.match(/^(\w+):\s*(.*)$/);
-          if (m) {
-            const key = m[1];
-            const val = m[2].trim().replace(/^["']|["']$/g, "");
-            if (key === "series" || key === "tags" || key === "social") return;
-            (meta as Record<string, string>)[key] = val;
-          }
-        });
-        if (docType.value === "post" && raw.includes("series:")) {
-          const seriesMatch = raw.match(/series:\s*\n((?:\s+-\s*.+\n?)+)/);
-          if (seriesMatch) {
-            meta.series = seriesMatch[1]
-              .replace(/^\s*-\s*/gm, "")
-              .trim()
-              .split(/\n\s*-\s*/)
-              .map((s) => s.trim())
-              .filter(Boolean);
-          }
+      const parsed = parseFrontmatter(raw, docType.value);
+      body.value = parsed.body;
+      rawBody.value = parsed.body;
+      Object.entries(parsed.meta).forEach(([key, val]) => {
+        if (val !== undefined) {
+          (meta as Record<string, unknown>)[key] = val;
         }
-        if (docType.value === "post" && raw.includes("tags:")) {
-          const tagsMatch = raw.match(/tags:\s*\n((?:\s+-\s*.+\n?)+)/);
-          if (tagsMatch) {
-            meta.tags = tagsMatch[1]
-              .replace(/^\s*-\s*/gm, "")
-              .trim()
-              .split(/\n\s*-\s*/)
-              .map((s) => s.trim())
-              .filter(Boolean);
-          }
-        }
-        if (docType.value === "post" && raw.includes("featured_image:")) {
-          const fi = raw.match(/featured_image:\s*(.+)/m);
-          if (fi) meta.featured_image = fi[1].trim();
-        }
-        if (docType.value === "author" && raw.includes("social:")) {
-          const gh = raw.match(/github:\s*(.+)/m);
-          const web = raw.match(/website:\s*(.+)/m);
-          if (gh) meta.github = gh[1].trim();
-          if (web) meta.website = web[1].trim();
-        }
-      } else {
-        body.value = raw;
-        rawBody.value = raw;
-      }
+      });
       nextTick(() => {
         cachedMetaJson.value = serializeMeta();
         lastSavedMetaJson.value = cachedMetaJson.value;
@@ -843,7 +775,7 @@ async function publish() {
       meta.path = `/blog/${slugifyTitle(meta.title)}`;
     }
   }
-  const content = `${buildFrontmatter()}\n\n${getBodyContent()}`;
+  const content = `${buildFrontmatterStr()}\n\n${getBodyContent()}`;
   let path = filePath.value;
   if (!path) {
     if (docType.value === "post") {
@@ -898,7 +830,7 @@ async function publish() {
     }
   } catch (e) {
     console.error(e);
-    alert("儲存失敗，請查看主控台。");
+    toast.error("儲存失敗，請查看主控台。");
   } finally {
     saving.value = false;
   }
@@ -911,7 +843,7 @@ async function saveDraftToGitHub() {
   const draftPath = `content/drafts/${stem}.md`;
   if (!meta.date) meta.date = new Date().toISOString().slice(0, 16);
   meta.author = currentUserAuthorId.value ?? meta.author;
-  const content = `${buildFrontmatter()}\n\n${getBodyContent()}`;
+  const content = `${buildFrontmatterStr()}\n\n${getBodyContent()}`;
   savingDraft.value = true;
   try {
     await $fetch("/api/admin/repo/files", {
@@ -933,7 +865,7 @@ async function saveDraftToGitHub() {
     await navigateTo({ path: "/admin/editor", query: { type: "post", path: draftPath } });
   } catch (e) {
     console.error(e);
-    alert("儲存草稿失敗，請查看主控台。");
+    toast.error("儲存草稿失敗，請查看主控台。");
   } finally {
     savingDraft.value = false;
   }
@@ -959,7 +891,7 @@ async function unpublish() {
     await navigateTo({ path: "/admin/editor", query: { type: "post", path: `content/drafts/${stem}.md` } });
   } catch (e) {
     console.error(e);
-    alert("取消發布失敗，請查看主控台。");
+    toast.error("取消發布失敗，請查看主控台。");
   } finally {
     unpublishing.value = false;
   }
@@ -990,7 +922,7 @@ async function confirmDeleteDraft() {
           },
         });
       } else {
-        alert("無法取得檔案 SHA，請重新開啟此草稿後再試。");
+        toast.error("無法取得檔案 SHA，請重新開啟此草稿後再試。");
         deletingDraft.value = false;
         return;
       }
@@ -1003,7 +935,7 @@ async function confirmDeleteDraft() {
     await navigateTo({ path: "/admin/posts" });
   } catch (e) {
     console.error(e);
-    alert("刪除草稿失敗，請查看主控台。");
+    toast.error("刪除草稿失敗，請查看主控台。");
   } finally {
     deletingDraft.value = false;
   }
@@ -1017,7 +949,7 @@ async function onFeaturedDrop(e: DragEvent) {
     meta.featured_image = await uploadImage(file);
   } catch (err) {
     console.error(err);
-    alert("上傳失敗");
+    toast.error("上傳失敗");
   }
 }
 
@@ -1026,7 +958,7 @@ function onFeaturedFileChange(e: Event) {
   const file = input.files?.[0];
   input.value = "";
   if (!file) return;
-  uploadImage(file).then((path) => { meta.featured_image = path; }).catch((err) => { console.error(err); alert("上傳失敗"); });
+  uploadImage(file).then((path) => { meta.featured_image = path; }).catch((err) => { console.error(err); toast.error("上傳失敗"); });
 }
 
 async function onAuthorAvatarFileChange(e: Event) {
@@ -1038,7 +970,7 @@ async function onAuthorAvatarFileChange(e: Event) {
     meta.avatar = await uploadImageAvatar(file);
   } catch (err) {
     console.error(err);
-    alert("上傳失敗");
+    toast.error("上傳失敗");
   }
 }
 
@@ -1051,7 +983,7 @@ async function onAuthorBannerFileChange(e: Event) {
     meta.banner = await uploadImageBanner(file);
   } catch (err) {
     console.error(err);
-    alert("上傳失敗");
+    toast.error("上傳失敗");
   }
 }
 
@@ -2040,114 +1972,7 @@ html.dark .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-error) {
 .admin-wysiwyg-site :deep(.milkdown .ProseMirror span[data-span-class]) {
   font-weight: 500;
 }
-/* Hue rows: red, orange, yellow, green, teal, blue, purple, pink, grey; 5 shades each (1=light, 5=dark) */
-.admin-wysiwyg-site :deep(.milkdown span.red-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.red-1) { color: #fecaca; }
-.admin-wysiwyg-site :deep(.milkdown span.red-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.red-2) { color: #f87171; }
-.admin-wysiwyg-site :deep(.milkdown span.red-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.red-3) { color: #dc2626; }
-.admin-wysiwyg-site :deep(.milkdown span.red-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.red-4) { color: #b91c1c; }
-.admin-wysiwyg-site :deep(.milkdown span.red-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.red-5) { color: #7f1d1d; }
-.admin-wysiwyg-site :deep(.milkdown span.orange-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.orange-1) { color: #fed7aa; }
-.admin-wysiwyg-site :deep(.milkdown span.orange-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.orange-2) { color: #fb923c; }
-.admin-wysiwyg-site :deep(.milkdown span.orange-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.orange-3) { color: #ea580c; }
-.admin-wysiwyg-site :deep(.milkdown span.orange-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.orange-4) { color: #c2410c; }
-.admin-wysiwyg-site :deep(.milkdown span.orange-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.orange-5) { color: #9a3412; }
-.admin-wysiwyg-site :deep(.milkdown span.yellow-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.yellow-1) { color: #fef08a; }
-.admin-wysiwyg-site :deep(.milkdown span.yellow-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.yellow-2) { color: #facc15; }
-.admin-wysiwyg-site :deep(.milkdown span.yellow-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.yellow-3) { color: #eab308; }
-.admin-wysiwyg-site :deep(.milkdown span.yellow-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.yellow-4) { color: #ca8a04; }
-.admin-wysiwyg-site :deep(.milkdown span.yellow-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.yellow-5) { color: #a16207; }
-.admin-wysiwyg-site :deep(.milkdown span.green-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.green-1) { color: #bbf7d0; }
-.admin-wysiwyg-site :deep(.milkdown span.green-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.green-2) { color: #4ade80; }
-.admin-wysiwyg-site :deep(.milkdown span.green-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.green-3) { color: #22c55e; }
-.admin-wysiwyg-site :deep(.milkdown span.green-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.green-4) { color: #16a34a; }
-.admin-wysiwyg-site :deep(.milkdown span.green-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.green-5) { color: #15803d; }
-.admin-wysiwyg-site :deep(.milkdown span.teal-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.teal-1) { color: #99f6e4; }
-.admin-wysiwyg-site :deep(.milkdown span.teal-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.teal-2) { color: #2dd4bf; }
-.admin-wysiwyg-site :deep(.milkdown span.teal-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.teal-3) { color: #14b8a6; }
-.admin-wysiwyg-site :deep(.milkdown span.teal-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.teal-4) { color: #0d9488; }
-.admin-wysiwyg-site :deep(.milkdown span.teal-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.teal-5) { color: #0f766e; }
-.admin-wysiwyg-site :deep(.milkdown span.blue-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.blue-1) { color: #bfdbfe; }
-.admin-wysiwyg-site :deep(.milkdown span.blue-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.blue-2) { color: #60a5fa; }
-.admin-wysiwyg-site :deep(.milkdown span.blue-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.blue-3) { color: #2563eb; }
-.admin-wysiwyg-site :deep(.milkdown span.blue-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.blue-4) { color: #1d4ed8; }
-.admin-wysiwyg-site :deep(.milkdown span.blue-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.blue-5) { color: #1e3a8a; }
-.admin-wysiwyg-site :deep(.milkdown span.purple-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.purple-1) { color: #e9d5ff; }
-.admin-wysiwyg-site :deep(.milkdown span.purple-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.purple-2) { color: #c084fc; }
-.admin-wysiwyg-site :deep(.milkdown span.purple-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.purple-3) { color: #a855f7; }
-.admin-wysiwyg-site :deep(.milkdown span.purple-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.purple-4) { color: #7c3aed; }
-.admin-wysiwyg-site :deep(.milkdown span.purple-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.purple-5) { color: #6b21a8; }
-.admin-wysiwyg-site :deep(.milkdown span.pink-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.pink-1) { color: #fbcfe8; }
-.admin-wysiwyg-site :deep(.milkdown span.pink-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.pink-2) { color: #f472b6; }
-.admin-wysiwyg-site :deep(.milkdown span.pink-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.pink-3) { color: #ec4899; }
-.admin-wysiwyg-site :deep(.milkdown span.pink-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.pink-4) { color: #db2777; }
-.admin-wysiwyg-site :deep(.milkdown span.pink-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.pink-5) { color: #be185d; }
-.admin-wysiwyg-site :deep(.milkdown span.grey-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.grey-1) { color: #e5e7eb; }
-.admin-wysiwyg-site :deep(.milkdown span.grey-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.grey-2) { color: #9ca3af; }
-.admin-wysiwyg-site :deep(.milkdown span.grey-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.grey-3) { color: #6b7280; }
-.admin-wysiwyg-site :deep(.milkdown span.grey-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.grey-4) { color: #4b5563; }
-.admin-wysiwyg-site :deep(.milkdown span.grey-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.grey-5) { color: #374151; }
-/* Backward compatibility: old class names map to mid/dark shades */
-.admin-wysiwyg-site :deep(.milkdown span.red), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.red) { color: #dc2626; }
-.admin-wysiwyg-site :deep(.milkdown span.red-dark), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.red-dark) { color: #7f1d1d; }
-.admin-wysiwyg-site :deep(.milkdown span.orange), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.orange) { color: #ea580c; }
-.admin-wysiwyg-site :deep(.milkdown span.orange-dark), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.orange-dark) { color: #9a3412; }
-.admin-wysiwyg-site :deep(.milkdown span.green), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.green) { color: #22c55e; }
-.admin-wysiwyg-site :deep(.milkdown span.green-dark), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.green-dark) { color: #15803d; }
-.admin-wysiwyg-site :deep(.milkdown span.blue), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.blue) { color: #2563eb; }
-.admin-wysiwyg-site :deep(.milkdown span.blue-dark), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.blue-dark) { color: #1e3a8a; }
-.admin-wysiwyg-site :deep(.milkdown span.purple), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.purple) { color: #a855f7; }
-.admin-wysiwyg-site :deep(.milkdown span.purple-dark), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.purple-dark) { color: #6b21a8; }
-.admin-wysiwyg-site :deep(.milkdown span.gray), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.gray) { color: #6b7280; }
-.admin-wysiwyg-site :deep(.milkdown span.gray-dark), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.gray-dark) { color: #374151; }
-/* Underline and highlight [text]{.underline} / [text]{.highlight} */
-.admin-wysiwyg-site :deep(.milkdown span.underline), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.underline) { text-decoration: underline; text-underline-offset: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.highlight), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.highlight) { background-color: #fef08a; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-/* Font background [text]{.bg-hue-n} — text colour by background luminance for readability */
-.admin-wysiwyg-site :deep(.milkdown span.bg-red-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-red-1) { background-color: #fecaca; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-red-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-red-2) { background-color: #f87171; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-red-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-red-3) { background-color: #dc2626; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-red-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-red-4) { background-color: #b91c1c; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-red-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-red-5) { background-color: #7f1d1d; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-orange-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-orange-1) { background-color: #fed7aa; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-orange-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-orange-2) { background-color: #fb923c; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-orange-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-orange-3) { background-color: #ea580c; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-orange-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-orange-4) { background-color: #c2410c; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-orange-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-orange-5) { background-color: #9a3412; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-yellow-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-yellow-1) { background-color: #fef08a; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-yellow-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-yellow-2) { background-color: #facc15; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-yellow-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-yellow-3) { background-color: #eab308; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-yellow-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-yellow-4) { background-color: #ca8a04; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-yellow-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-yellow-5) { background-color: #a16207; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-green-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-green-1) { background-color: #bbf7d0; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-green-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-green-2) { background-color: #4ade80; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-green-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-green-3) { background-color: #22c55e; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-green-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-green-4) { background-color: #16a34a; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-green-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-green-5) { background-color: #15803d; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-teal-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-teal-1) { background-color: #99f6e4; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-teal-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-teal-2) { background-color: #2dd4bf; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-teal-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-teal-3) { background-color: #14b8a6; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-teal-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-teal-4) { background-color: #0d9488; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-teal-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-teal-5) { background-color: #0f766e; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-blue-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-blue-1) { background-color: #bfdbfe; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-blue-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-blue-2) { background-color: #60a5fa; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-blue-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-blue-3) { background-color: #2563eb; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-blue-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-blue-4) { background-color: #1d4ed8; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-blue-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-blue-5) { background-color: #1e3a8a; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-purple-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-purple-1) { background-color: #e9d5ff; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-purple-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-purple-2) { background-color: #c084fc; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-purple-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-purple-3) { background-color: #a855f7; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-purple-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-purple-4) { background-color: #7c3aed; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-purple-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-purple-5) { background-color: #6b21a8; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-pink-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-pink-1) { background-color: #fbcfe8; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-pink-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-pink-2) { background-color: #f472b6; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-pink-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-pink-3) { background-color: #ec4899; color: #fff; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-pink-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-pink-4) { background-color: #db2777; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-pink-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-pink-5) { background-color: #be185d; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-grey-1), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-grey-1) { background-color: #e5e7eb; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-grey-2), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-grey-2) { background-color: #9ca3af; color: #1a1a1a; padding: 0 0.15em; border-radius: 2px; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-grey-3), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-grey-3) { background-color: #6b7280; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-grey-4), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-grey-4) { background-color: #4b5563; padding: 0 0.15em; border-radius: 2px; color: #fff; }
-.admin-wysiwyg-site :deep(.milkdown span.bg-grey-5), .admin-wysiwyg-site :deep(.milkdown .ProseMirror span.bg-grey-5) { background-color: #374151; padding: 0 0.15em; border-radius: 2px; color: #fff; }
+/* Color span styles are in ~/assets/css/color-spans.css (loaded globally) */
 /* Editor tables: match blog .post-content table styling */
 .admin-wysiwyg-site :deep(.milkdown .milkdown-table-block),
 .admin-wysiwyg-site :deep(.milkdown-table-block) {

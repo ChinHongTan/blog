@@ -93,7 +93,7 @@
             <td class="admin-posts-td admin-posts-td-author">
               <NuxtLink :to="row.editorLink" class="admin-posts-row-link">
                 <span class="admin-posts-avatar-wrap" aria-hidden="true">
-                  <img v-if="row.authorAvatar" :src="row.authorAvatar" alt="" class="admin-posts-avatar" width="32" height="32" />
+                  <img v-if="row.authorAvatar" :src="row.authorAvatar" alt="" class="admin-posts-avatar" width="32" height="32">
                   <span v-else class="admin-posts-avatar admin-posts-avatar-fallback">{{ row.authorInitial }}</span>
                 </span>
                 <span class="admin-posts-author-name">{{ row.authorDisplayName || "—" }}</span>

@@ -1,47 +1,11 @@
 <script setup lang="ts">
-// Search query state
 const searchQuery = ref("");
-const isSearchOpen = ref(false);
-const searchInputRef = ref<HTMLInputElement | null>(null);
 
-const toggleSearch = () => {
-    isSearchOpen.value = !isSearchOpen.value;
-    if (isSearchOpen.value) {
-        nextTick(() => {
-            searchInputRef.value?.focus();
-        });
-    }
-};
-
-const handleSearchBlur = () => {
-    if (!searchQuery.value) {
-        isSearchOpen.value = false;
-    }
-};
-
-// Mobile menu state
-const isMobileMenuOpen = ref(false);
-
-// Provide search query to child components
 provide("searchQuery", searchQuery);
 
-// Current route (must be declared before any watch/computed that uses it)
 const route = useRoute();
 
-// Admin top bar (when on /admin)
-const adminQuickAddRef = ref<HTMLElement | null>(null);
-const adminQuickAddOpen = ref(false);
-const { user: adminUser } = useAdminAuth();
-watch(() => route.path, () => { adminQuickAddOpen.value = false; });
-function closeQuickAddIfOutside(e: MouseEvent) {
-	if (adminQuickAddOpen.value && adminQuickAddRef.value && !adminQuickAddRef.value.contains(e.target as Node)) {
-		adminQuickAddOpen.value = false;
-	}
-}
-onMounted(() => { document.addEventListener("click", closeQuickAddIfOutside); });
-onUnmounted(() => { document.removeEventListener("click", closeQuickAddIfOutside); });
 const isAdminRoute = computed(() => route.path.startsWith("/admin"));
-const isEditorPage = computed(() => route.path.startsWith("/admin/editor"));
 const isPostPage = computed(
 	() =>
 		route.path !== "/" &&
@@ -52,49 +16,29 @@ const isPostPage = computed(
 		!route.path.startsWith("/author/")
 );
 
-// Close mobile menu when route changes
-watch(() => route.path, () => {
-	isMobileMenuOpen.value = false;
-	isSearchOpen.value = false;
-});
-
 // Scroll-aware header
 const isHeaderHidden = ref(false);
 const lastScrollY = ref(0);
-const scrollThreshold = 10; // Minimum scroll distance to trigger
+const scrollThreshold = 10;
 
 const handleScroll = () => {
 	if (typeof window === "undefined") return;
-	
 	const currentScrollY = window.scrollY;
-	
-	// Show header if:
-	// 1. Scrolling up
-	// 2. At the top of the page
-	// 3. Mobile menu is open
 	if (
 		currentScrollY < lastScrollY.value ||
-		currentScrollY < 100 ||
-		isMobileMenuOpen.value
+		currentScrollY < 100
 	) {
 		isHeaderHidden.value = false;
-	} 
-	// Hide header if:
-	// 1. Scrolling down AND past threshold
-	// 2. Not at top
-	// 3. Mobile menu is closed
-	else if (
+	} else if (
 		currentScrollY > lastScrollY.value &&
 		currentScrollY > 100 &&
 		Math.abs(currentScrollY - lastScrollY.value) > scrollThreshold
 	) {
 		isHeaderHidden.value = true;
 	}
-
 	lastScrollY.value = currentScrollY;
 };
 
-// Throttle scroll handler for performance
 let ticking = false;
 const onScroll = () => {
 	if (!ticking) {
@@ -117,145 +61,13 @@ onUnmounted(() => {
 
 <template>
 	<div :class="['app-wrapper', { 'post-mood': isPostPage }]">
-		<!-- Top Header: admin bar when on /admin, otherwise site nav -->
-		<header v-if="isAdminRoute" class="main-header admin-top-bar">
-			<div class="header-content admin-top-bar-content">
-				<NuxtLink to="/admin" class="admin-top-bar-title">後台</NuxtLink>
-				<!-- Target for editor Teleport; always present when on admin so nav doesn't break when leaving editor -->
-				<div v-if="isAdminRoute" id="admin-editor-nav-actions" class="admin-editor-nav-actions" />
-				<!-- Fixed toolbar slot: editor page teleports icon buttons here (middle of top bar) -->
-				<div v-if="isAdminRoute" id="admin-editor-toolbar" class="admin-editor-toolbar-slot" />
-				<!-- Spacer only when not on editor so toolbar can use full middle space on editor page -->
-				<div v-if="!isEditorPage" class="admin-nav-spacer" />
-				<div class="header-actions">
-					<div v-if="!isEditorPage" ref="adminQuickAddRef" class="admin-quick-add-wrap">
-						<button
-							type="button"
-							class="admin-quick-add-btn"
-							:aria-expanded="adminQuickAddOpen"
-							aria-haspopup="true"
-							@click="adminQuickAddOpen = !adminQuickAddOpen"
-						>
-							快速新增
-							<Icon name="heroicons:chevron-down" size="16" />
-						</button>
-						<Transition name="dropdown">
-							<div v-if="adminQuickAddOpen" class="admin-quick-add-dropdown" @click.stop>
-								<NuxtLink to="/admin/editor?type=post" class="admin-quick-add-item" @click="adminQuickAddOpen = false">
-									新增文章
-								</NuxtLink>
-							</div>
-						</Transition>
-					</div>
-					<ThemeToggle />
-					<template v-if="adminUser">
-						<AdminUserPopover />
-					</template>
-					<NuxtLink v-else to="/" class="admin-top-back">← 返回網站</NuxtLink>
-				</div>
-			</div>
-		</header>
-		<header v-else class="main-header" :class="{ 'header-hidden': isHeaderHidden }">
-			<div class="header-content">
-				<NuxtLink to="/" class="logo">
-					<img
-						src="/images/uploads/103467998_p0 copy.png"
-						alt="Logo"
-						class="logo-image"
-					>
-					<span>星谷雜貨店</span>
-				</NuxtLink>
-				<div class="header-actions">
-					<nav class="main-nav">
-						<NuxtLink to="/">
-							<Icon name="heroicons:home" size="20" />
-							<span>首頁</span>
-						</NuxtLink>
-						<NuxtLink to="/series">
-							<Icon name="heroicons:bookmark-square" size="20" />
-							<span>專欄</span>
-						</NuxtLink>
-						<NuxtLink to="/about">
-							<Icon name="heroicons:information-circle" size="20" />
-							<span>關於</span>
-						</NuxtLink>
-						<NuxtLink to="/authors">
-							<Icon name="heroicons:users" size="20" />
-							<span>作者</span>
-						</NuxtLink>
-					</nav>
-					<div class="header-search" :class="{ open: isSearchOpen }">
-						<div class="search-pill">
-							<button
-								type="button"
-								class="search-toggle"
-								:aria-label="isSearchOpen ? '收起搜尋' : '展開搜尋'"
-								@click="toggleSearch"
-							>
-								<Icon name="heroicons:magnifying-glass" size="18" />
-							</button>
-							<input
-								ref="searchInputRef"
-								v-model="searchQuery"
-								type="search"
-								class="header-search-input"
-								placeholder="搜尋文章..."
-								:tabindex="isSearchOpen ? 0 : -1"
-								@blur="handleSearchBlur"
-							>
-						</div>
-					</div>
-					<ThemeToggle />
-					<button 
-					:aria-label="isMobileMenuOpen ? '關閉選單' : '開啟選單'"
-					class="mobile-menu-button"
-					@click="isMobileMenuOpen = !isMobileMenuOpen"
-					>
-						<Icon v-if="!isMobileMenuOpen" name="heroicons:bars-3" size="24" />
-						<Icon v-else name="heroicons:x-mark" size="24" />
-					</button>
-				</div>
-			</div>
-		</header>
-
-		<!-- Mobile Menu Overlay -->
-		<Transition name="mobile-menu">
-			<div v-if="isMobileMenuOpen" class="mobile-menu-overlay" @click="isMobileMenuOpen = false">
-				<div class="mobile-menu" @click.stop>
-					<nav class="mobile-nav">
-						<NuxtLink to="/" class="mobile-nav-link">
-							<Icon name="heroicons:home" size="20" />
-							首頁
-						</NuxtLink>
-						<NuxtLink to="/series" class="mobile-nav-link">
-							<Icon name="heroicons:bookmark-square" size="20" />
-							專欄
-						</NuxtLink>
-						<NuxtLink to="/about" class="mobile-nav-link">
-							<Icon name="heroicons:information-circle" size="20" />
-							關於
-						</NuxtLink>
-						<NuxtLink to="/authors" class="mobile-nav-link">
-							<Icon name="heroicons:users" size="20" />
-							作者
-						</NuxtLink>
-						<NuxtLink to="/code-of-conduct" class="mobile-nav-link">
-							<Icon name="heroicons:document-text" size="20" />
-							行為準則
-						</NuxtLink>
-						<a href="https://github.com/ChinHongTan/blog" target="_blank" rel="noopener" class="mobile-nav-link">
-							<Icon name="simple-icons:github" size="20" />
-							網站原始碼
-						</a>
-						<!-- Theme toggle in mobile menu -->
-						<div class="mobile-toggle-row">
-							<span class="mobile-toggle-label">主題</span>
-							<ThemeToggle size="md" />
-						</div>
-					</nav>
-				</div>
-			</div>
-		</Transition>
+		<ToastContainer />
+		<AdminTopBar v-if="isAdminRoute" />
+		<SiteHeader
+			v-else
+			v-model:search-query="searchQuery"
+			:is-header-hidden="isHeaderHidden"
+		/>
 
 		<div :class="['app-layout', { 'post-layout': isPostPage }]">
 			<main class="main-content">
@@ -263,91 +75,7 @@ onUnmounted(() => {
 					<NuxtPage />
 				</NuxtLayout>
 
-				<footer v-if="!isAdminRoute" class="site-footer">
-					<div class="footer-info">
-						<p>
-							© 2025 星谷雜貨店.
-							<a
-								href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
-								target="_blank"
-								rel="noopener noreferrer"
-								class="footer-cc-link"
-							>
-								CC BY-NC-SA 4.0
-							</a>
-						</p>
-						<p class="footer-cc-text">
-							除另有註明外，本站內容採用創用 CC
-							姓名標示-非商業性-相同方式分享 4.0 國際授權條款。
-						</p>
-						<div class="footer-links">
-							<NuxtLink to="/code-of-conduct">行為準則</NuxtLink>
-							<span class="separator">•</span>
-							<a
-								href="https://github.com/ChinHongTan/blog"
-								target="_blank"
-								rel="noopener"
-								>GitHub</a
-							>
-						</div>
-					</div>
-					<div class="powered-by">
-						<span>使用以下工具建構：</span>
-						<div class="service-badges">
-							<a
-								href="https://vercel.com"
-								target="_blank"
-								rel="noopener"
-								class="service-link"
-							>
-								<img
-									src="/images/logos/vercel-logo-black.svg"
-									alt="Vercel"
-									class="service-logo logo-light"
-								>
-								<img
-									src="/images/logos/vercel-logo-white.svg"
-									alt="Vercel"
-									class="service-logo logo-dark"
-								>
-							</a>
-							<a
-								href="https://nuxt.com"
-								target="_blank"
-								rel="noopener"
-								class="service-link"
-							>
-								<img
-									src="/images/logos/nuxt-logo-green-black.svg"
-									alt="Nuxt"
-									class="service-logo logo-light"
-								>
-								<img
-									src="/images/logos/nuxt-logo-green-white.svg"
-									alt="Nuxt"
-									class="service-logo logo-dark"
-								>
-							</a>
-							<a
-								href="https://decapcms.org"
-								target="_blank"
-								rel="noopener"
-								class="service-link"
-							>
-								<img
-									src="/images/logos/decap-logo-black.svg"
-									alt="Decap CMS"
-									class="service-logo decap-logo logo-light"
-								>
-								<img
-									src="/images/logos/decap-logo-white.svg"
-									alt="Decap CMS"
-									class="service-logo decap-logo logo-dark"
-								>
-							</a>
-						</div>
-					</div>
-				</footer>
+				<SiteFooter v-if="!isAdminRoute" />
 			</main>
 		</div>
 	</div>
@@ -366,7 +94,7 @@ onUnmounted(() => {
 	z-index: 1;
 }
 
-/* Admin top bar (replaces site nav when on /admin) */
+/* Admin top bar */
 .admin-top-bar .admin-top-bar-content {
 	justify-content: flex-start;
 	gap: 1rem;
@@ -558,7 +286,7 @@ onUnmounted(() => {
 	top: 0;
 	z-index: 100;
 	box-shadow: var(--shadow-sm);
-	transition: 
+	transition:
 		transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 		background-color 0.3s ease,
 		border-color 0.3s ease;
@@ -651,7 +379,7 @@ onUnmounted(() => {
 	padding: 0;
 	transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 	overflow: hidden;
-	width: 2.25rem; /* Initial width = icon width */
+	width: 2.25rem;
 }
 
 .header-search.open .search-pill {
@@ -706,7 +434,6 @@ onUnmounted(() => {
 	margin-left: 0.25rem;
 }
 
-/* Mobile menu button - hidden by default */
 .mobile-menu-button {
 	display: none;
 	background: none;
@@ -727,7 +454,6 @@ onUnmounted(() => {
 	transform: scale(0.95);
 }
 
-/* Mobile menu overlay */
 .mobile-menu-overlay {
 	position: fixed;
 	top: var(--header-height);
@@ -775,7 +501,6 @@ onUnmounted(() => {
 	background: var(--color-primary-light);
 }
 
-/* Mobile theme toggle row */
 .mobile-toggle-row {
 	display: flex;
 	align-items: center;
@@ -790,7 +515,6 @@ onUnmounted(() => {
 	font-weight: 600;
 }
 
-/* Mobile menu transitions */
 .mobile-menu-enter-active,
 .mobile-menu-leave-active {
 	transition: opacity 0.3s ease;
@@ -838,7 +562,6 @@ onUnmounted(() => {
 }
 
 /* Footer Styles */
-
 .site-footer {
 	margin-top: 2.25rem;
 	padding: 1rem 0;
@@ -956,22 +679,21 @@ html.dark .logo-dark {
 		max-width: 100%;
 	}
 
-	/* Show mobile menu button, hide desktop nav */
 	.mobile-menu-button {
 		display: block;
 	}
 
 	.main-nav {
-			display: none;
+		display: none;
 	}
 
 	.header-search-input {
 		font-size: 0.88rem;
 	}
 
-		.header-actions {
-			gap: 0.5rem;
-		}
+	.header-actions {
+		gap: 0.5rem;
+	}
 }
 
 @media (max-width: 768px) {
@@ -984,7 +706,7 @@ html.dark .logo-dark {
 	}
 
 	.logo span {
-		display: inline; /* Keep the title visible */
+		display: inline;
 	}
 
 	.logo-image {

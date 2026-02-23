@@ -1,5 +1,5 @@
 import { readBody } from "h3";
-import { getOctokit, getRepoOwnerRepo } from "../../../utils/github";
+import { getOctokit, getRepoOwnerRepo, validateAdminPath } from "../../../utils/github";
 
 export default defineEventHandler(async (event) => {
   const octokit = getOctokit(event);
@@ -10,6 +10,7 @@ export default defineEventHandler(async (event) => {
   if (!path || content === undefined) {
     throw createError({ statusCode: 400, message: "path and content are required" });
   }
+  validateAdminPath(path);
   const commitMessage = message || (sha ? `Update ${path}` : `Create ${path}`);
   try {
     const params: { owner: string; repo: string; path: string; message: string; content: string; sha?: string } = {

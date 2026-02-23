@@ -1,12 +1,7 @@
 <script setup lang="ts">
 import { getAuthorId } from "~/composables/useAuthorId";
 
-type AuthorCollectionItem = {
-  name?: string;
-  avatar?: string;
-  path?: string;
-  [key: string]: unknown;
-};
+import type { AuthorCollectionItem } from "~/types/content";
 
 const props = defineProps<{
   allPosts?: unknown[] | null;

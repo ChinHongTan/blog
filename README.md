@@ -1,75 +1,86 @@
-# Nuxt Minimal Starter
+# 星谷雜貨店 (chinono-blog)
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+A personal blog built with [Nuxt 3](https://nuxt.com) and [Nuxt Content v3](https://content.nuxt.com), featuring a built-in admin panel with a WYSIWYG editor.
+
+**Live site:** [blog.chinono.dev](https://blog.chinono.dev)
+
+## Features
+
+- Markdown-based content with custom remark/rehype plugins (info boxes, math, citations, colored spans)
+- Admin panel with GitHub OAuth authentication
+- Milkdown WYSIWYG editor for creating and editing posts
+- Draft management with local storage recovery
+- Image upload via GitHub API
+- Author profiles and series support
+- Dark/light theme toggle
+- Waline comment system
+- Sitemap generation
+- Full-text search
 
 ## Setup
 
-Make sure to install dependencies:
+### Prerequisites
+
+- Node.js 18+
+- A GitHub OAuth App (for admin panel)
+
+### Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+NUXT_GITHUB_CLIENT_ID=your_github_oauth_client_id
+NUXT_GITHUB_CLIENT_SECRET=your_github_oauth_client_secret
+NUXT_COOKIE_ENCRYPTION_SECRET=a_random_32_char_secret_for_prod
+NUXT_PUBLIC_SITE_URL=http://localhost:3000
+NUXT_PUBLIC_GITHUB_REPO=owner/repo
+```
+
+### Install Dependencies
 
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+### Development
 
 ```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+The site runs at `http://localhost:3000`. The admin panel is at `/admin`.
 
-Build the application for production:
+### Build for Production
 
 ```bash
-# npm
+# SSR build
 npm run build
 
-# pnpm
-pnpm build
+# Static site generation
+npm run generate
 
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
+# Preview the production build
 npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Project Structure
+
+```
+├── assets/css/          # Global stylesheets
+├── components/          # Vue components (SiteHeader, SiteFooter, admin/, content/)
+├── composables/         # Shared composables (auth, theme, toast, editor helpers)
+├── content/             # Markdown content (blog/, authors/, drafts/)
+├── layouts/             # Nuxt layouts (default, admin)
+├── lib/                 # Milkdown editor plugins
+├── pages/               # Route pages (index, [...slug], admin/, author/, series/)
+├── plugins/             # Nuxt plugins (theme, mathjax, footnote highlights)
+├── public/              # Static assets
+├── server/              # Server API routes (admin auth, repo CRUD)
+├── types/               # Shared TypeScript types
+├── utils/               # Remark plugins
+└── nuxt.config.ts       # Nuxt configuration
+```
+
+## License
+
+[MIT](LICENSE) - Copyright 2025 Chin Hong Tan

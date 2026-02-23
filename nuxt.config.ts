@@ -14,7 +14,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     githubClientId: process.env.NUXT_GITHUB_CLIENT_ID || '',
     githubClientSecret: process.env.NUXT_GITHUB_CLIENT_SECRET || '',
-    githubRepo: 'ChinHongTan/blog', // owner/repo
+    cookieEncryptionSecret: process.env.NUXT_COOKIE_ENCRYPTION_SECRET || '',
+    githubRepo: 'ChinHongTan/blog',
     public: {
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
       githubClientId: process.env.NUXT_GITHUB_CLIENT_ID || '',
@@ -37,7 +38,7 @@ export default defineNuxtConfig({
     defaultLanguage: 'zh-CN'
   },
 
-  css: ['~/assets/css/main.css'],
+  css: ['~/assets/css/main.css', '~/assets/css/color-spans.css'],
 
   content: {
     build: {
@@ -88,7 +89,10 @@ export default defineNuxtConfig({
     head: {
       title: '星谷雜貨店',
       link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap' },
       ]
     }
   },
@@ -108,6 +112,22 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/': { prerender: true },
+    '/**': {
+      headers: {
+        'Content-Security-Policy': [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com",
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
+          "font-src 'self' https://fonts.gstatic.com",
+          "img-src 'self' data: https: blob:",
+          "connect-src 'self' https://waline.chinono.dev https://api.github.com https://placehold.co https://raw.githubusercontent.com",
+          "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
+        ].join('; '),
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'SAMEORIGIN',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+      },
+    },
   },
 
   nitro: {
