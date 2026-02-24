@@ -259,49 +259,45 @@
     </div>
 
     <!-- 已發布/草稿 + 本機有版本：選擇使用 GitHub 版本或本機版本 -->
-    <Teleport to="body">
-      <div v-if="showVersionChoiceModal" class="admin-confirm-overlay" @click.self="useGitHubVersion">
-        <div class="admin-confirm-modal" @click.stop>
-          <h3 class="admin-confirm-title">選擇版本</h3>
-          <p class="admin-confirm-text">{{ versionChoiceIsDraft ? "此草稿在 GitHub 與本機都有版本。要使用哪一個？" : "此文章在 GitHub 已發布，且本機有未同步的版本。要使用哪一個？" }}</p>
-          <div class="admin-confirm-actions">
-            <button type="button" class="admin-btn admin-btn-primary" @click="useGitHubVersion">使用 GitHub 上的版本</button>
-            <button type="button" class="admin-btn admin-btn-ghost" @click="useLocalVersion">使用本機版本</button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <BaseModal
+      :model-value="showVersionChoiceModal"
+      title="選擇版本"
+      :description="versionChoiceIsDraft ? '此草稿在 GitHub 與本機都有版本。要使用哪一個？' : '此文章在 GitHub 已發布，且本機有未同步的版本。要使用哪一個？'"
+      width="md"
+      role="alertdialog"
+      @update:model-value="onVersionChoiceModalVisibilityChange"
+    >
+      <template #actions>
+        <button type="button" class="ui-btn ui-btn-primary" @click="useGitHubVersion">使用 GitHub 上的版本</button>
+        <button type="button" class="ui-btn ui-btn-ghost" @click="useLocalVersion">使用本機版本</button>
+      </template>
+    </BaseModal>
 
     <!-- 刪除草稿確認（點擊背景不關閉，改為晃動提示） -->
-    <Teleport to="body">
-      <div
-        v-if="showDeleteDraftConfirm"
-        class="admin-confirm-overlay"
-        role="presentation"
-        @click="onDeleteConfirmOverlayClick"
-      >
-        <div
-          class="admin-confirm-modal admin-confirm-modal-danger"
-          :class="{ 'admin-confirm-modal-shake': deleteModalShake }"
-          role="dialog"
-          aria-modal="true"
-          @click.stop
-        >
-          <h3 class="admin-confirm-title">刪除草稿</h3>
-          <p class="admin-confirm-text">確定要刪除此草稿嗎？此操作無法復原。</p>
-          <div class="admin-confirm-actions admin-confirm-actions-rounded">
-            <button type="button" class="admin-btn admin-btn-ghost" @click="showDeleteDraftConfirm = false">取消</button>
-            <button type="button" class="admin-btn admin-btn-primary admin-btn-danger" @click="confirmDeleteDraft">刪除</button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <BaseModal
+      :model-value="showDeleteDraftConfirm"
+      title="刪除草稿"
+      description="確定要刪除此草稿嗎？此操作無法復原。"
+      variant="danger"
+      role="alertdialog"
+      :close-on-backdrop="false"
+      :close-on-esc="false"
+      :panel-class="deleteModalShake ? 'admin-confirm-modal-shake' : ''"
+      @update:model-value="onDeleteDraftModalVisibilityChange"
+      @overlay-click="onDeleteConfirmOverlayClick"
+    >
+      <template #actions>
+        <button type="button" class="ui-btn ui-btn-ghost" @click="showDeleteDraftConfirm = false">取消</button>
+        <button type="button" class="ui-btn ui-btn-danger" @click="confirmDeleteDraft">刪除</button>
+      </template>
+    </BaseModal>
 
   </div>
 </template>
 
 <script setup lang="ts">
 import type { EditorToolbarApi } from "~/components/admin/MilkdownEditorInner.vue";
+import BaseModal from "~/components/ui/BaseModal.vue";
 
 definePageMeta({ layout: "admin" });
 
@@ -481,16 +477,25 @@ const showDeleteDraftConfirm = ref(false);
 const deleteModalShake = ref(false);
 let deleteModalShakeTimeout: ReturnType<typeof setTimeout> | null = null;
 
-function onDeleteConfirmOverlayClick(e: MouseEvent) {
-  if (e.target !== e.currentTarget) return;
-  e.preventDefault();
-  e.stopPropagation();
+function onDeleteConfirmOverlayClick() {
   deleteModalShake.value = true;
   if (deleteModalShakeTimeout) clearTimeout(deleteModalShakeTimeout);
   deleteModalShakeTimeout = setTimeout(() => {
     deleteModalShake.value = false;
     deleteModalShakeTimeout = null;
   }, 500);
+}
+
+function onVersionChoiceModalVisibilityChange(next: boolean) {
+  if (next) {
+    showVersionChoiceModal.value = true;
+    return;
+  }
+  if (showVersionChoiceModal.value) useGitHubVersion();
+}
+
+function onDeleteDraftModalVisibilityChange(next: boolean) {
+  showDeleteDraftConfirm.value = next;
 }
 const showRecoveryBar = ref(false);
 /** 已發布文章或 GitHub 草稿 + 本機有版本時，詢問使用 GitHub 版本或本機版本。 */
@@ -1221,60 +1226,7 @@ onUnmounted(() => {
   gap: 0.5rem;
 }
 
-/* 確認視窗（版本選擇、刪除草稿） */
-.admin-confirm-overlay {
-  position: fixed;
-  inset: 0;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1100;
-  padding: 1rem;
-  cursor: default;
-  pointer-events: auto;
-}
-.admin-confirm-modal {
-  background: var(--color-bg-primary);
-  padding: 1.5rem 1.75rem;
-  border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px var(--color-border-light);
-  max-width: 28rem;
-  width: 100%;
-}
-.admin-confirm-modal-danger .admin-confirm-title {
-  color: #b91c1c;
-}
-.admin-confirm-title {
-  margin: 0 0 0.75rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  letter-spacing: -0.01em;
-}
-.admin-confirm-text {
-  margin: 0 0 1.5rem;
-  font-size: 0.9375rem;
-  color: var(--color-text-secondary);
-  line-height: 1.55;
-}
-.admin-confirm-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-.admin-confirm-actions .admin-btn {
-  min-width: 6rem;
-}
-
-/* Delete modal: rounded-square buttons; backdrop click triggers shake (do not close) */
+/* Delete modal: backdrop click triggers shake (do not close) */
 .admin-confirm-modal-shake {
   animation: admin-confirm-shake 0.5s ease-in-out;
 }
@@ -1286,19 +1238,6 @@ onUnmounted(() => {
   60% { transform: translateX(6px); }
   75% { transform: translateX(-3px); }
   90% { transform: translateX(3px); }
-}
-.admin-confirm-modal-danger .admin-confirm-actions-rounded {
-  gap: 1rem;
-}
-.admin-confirm-modal-danger .admin-confirm-actions-rounded .admin-btn {
-  width: 4rem;
-  height: 4rem;
-  min-width: unset;
-  padding: 0;
-  border-radius: 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Obsidian-style borderless properties table at top */
@@ -1923,8 +1862,8 @@ html.dark .admin-wysiwyg-site :deep(.milkdown-markdown-reveal) {
 /* Editor info-box: match blog .post-content (supports pasted HTML and ::: rendered as div by remark) */
 .admin-wysiwyg-site :deep(.milkdown .info-box),
 .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box) {
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-md);
   margin: 1.5rem 0;
   border-left: 4px solid;
 }
@@ -1942,51 +1881,27 @@ html.dark .admin-wysiwyg-site :deep(.milkdown-markdown-reveal) {
 }
 .admin-wysiwyg-site :deep(.milkdown .info-box-info),
 .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-info) {
-  background: #e0f2fe;
-  border-color: var(--color-primary);
-  color: var(--color-primary-dark);
+  background: var(--color-info-bg);
+  border-color: var(--color-info-border);
+  color: var(--color-info-text);
 }
 .admin-wysiwyg-site :deep(.milkdown .info-box-success),
 .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-success) {
-  background: #d1fae5;
-  border-color: #10b981;
-  color: #059669;
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
+  color: var(--color-success-text);
 }
 .admin-wysiwyg-site :deep(.milkdown .info-box-warning),
 .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-warning) {
-  background: #fef3c7;
-  border-color: #f59e0b;
-  color: #d97706;
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+  color: var(--color-warning-text);
 }
 .admin-wysiwyg-site :deep(.milkdown .info-box-error),
 .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-error) {
-  background: #fee2e2;
-  border-color: #ef4444;
-  color: #dc2626;
-}
-html.dark .admin-wysiwyg-site :deep(.milkdown .info-box-info),
-html.dark .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-info) {
-  background: rgba(14, 165, 233, 0.18);
-  border-color: #38bdf8;
-  color: #bae6fd;
-}
-html.dark .admin-wysiwyg-site :deep(.milkdown .info-box-success),
-html.dark .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-success) {
-  background: rgba(16, 185, 129, 0.18);
-  border-color: #34d399;
-  color: #bbf7d0;
-}
-html.dark .admin-wysiwyg-site :deep(.milkdown .info-box-warning),
-html.dark .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-warning) {
-  background: rgba(245, 158, 11, 0.18);
-  border-color: #fbbf24;
-  color: #fcd34d;
-}
-html.dark .admin-wysiwyg-site :deep(.milkdown .info-box-error),
-html.dark .admin-wysiwyg-site :deep(.milkdown .ProseMirror .info-box-error) {
-  background: rgba(239, 68, 68, 0.18);
-  border-color: #f87171;
-  color: #fecaca;
+  background: var(--color-error-bg);
+  border-color: var(--color-error-border);
+  color: var(--color-error-text);
 }
 /* Colored label spans [text]{.class} in editor */
 .admin-wysiwyg-site :deep(.milkdown span[data-span-class]),

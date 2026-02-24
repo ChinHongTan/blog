@@ -101,7 +101,7 @@ onUnmounted(() => {
 	position: relative;
 	z-index: 1;
 	margin-top: 2.25rem;
-	padding: 0.8rem 0;
+	padding: var(--space-3) 0;
 	border-top: 1px solid var(--color-border-light);
 }
 
@@ -242,7 +242,7 @@ onUnmounted(() => {
 }
 
 .service-logo {
-	height: 14px;
+	height: 15px;
 	width: auto;
 	object-fit: contain;
 	display: block;

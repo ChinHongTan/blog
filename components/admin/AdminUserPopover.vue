@@ -18,6 +18,7 @@
           v-if="open"
           ref="panelRef"
           class="admin-user-popover"
+          :style="panelStyle"
           role="dialog"
           aria-label="使用者選單"
           @click.stop
@@ -68,6 +69,7 @@ const { user, logout } = useAdminAuth();
 const open = ref(false);
 const triggerRef = ref<HTMLElement | null>(null);
 const panelRef = ref<HTMLElement | null>(null);
+const panelStyle = ref<Record<string, string>>({});
 
 const profileMe = ref<ProfileMe | null>(null);
 
@@ -94,7 +96,17 @@ async function fetchProfile() {
 }
 
 watch(open, (isOpen) => {
-  if (isOpen) fetchProfile();
+  if (isOpen) {
+    fetchProfile();
+    nextTick(() => {
+      updatePanelPosition();
+      window.addEventListener("resize", updatePanelPosition);
+      window.addEventListener("scroll", updatePanelPosition, true);
+    });
+    return;
+  }
+  window.removeEventListener("resize", updatePanelPosition);
+  window.removeEventListener("scroll", updatePanelPosition, true);
 });
 
 watch(() => user.value, (u) => {
@@ -106,8 +118,30 @@ function onLogout() {
   logout();
 }
 
+function updatePanelPosition() {
+  const trigger = triggerRef.value;
+  if (!trigger) return;
+  const rect = trigger.getBoundingClientRect();
+  const panelWidth = 320;
+  const offset = 8;
+  const viewportWidth = window.innerWidth;
+  const left = Math.min(
+    Math.max(offset, rect.right - panelWidth),
+    Math.max(offset, viewportWidth - panelWidth - offset)
+  );
+  panelStyle.value = {
+    top: `${rect.bottom + offset}px`,
+    left: `${left}px`,
+  };
+}
+
 onMounted(() => {
   if (user.value) fetchProfile();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", updatePanelPosition);
+  window.removeEventListener("scroll", updatePanelPosition, true);
 });
 </script>
 
@@ -167,8 +201,6 @@ onMounted(() => {
 .admin-user-popover {
   position: fixed;
   z-index: 200;
-  top: calc(var(--header-height, 70px) + 0.5rem);
-  right: 1rem;
   width: 320px;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border-light);

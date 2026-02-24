@@ -26,7 +26,7 @@ const { toasts, dismiss } = useToast();
 	position: fixed;
 	top: 1rem;
 	right: 1rem;
-	z-index: 9999;
+	z-index: var(--z-toast);
 	display: flex;
 	flex-direction: column;
 	gap: 0.5rem;
@@ -37,23 +37,26 @@ const { toasts, dismiss } = useToast();
 	align-items: center;
 	gap: 0.75rem;
 	padding: 0.75rem 1rem;
-	border-radius: 8px;
+	border-radius: var(--radius-lg);
 	font-size: 0.9rem;
 	cursor: pointer;
-	box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+	border: 1px solid var(--color-border-light);
+	box-shadow: var(--shadow-lg);
 }
 .toast-success {
-	background: #065f46;
-	color: #d1fae5;
+	background: var(--color-success-bg);
+	border-color: var(--color-success-border);
+	color: var(--color-success-text);
 }
 .toast-error {
-	background: #991b1b;
-	color: #fecaca;
+	background: var(--color-error-bg);
+	border-color: var(--color-error-border);
+	color: var(--color-error-text);
 }
 .toast-info {
-	background: var(--color-bg-primary, #fff);
-	color: var(--color-text-primary, #1e293b);
-	border: 1px solid var(--color-border-light, #e2e8f0);
+	background: var(--color-info-bg);
+	border-color: var(--color-info-border);
+	color: var(--color-info-text);
 }
 .toast-msg {
 	flex: 1;

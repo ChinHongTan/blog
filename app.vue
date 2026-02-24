@@ -88,6 +88,7 @@ onUnmounted(() => {
 	min-height: 100vh;
 	background: var(--color-bg-secondary);
 	isolation: isolate;
+	overflow-x: clip;
 }
 
 .app-wrapper > * {
@@ -126,7 +127,7 @@ onUnmounted(() => {
 	height: 2rem;
 	padding: 0;
 	border: none;
-	border-radius: 0.375rem;
+	border-radius: var(--radius-sm);
 	background: transparent;
 	color: var(--color-text-secondary);
 	cursor: pointer;
@@ -164,7 +165,7 @@ onUnmounted(() => {
 	color: var(--color-text-primary);
 	background: var(--color-bg-tertiary);
 	border: 1px solid var(--color-border-light);
-	border-radius: 0.375rem;
+	border-radius: var(--radius-sm);
 	cursor: pointer;
 }
 .admin-quick-add-btn:hover {
@@ -179,7 +180,7 @@ onUnmounted(() => {
 	min-width: 140px;
 	background: var(--color-bg-primary);
 	border: 1px solid var(--color-border-light);
-	border-radius: 0.375rem;
+	border-radius: var(--radius-sm);
 	box-shadow: var(--shadow-lg);
 	overflow: hidden;
 	z-index: 100;
@@ -208,7 +209,7 @@ onUnmounted(() => {
 	color: var(--color-text-secondary);
 	background: transparent;
 	border: 1px solid var(--color-border-light);
-	border-radius: 0.25rem;
+	border-radius: var(--radius-sm);
 	cursor: pointer;
 }
 .admin-top-logout:hover {
@@ -285,7 +286,7 @@ onUnmounted(() => {
 	border-bottom: 1px solid color-mix(in srgb, var(--color-border-light) 60%, transparent);
 	position: sticky;
 	top: 0;
-	z-index: 100;
+	z-index: var(--z-header);
 	box-shadow: var(--shadow-sm);
 	transition:
 		transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -299,12 +300,14 @@ onUnmounted(() => {
 
 .header-content {
 	max-width: 1400px;
+	width: 100%;
 	margin: 0 auto;
 	padding: 0 2rem;
 	height: var(--header-height);
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	min-width: 0;
 }
 
 .logo {
@@ -362,6 +365,7 @@ onUnmounted(() => {
 	display: flex;
 	align-items: center;
 	gap: 1rem;
+	min-width: 0;
 }
 
 .header-search {
@@ -442,7 +446,7 @@ onUnmounted(() => {
 	color: var(--color-text-primary);
 	cursor: pointer;
 	padding: 0.5rem;
-	border-radius: 6px;
+	border-radius: var(--radius-sm);
 	transition: all 0.2s ease;
 }
 
@@ -461,9 +465,10 @@ onUnmounted(() => {
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background: rgba(0, 0, 0, 0.5);
-	z-index: 90;
-	backdrop-filter: blur(2px);
+	background: var(--overlay-bg);
+	z-index: var(--z-overlay);
+	backdrop-filter: blur(var(--overlay-blur));
+	-webkit-backdrop-filter: blur(var(--overlay-blur));
 }
 
 .mobile-menu {
@@ -573,6 +578,10 @@ onUnmounted(() => {
 	}
 
 	.main-nav {
+		display: none;
+	}
+
+	.header-search {
 		display: none;
 	}
 

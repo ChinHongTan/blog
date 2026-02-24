@@ -23,11 +23,55 @@
     /* Borders */
     --color-border-light: #e2e8f0;
     --color-border-medium: #cbd5e1;
+    --color-border: var(--color-border-light);
 
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 32px -8px rgb(0 0 0 / 0.2);
+
+    /* Semantic status */
+    --color-info-bg: #e0f2fe;
+    --color-info-border: #38bdf8;
+    --color-info-text: #0c4a6e;
+    --color-success-bg: #d1fae5;
+    --color-success-border: #34d399;
+    --color-success-text: #065f46;
+    --color-warning-bg: #fef3c7;
+    --color-warning-border: #fbbf24;
+    --color-warning-text: #92400e;
+    --color-error-bg: #fee2e2;
+    --color-error-border: #f87171;
+    --color-error-text: #991b1b;
+
+    /* Radius and spacing scale */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 0.875rem;
+    --radius-pill: 999px;
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+
+    /* Layers and overlays */
+    --z-header: 100;
+    --z-floating: 300;
+    --z-overlay: 1000;
+    --z-modal: 1100;
+    --z-toast: 1300;
+    --overlay-bg: rgb(2 6 23 / 0.48);
+    --overlay-blur: 6px;
+
+    /* Accessibility */
+    --focus-ring-width: 2px;
+    --focus-ring-color: color-mix(in srgb, var(--color-primary) 68%, white);
+    --focus-ring-offset: 2px;
 
     /* Typography */
     --font-heading: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -101,15 +145,38 @@ html.dark {
     /* slate-700 */
     --color-border-medium: #475569;
     /* slate-600 */
+    --color-border: var(--color-border-light);
 
     /* Shadows (slightly stronger in dark) */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.35);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
+    --shadow-xl: 0 20px 34px -8px rgb(0 0 0 / 0.55);
+
+    /* Semantic status */
+    --color-info-bg: rgb(14 165 233 / 0.18);
+    --color-info-border: #38bdf8;
+    --color-info-text: #bae6fd;
+    --color-success-bg: rgb(16 185 129 / 0.18);
+    --color-success-border: #34d399;
+    --color-success-text: #bbf7d0;
+    --color-warning-bg: rgb(245 158 11 / 0.18);
+    --color-warning-border: #fbbf24;
+    --color-warning-text: #fde68a;
+    --color-error-bg: rgb(239 68 68 / 0.18);
+    --color-error-border: #f87171;
+    --color-error-text: #fecaca;
 
     /* Glass UI */
     --panel-bg: rgba(15, 23, 42, 0.6);
     /* slate-900 @ 0.6 */
+
+    /* Layers and overlays */
+    --overlay-bg: rgb(2 6 23 / 0.62);
+    --overlay-blur: 8px;
+
+    /* Accessibility */
+    --focus-ring-color: color-mix(in srgb, var(--color-primary-light) 72%, white);
 
     /* Scrollbar (dark) */
     --scrollbar-track: var(--color-bg-secondary);
@@ -268,8 +335,8 @@ html.dark .shiki span {
 
 /* Focus styles for accessibility */
 *:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
 }
 
 /* Utilities */
@@ -283,6 +350,100 @@ html.dark .shiki span {
 body, .main-header, .app-wrapper, .site-footer,
 .mobile-menu, .mobile-menu-overlay {
     transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Shared semantic callout surface */
+.ui-info-box {
+    padding: var(--space-4) var(--space-6);
+    border-radius: var(--radius-md);
+    margin: 1.5rem 0;
+    border-left: 4px solid;
+}
+
+.ui-info-box strong {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.ui-info-box p {
+    margin: 0;
+    line-height: 1.6;
+}
+
+.ui-info-box-info {
+    background: var(--color-info-bg);
+    border-color: var(--color-info-border);
+    color: var(--color-info-text);
+}
+
+.ui-info-box-success {
+    background: var(--color-success-bg);
+    border-color: var(--color-success-border);
+    color: var(--color-success-text);
+}
+
+.ui-info-box-warning {
+    background: var(--color-warning-bg);
+    border-color: var(--color-warning-border);
+    color: var(--color-warning-text);
+}
+
+.ui-info-box-error {
+    background: var(--color-error-bg);
+    border-color: var(--color-error-border);
+    color: var(--color-error-text);
+}
+
+/* Shared button primitives for dialogs and shared UI */
+.ui-btn {
+    appearance: none;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    padding: 0.5rem 0.9rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.ui-btn:hover:not(:disabled) {
+    background: var(--color-bg-tertiary);
+}
+
+.ui-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.ui-btn-ghost {
+    background: transparent;
+}
+
+.ui-btn-primary {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+}
+
+.ui-btn-primary:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+}
+
+.ui-btn-danger {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #fff;
+}
+
+.ui-btn-danger:hover:not(:disabled) {
+    background: #b91c1c;
+    border-color: #b91c1c;
 }
 
 mjx-container[jax="SVG"][display="true"] {

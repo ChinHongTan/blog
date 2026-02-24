@@ -916,7 +916,7 @@ onMounted(() => {
 	position: fixed;
 	top: 100px;
 	left: 2rem;
-	z-index: 90;
+	z-index: var(--z-floating);
 }
 
 .tooltip-right {
@@ -1245,8 +1245,8 @@ onMounted(() => {
 }
 
 .post-content :deep(.info-box) {
-	padding: 1rem 1.5rem;
-	border-radius: 8px;
+	padding: var(--space-4) var(--space-6);
+	border-radius: var(--radius-md);
 	margin: 1.5rem 0;
 	border-left: 4px solid;
 }
@@ -1305,14 +1305,14 @@ html.dark .post-content :deep(thead) {
 	position: fixed;
 	top: 100px;
 	right: 2rem;
-	z-index: 90;
+	z-index: var(--z-floating);
 }
 
 .floating-scroll-widget {
 	position: fixed;
 	bottom: 2rem;
 	right: 2rem;
-	z-index: 90;
+	z-index: var(--z-floating);
 	display: flex;
 	flex-direction: column;
 	gap: 1rem;
@@ -1470,51 +1470,27 @@ html.dark .post-content :deep(thead) {
 }
 
 .post-content :deep(.info-box-info) {
-	background: #e0f2fe;
-	border-color: var(--color-primary);
-	color: var(--color-primary-dark);
+	background: var(--color-info-bg);
+	border-color: var(--color-info-border);
+	color: var(--color-info-text);
 }
 
 .post-content :deep(.info-box-success) {
-	background: #d1fae5;
-	border-color: #10b981;
-	color: #059669;
+	background: var(--color-success-bg);
+	border-color: var(--color-success-border);
+	color: var(--color-success-text);
 }
 
 .post-content :deep(.info-box-warning) {
-	background: #fef3c7;
-	border-color: #f59e0b;
-	color: #d97706;
+	background: var(--color-warning-bg);
+	border-color: var(--color-warning-border);
+	color: var(--color-warning-text);
 }
 
 .post-content :deep(.info-box-error) {
-	background: #fee2e2;
-	border-color: #ef4444;
-	color: #dc2626;
-}
-
-html.dark .post-content :deep(.info-box-info) {
-	background: rgba(14, 165, 233, 0.18);
-	border-color: #38bdf8;
-	color: #bae6fd;
-}
-
-html.dark .post-content :deep(.info-box-success) {
-	background: rgba(16, 185, 129, 0.18);
-	border-color: #34d399;
-	color: #bbf7d0;
-}
-
-html.dark .post-content :deep(.info-box-warning) {
-	background: rgba(245, 158, 11, 0.18);
-	border-color: #fbbf24;
-	color: #fcd34d;
-}
-
-html.dark .post-content :deep(.info-box-error) {
-	background: rgba(239, 68, 68, 0.18);
-	border-color: #f87171;
-	color: #fecaca;
+	background: var(--color-error-bg);
+	border-color: var(--color-error-border);
+	color: var(--color-error-text);
 }
 
 /* Color span styles are in ~/assets/css/color-spans.css (loaded globally) */
@@ -1834,7 +1810,7 @@ html.dark .post-content :deep(.info-box-error) {
 	bottom: 1.5rem;
 	left: 50%;
 	transform: translateX(-50%);
-	z-index: 90;
+	z-index: var(--z-floating);
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;

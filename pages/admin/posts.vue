@@ -53,28 +53,24 @@
       </div>
     </section>
 
-    <!-- 捨棄草稿確認：Alert Card -->
-    <Teleport to="body">
-      <div v-if="discardConfirmDraft" class="admin-discard-confirm-overlay" @click.self="discardConfirmDraft = null">
-        <div class="admin-discard-confirm-modal" role="alertdialog" aria-labelledby="admin-discard-confirm-heading" aria-describedby="admin-discard-confirm-desc" @click.stop>
-          <div class="admin-discard-confirm-icon" aria-hidden="true">
-            <Icon name="heroicons:trash" size="28" />
-          </div>
-          <h3 id="admin-discard-confirm-heading" class="admin-discard-confirm-heading">捨棄未儲存的變更？</h3>
-          <p id="admin-discard-confirm-desc" class="admin-discard-confirm-text">
-            您確定要移除對這篇文章的本機修改嗎？此操作無法復原，您將回到伺服器上的版本。
-          </p>
-          <div v-if="discardConfirmDraft" class="admin-discard-confirm-object-card">
-            <Icon name="heroicons:document-text" size="18" class="admin-discard-confirm-object-icon" aria-hidden="true" />
-            <span class="admin-discard-confirm-object-title">{{ discardConfirmDraft.title }}</span>
-          </div>
-          <div class="admin-discard-confirm-actions">
-            <button type="button" class="admin-btn admin-btn-ghost admin-discard-cancel" @click="discardConfirmDraft = null">取消</button>
-            <button type="button" class="admin-btn admin-discard-submit" @click="confirmDiscardDraft">捨棄</button>
-          </div>
-        </div>
+    <!-- 捨棄草稿確認 -->
+    <BaseModal
+      :model-value="!!discardConfirmDraft"
+      title="捨棄未儲存的變更？"
+      description="您確定要移除對這篇文章的本機修改嗎？此操作無法復原，您將回到伺服器上的版本。"
+      variant="danger"
+      role="alertdialog"
+      @update:model-value="onDiscardModalVisibilityChange"
+    >
+      <div v-if="discardConfirmDraft" class="admin-discard-confirm-object-card">
+        <Icon name="heroicons:document-text" size="18" class="admin-discard-confirm-object-icon" aria-hidden="true" />
+        <span class="admin-discard-confirm-object-title">{{ discardConfirmDraft.title }}</span>
       </div>
-    </Teleport>
+      <template #actions>
+        <button type="button" class="ui-btn ui-btn-ghost admin-discard-cancel" @click="discardConfirmDraft = null">取消</button>
+        <button type="button" class="ui-btn ui-btn-danger admin-discard-submit" @click="confirmDiscardDraft">捨棄</button>
+      </template>
+    </BaseModal>
 
     <div v-if="loading" class="admin-list-loading">載入中…</div>
     <div v-else class="admin-posts-table-wrap">
@@ -142,6 +138,8 @@
 </template>
 
 <script setup lang="ts">
+import BaseModal from "~/components/ui/BaseModal.vue";
+
 definePageMeta({ layout: "admin" });
 
 const DRAFT_KEY_PREFIX = "admin-draft-post-";
@@ -259,6 +257,11 @@ function loadLocalDrafts() {
 
 function openDiscardConfirm(draft: LocalDraftItem) {
   discardConfirmDraft.value = draft;
+}
+
+function onDiscardModalVisibilityChange(next: boolean) {
+  if (next) return;
+  discardConfirmDraft.value = null;
 }
 
 function confirmDiscardDraft() {
@@ -706,51 +709,7 @@ onActivated(() => {
   color: #dc2626;
 }
 
-/* 捨棄草稿確認 — Alert Card */
-.admin-discard-confirm-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1100;
-}
-.admin-discard-confirm-modal {
-  background: var(--color-bg-primary);
-  padding: 1.75rem 1.5rem;
-  border-radius: 0.75rem;
-  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0, 0, 0, 0.05);
-  max-width: 26rem;
-  text-align: center;
-}
-.admin-discard-confirm-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  margin: 0 auto 1rem;
-  border-radius: 50%;
-  background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
-}
-.admin-discard-confirm-heading {
-  margin: 0 0 0.5rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  letter-spacing: 0.01em;
-}
-.admin-discard-confirm-text {
-  margin: 0 0 1rem;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  line-height: 1.55;
-  text-align: center;
-}
+/* 捨棄草稿確認 */
 .admin-discard-confirm-object-card {
   display: flex;
   align-items: center;
@@ -774,19 +733,9 @@ onActivated(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.admin-discard-confirm-actions {
-  display: flex;
-  gap: 1.25rem;
-  justify-content: stretch;
-}
-.admin-discard-confirm-actions .admin-btn {
-  flex: 1;
-  min-width: 0;
-  justify-content: center;
-}
 .admin-discard-cancel {
   background: transparent !important;
-  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.2));
+  border: 1px solid var(--color-border);
   color: var(--color-text-primary);
 }
 .admin-discard-cancel:hover {
@@ -795,14 +744,6 @@ onActivated(() => {
   color: var(--color-text-primary);
 }
 .admin-discard-submit {
-  background: #ef4444;
-  border: 1px solid #ef4444;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
-}
-.admin-discard-submit:hover {
-  background: #dc2626;
-  border-color: #dc2626;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  min-width: 5.75rem;
 }
 </style>
