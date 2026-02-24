@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import mediumZoom from "medium-zoom";
+
 const route = useRoute();
 
 const safeDecode = (value: string): string => {
@@ -259,6 +261,66 @@ onMounted(async () => {
 			dark: "html.dark",
 		});
 	}
+	await nextTick();
+	mediumZoom(".post-content img", {
+		background: "var(--color-bg-primary)",
+	});
+});
+
+// Reading progress persistence
+const READING_KEY_PREFIX = "reading-progress:";
+const showResumeBar = ref(false);
+const savedScrollPercent = ref(0);
+let savedScrollY = 0;
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+function saveReadingProgress() {
+	if (!isBlogPost.value || !page.value?.path) return;
+	const pct = scrollPercentage.value;
+	if (pct < 5 || pct > 95) return;
+	localStorage.setItem(
+		READING_KEY_PREFIX + page.value.path,
+		JSON.stringify({ scrollY: window.scrollY, percent: Math.round(pct) })
+	);
+}
+
+function debouncedSave() {
+	if (saveTimer) clearTimeout(saveTimer);
+	saveTimer = setTimeout(saveReadingProgress, 2000);
+}
+
+function resumeReading() {
+	window.scrollTo({ top: savedScrollY, behavior: "smooth" });
+	showResumeBar.value = false;
+}
+
+function dismissResume() {
+	showResumeBar.value = false;
+	if (page.value?.path) {
+		localStorage.removeItem(READING_KEY_PREFIX + page.value.path);
+	}
+}
+
+onMounted(() => {
+	if (!isBlogPost.value || !page.value?.path) return;
+	const raw = localStorage.getItem(READING_KEY_PREFIX + page.value.path);
+	if (raw) {
+		try {
+			const data = JSON.parse(raw);
+			if (data.percent > 5 && data.scrollY > 200) {
+				savedScrollY = data.scrollY;
+				savedScrollPercent.value = data.percent;
+				showResumeBar.value = true;
+			}
+		} catch { /* ignore */ }
+	}
+	window.addEventListener("scroll", debouncedSave, { passive: true });
+});
+
+onBeforeUnmount(() => {
+	window.removeEventListener("scroll", debouncedSave);
+	if (saveTimer) clearTimeout(saveTimer);
+	saveReadingProgress();
 });
 
 // Series sidebar logic
@@ -341,6 +403,17 @@ onMounted(() => {
 
 <template>
 	<div v-if="page" class="post-layout-container" :class="{ 'has-series': hasSeries }">
+		<Transition name="resume-bar">
+			<div v-if="showResumeBar" class="resume-reading-bar">
+				<Icon name="heroicons:bookmark" size="16" />
+				<span>上次讀到 {{ savedScrollPercent }}%，繼續閱讀？</span>
+				<button type="button" class="resume-btn" @click="resumeReading">繼續</button>
+				<button type="button" class="resume-dismiss" aria-label="關閉" @click="dismissResume">
+					<Icon name="heroicons:x-mark" size="16" />
+				</button>
+			</div>
+		</Transition>
+
 		<article class="blog-post">
 			<!-- Main Content Grid -->
 			<div class="layout-wrapper" :class="{ 'no-toc': !hasToc || !showToc, 'has-series-sidebar': hasSeries && showSeriesSidebar }">
@@ -1150,6 +1223,7 @@ onMounted(() => {
 	border-radius: 12px;
 	margin: 1.5rem 0;
 	box-shadow: var(--shadow-md);
+	cursor: zoom-in;
 }
 
 .post-content :deep(figure) {
@@ -1753,5 +1827,67 @@ html.dark .post-content :deep(.info-box-error) {
 	.post-content :deep(h3) {
 		font-size: 1.1rem;
 	}
+}
+
+.resume-reading-bar {
+	position: fixed;
+	bottom: 1.5rem;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 90;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.6rem 1rem;
+	background: var(--color-bg-primary);
+	border: 1px solid var(--color-border-light);
+	border-radius: 999px;
+	box-shadow: var(--shadow-lg);
+	font-size: 0.85rem;
+	color: var(--color-text-secondary);
+	backdrop-filter: blur(12px);
+}
+
+.resume-btn {
+	border: none;
+	background: var(--color-primary);
+	color: white;
+	padding: 0.25rem 0.75rem;
+	border-radius: 999px;
+	font-size: 0.8rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.2s ease;
+}
+
+.resume-btn:hover {
+	background: var(--color-primary-dark);
+}
+
+.resume-dismiss {
+	border: none;
+	background: transparent;
+	color: var(--color-text-tertiary);
+	cursor: pointer;
+	padding: 0.15rem;
+	display: flex;
+	align-items: center;
+	border-radius: 50%;
+	transition: color 0.2s ease;
+}
+
+.resume-dismiss:hover {
+	color: var(--color-text-primary);
+}
+
+.resume-bar-enter-active,
+.resume-bar-leave-active {
+	transition: all 0.3s ease;
+}
+
+.resume-bar-enter-from,
+.resume-bar-leave-to {
+	opacity: 0;
+	transform: translateX(-50%) translateY(1rem);
 }
 </style>

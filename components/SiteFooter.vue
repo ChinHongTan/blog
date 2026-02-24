@@ -1,6 +1,10 @@
 <script setup lang="ts">
 const currentYear = new Date().getFullYear();
 
+const { data: postCount } = useAsyncData("post-count", () =>
+	queryCollection("blog").count()
+);
+
 const LAUNCH_DATE = new Date("2025-10-24T00:00:00+08:00").getTime();
 
 const days = ref(0);
@@ -58,6 +62,11 @@ onUnmounted(() => {
 					<span class="ticker-num">{{ seconds }}</span><span class="ticker-unit">秒</span>
 				</div>
 				<div class="vercount-stats">
+					<span v-if="postCount" class="vercount-item">
+						<Icon name="heroicons:document-text" size="13" />
+						<span class="vercount-num">{{ postCount }}</span> 篇文章
+					</span>
+					<span v-if="postCount" class="vercount-sep">&bull;</span>
 					<span class="vercount-item">
 						<Icon name="heroicons:eye" size="13" />
 						<span id="vercount_value_site_pv" class="vercount-num">-</span> 次瀏覽
@@ -71,7 +80,7 @@ onUnmounted(() => {
 			</div>
 
 			<div class="footer-col footer-right">
-				<span class="powered-label">Powered by</span>
+				<span class="powered-label">小破站靠著這些工具撐著：</span>
 				<div class="service-badges">
 					<a href="https://vercel.com" target="_blank" rel="noopener" class="service-link">
 						<img src="/images/logos/vercel-logo-black.svg" alt="Vercel" class="service-logo logo-light">
@@ -80,10 +89,6 @@ onUnmounted(() => {
 					<a href="https://nuxt.com" target="_blank" rel="noopener" class="service-link">
 						<img src="/images/logos/nuxt-logo-green-black.svg" alt="Nuxt" class="service-logo logo-light">
 						<img src="/images/logos/nuxt-logo-green-white.svg" alt="Nuxt" class="service-logo logo-dark">
-					</a>
-					<a href="https://decapcms.org" target="_blank" rel="noopener" class="service-link">
-						<img src="/images/logos/decap-logo-black.svg" alt="Decap CMS" class="service-logo decap-logo logo-light">
-						<img src="/images/logos/decap-logo-white.svg" alt="Decap CMS" class="service-logo decap-logo logo-dark">
 					</a>
 				</div>
 			</div>

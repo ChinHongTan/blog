@@ -61,6 +61,7 @@ onUnmounted(() => {
 
 <template>
 	<div :class="['app-wrapper', { 'post-mood': isPostPage }]">
+		<NuxtLoadingIndicator color="var(--color-primary)" :height="3" />
 		<ToastContainer />
 		<AdminTopBar v-if="isAdminRoute" />
 		<SiteHeader

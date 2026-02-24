@@ -104,6 +104,10 @@ watch(isMobileMenuOpen, (open) => {
 						<Icon name="heroicons:users" size="20" />
 						<span>作者</span>
 					</NuxtLink>
+					<NuxtLink to="/guestbook">
+						<Icon name="heroicons:chat-bubble-left-ellipsis" size="20" />
+						<span>留言板</span>
+					</NuxtLink>
 				</nav>
 				<div class="header-search" :class="{ open: isSearchOpen }">
 					<div class="search-pill">
@@ -159,6 +163,10 @@ watch(isMobileMenuOpen, (open) => {
 					<NuxtLink to="/authors" class="mobile-nav-link">
 						<Icon name="heroicons:users" size="20" />
 						作者
+					</NuxtLink>
+					<NuxtLink to="/guestbook" class="mobile-nav-link">
+						<Icon name="heroicons:chat-bubble-left-ellipsis" size="20" />
+						留言板
 					</NuxtLink>
 					<NuxtLink to="/code-of-conduct" class="mobile-nav-link">
 						<Icon name="heroicons:document-text" size="20" />
