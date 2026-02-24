@@ -2,12 +2,13 @@
 title: 紀錄一次Discord機器人的開發過程（2）
 description: 講講寫網頁控制面板的那些事
 date: 2026-02-22T16:39:03.096Z
+edited_at: 2026-02-24T10:11:37.204Z
 author: chinono
 path: /blog/紀錄一次Discord機器人的開發過程（2）
 featured_image: /images/uploads/1771775949773-69618131_p0.jpg
 ---
 
-###### ~~就說我很認真在選封面圖片~~
+###### ~~就說我很認真在選封面圖片嘛~~
 
 ## **4. 網頁控制面板**
 
