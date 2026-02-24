@@ -1,5 +1,5 @@
 import { readBody } from "h3";
-import { getOctokit, getRepoOwnerRepo, validateAdminPath } from "../../../utils/github";
+import { extractFrontmatterAuthor, getOctokit, getRepoOwnerRepo, isPostContentPath, resolveCurrentAuthorId, validateAdminPath } from "../../../utils/github";
 
 export default defineEventHandler(async (event) => {
   const octokit = getOctokit(event);
@@ -14,19 +14,39 @@ export default defineEventHandler(async (event) => {
   validateAdminPath(toPath);
   const commitMessage = message || `Move ${fromPath} to ${toPath}`;
   try {
+    const isPostMove = isPostContentPath(fromPath) || isPostContentPath(toPath);
+    const me = isPostMove ? (await resolveCurrentAuthorId(event))?.toLowerCase() : null;
+    if (isPostMove && !me) {
+      throw createError({ statusCode: 403, message: "Unable to resolve current author identity" });
+    }
     const { data: fileData } = await octokit.repos.getContent({ owner, repo, path: fromPath });
     if (Array.isArray(fileData) || !("content" in fileData) || !fileData.content) {
       throw createError({ statusCode: 404, message: "Source file not found" });
     }
     const content = Buffer.from(fileData.content, "base64").toString("utf-8");
+    if (isPostContentPath(fromPath)) {
+      const sourceAuthor = extractFrontmatterAuthor(content)?.toLowerCase();
+      if (sourceAuthor && sourceAuthor !== me) {
+        throw createError({ statusCode: 403, message: "You can only move your own posts" });
+      }
+    }
     const fromSha = (fileData as { sha?: string }).sha;
     let toSha: string | undefined;
     try {
       const { data: existing } = await octokit.repos.getContent({ owner, repo, path: toPath });
       if (!Array.isArray(existing) && existing && "sha" in existing) {
         toSha = (existing as { sha?: string }).sha;
+        if ("content" in existing && existing.content && isPostContentPath(toPath)) {
+          const existingRaw = Buffer.from(existing.content, "base64").toString("utf-8");
+          const targetAuthor = extractFrontmatterAuthor(existingRaw)?.toLowerCase();
+          if (targetAuthor && targetAuthor !== me) {
+            throw createError({ statusCode: 403, message: "You can only overwrite your own posts" });
+          }
+        }
       }
-    } catch {
+    } catch (e: unknown) {
+      const err = e as { status?: number };
+      if (err.status && err.status !== 404) throw e;
       // toPath does not exist; we will create
     }
     const { data: createData } = await octokit.repos.createOrUpdateFileContents({

@@ -1,5 +1,5 @@
 import { readBody } from "h3";
-import { getOctokit, getRepoOwnerRepo, validateAdminPath } from "../../../utils/github";
+import { extractFrontmatterAuthor, getOctokit, getRepoOwnerRepo, isPostContentPath, resolveCurrentAuthorId, validateAdminPath } from "../../../utils/github";
 
 export default defineEventHandler(async (event) => {
   const octokit = getOctokit(event);
@@ -13,6 +13,20 @@ export default defineEventHandler(async (event) => {
   validateAdminPath(path);
   const commitMessage = message || `Delete ${path}`;
   try {
+    if (isPostContentPath(path)) {
+      const me = (await resolveCurrentAuthorId(event))?.toLowerCase();
+      if (!me) {
+        throw createError({ statusCode: 403, message: "Unable to resolve current author identity" });
+      }
+      const { data: existing } = await octokit.repos.getContent({ owner, repo, path });
+      if (!Array.isArray(existing) && "content" in existing && existing.content) {
+        const raw = Buffer.from(existing.content, "base64").toString("utf-8");
+        const ownerAuthor = extractFrontmatterAuthor(raw)?.toLowerCase();
+        if (ownerAuthor && ownerAuthor !== me) {
+          throw createError({ statusCode: 403, message: "You can only delete your own posts" });
+        }
+      }
+    }
     await octokit.repos.deleteFile({ owner, repo, path, sha, message: commitMessage });
     return { ok: true };
   } catch (e: unknown) {

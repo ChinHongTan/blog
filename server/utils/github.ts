@@ -80,3 +80,83 @@ export function validateAdminPath(path: string): void {
     throw createError({ statusCode: 403, message: `Access denied: path must start with ${ALLOWED_PATH_PREFIXES.join(" or ")}` });
   }
 }
+
+export function isPostContentPath(path: string): boolean {
+  const normalized = path.replace(/^\/+/, "");
+  return normalized.startsWith("content/blog/") || normalized.startsWith("content/drafts/");
+}
+
+export function extractFrontmatterAuthor(raw: string): string | null {
+  const match = raw.match(/^---\s*\n([\s\S]*?)\n---/);
+  if (!match) return null;
+  const front = match[1];
+  const authorMatch = front.match(/^\s*author:\s*(.+)\s*$/m);
+  if (!authorMatch) return null;
+  const v = authorMatch[1].trim().replace(/^["']|["']$/g, "");
+  return v || null;
+}
+
+function githubUrlToLogin(url: string): string | null {
+  const s = (url || "").trim();
+  if (!s) return null;
+  const m = s.match(/github\.com\/([^/?#]+)/i);
+  if (m) return m[1];
+  if (/^[a-zA-Z0-9_-]+$/.test(s)) return s;
+  return null;
+}
+
+function extractAuthorGithubLogin(raw: string): string | null {
+  const match = raw.match(/^---\s*\n([\s\S]*?)\n---/);
+  if (!match) return null;
+  const front = match[1];
+  const ghMatch = front.match(/^\s*github:\s*(.+)\s*$/m);
+  if (!ghMatch) return null;
+  return githubUrlToLogin(ghMatch[1].trim().replace(/^["']|["']$/g, ""));
+}
+
+export async function resolveCurrentAuthorId(event: H3Event): Promise<string | null> {
+  const octokit = getOctokit(event);
+  if (!octokit) return null;
+  const { owner, repo } = getRepoOwnerRepo(event);
+  let login: string;
+  try {
+    const { data: user } = await octokit.users.getAuthenticated();
+    login = user.login;
+  } catch {
+    return null;
+  }
+
+  try {
+    const { data: list } = await octokit.repos.getContent({ owner, repo, path: "content/authors" });
+    if (Array.isArray(list)) {
+      const mdFiles = list.filter((f: { name?: string }) => (f.name || "").endsWith(".md")) as { path: string }[];
+      for (const f of mdFiles) {
+        try {
+          const { data: file } = await octokit.repos.getContent({ owner, repo, path: f.path });
+          if (Array.isArray(file) || !("content" in file) || !file.content) continue;
+          const raw = Buffer.from(file.content, "base64").toString("utf-8");
+          const ghLogin = extractAuthorGithubLogin(raw);
+          if (ghLogin && ghLogin.toLowerCase() === login.toLowerCase()) {
+            return f.path.replace(/^content\/authors\//i, "").replace(/\.md$/i, "");
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+
+  const defaultCandidates = [login, login.toLowerCase()];
+  for (const candidate of defaultCandidates) {
+    try {
+      const path = `content/authors/${candidate}.md`;
+      const { data } = await octokit.repos.getContent({ owner, repo, path });
+      if (!Array.isArray(data)) return candidate;
+    } catch {
+      /* try next */
+    }
+  }
+  return null;
+}

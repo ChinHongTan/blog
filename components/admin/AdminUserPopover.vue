@@ -95,18 +95,32 @@ async function fetchProfile() {
   }
 }
 
+function canUseWindow(): boolean {
+  return import.meta.client && typeof window !== "undefined";
+}
+
+function bindWindowListeners() {
+  if (!canUseWindow()) return;
+  window.addEventListener("resize", updatePanelPosition);
+  window.addEventListener("scroll", updatePanelPosition, true);
+}
+
+function unbindWindowListeners() {
+  if (!canUseWindow()) return;
+  window.removeEventListener("resize", updatePanelPosition);
+  window.removeEventListener("scroll", updatePanelPosition, true);
+}
+
 watch(open, (isOpen) => {
   if (isOpen) {
     fetchProfile();
     nextTick(() => {
       updatePanelPosition();
-      window.addEventListener("resize", updatePanelPosition);
-      window.addEventListener("scroll", updatePanelPosition, true);
+      bindWindowListeners();
     });
     return;
   }
-  window.removeEventListener("resize", updatePanelPosition);
-  window.removeEventListener("scroll", updatePanelPosition, true);
+  unbindWindowListeners();
 });
 
 watch(() => user.value, (u) => {
@@ -119,6 +133,7 @@ function onLogout() {
 }
 
 function updatePanelPosition() {
+  if (!canUseWindow()) return;
   const trigger = triggerRef.value;
   if (!trigger) return;
   const rect = trigger.getBoundingClientRect();
@@ -140,8 +155,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", updatePanelPosition);
-  window.removeEventListener("scroll", updatePanelPosition, true);
+  unbindWindowListeners();
 });
 </script>
 

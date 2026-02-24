@@ -1,5 +1,5 @@
 import { readBody } from "h3";
-import { getOctokit, getRepoOwnerRepo, validateAdminPath } from "../../../utils/github";
+import { extractFrontmatterAuthor, getOctokit, getRepoOwnerRepo, isPostContentPath, resolveCurrentAuthorId, validateAdminPath } from "../../../utils/github";
 
 export default defineEventHandler(async (event) => {
   const octokit = getOctokit(event);
@@ -13,6 +13,33 @@ export default defineEventHandler(async (event) => {
   validateAdminPath(path);
   const commitMessage = message || (sha ? `Update ${path}` : `Create ${path}`);
   try {
+    if (isPostContentPath(path)) {
+      const me = (await resolveCurrentAuthorId(event))?.toLowerCase();
+      if (!me) {
+        throw createError({ statusCode: 403, message: "Unable to resolve current author identity" });
+      }
+      const incomingAuthor = extractFrontmatterAuthor(content)?.toLowerCase();
+      if (incomingAuthor && incomingAuthor !== me) {
+        throw createError({ statusCode: 403, message: "You can only save your own posts" });
+      }
+      let existingAuthor: string | null = null;
+      try {
+        const { data: existing } = await octokit.repos.getContent({ owner, repo, path });
+        if (!Array.isArray(existing) && "content" in existing && existing.content) {
+          const raw = Buffer.from(existing.content, "base64").toString("utf-8");
+          existingAuthor = extractFrontmatterAuthor(raw)?.toLowerCase() ?? null;
+        }
+      } catch {
+        // file not found is fine for create flow
+      }
+      if (existingAuthor && existingAuthor !== me) {
+        throw createError({ statusCode: 403, message: "You can only update your own posts" });
+      }
+      if (!existingAuthor && !incomingAuthor) {
+        throw createError({ statusCode: 400, message: "Post frontmatter must include author" });
+      }
+    }
+
     const params: { owner: string; repo: string; path: string; message: string; content: string; sha?: string } = {
       owner,
       repo,

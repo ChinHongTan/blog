@@ -141,6 +141,7 @@
 import BaseModal from "~/components/ui/BaseModal.vue";
 
 definePageMeta({ layout: "admin" });
+const route = useRoute();
 
 const DRAFT_KEY_PREFIX = "admin-draft-post-";
 
@@ -370,7 +371,18 @@ const filteredTableRows = computed<TableRow[]>(() => {
 async function load() {
   loading.value = true;
   try {
-    postIndex.value = await $fetch<PostIndexItem[]>("/api/admin/posts-index").catch(() => []);
+    const deletedPath = typeof route.query.deletedPath === "string" ? route.query.deletedPath : "";
+    const fetchList = (t: number) =>
+      $fetch<PostIndexItem[]>("/api/admin/posts-index", { query: { t } }).catch(() => []);
+    postIndex.value = await fetchList(Date.now());
+    if (deletedPath && Array.isArray(postIndex.value)) {
+      // GitHub content API can be briefly stale after delete/move; retry shortly once.
+      const stillPresent = postIndex.value.some((p) => p.path === deletedPath);
+      if (stillPresent) {
+        await new Promise((resolve) => setTimeout(resolve, 700));
+        postIndex.value = await fetchList(Date.now());
+      }
+    }
     if (!Array.isArray(postIndex.value)) postIndex.value = [];
   } finally {
     loading.value = false;

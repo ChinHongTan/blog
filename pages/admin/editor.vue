@@ -21,6 +21,15 @@
         <button v-if="showDeleteDraftButton" type="button" class="admin-btn admin-btn-ghost" :disabled="deletingDraft || !canEditPost" @click="openDeleteDraftConfirm">
           刪除草稿
         </button>
+        <button
+          v-if="pathQuery"
+          type="button"
+          class="admin-btn admin-btn-ghost"
+          :disabled="saving || savingDraft || unpublishing || deletingDraft || revertingToGitHub || !canEditPost"
+          @click="openRevertToGitHubConfirm"
+        >
+          還原 GitHub 版本
+        </button>
         <button type="button" class="admin-btn admin-btn-primary" :disabled="saving || !canEditPost || (isPublishedPost && !hasUnsavedChanges)" :title="canEditPost ? '' : '您只能編輯自己的文章'" @click="publish">
           {{ saving ? "正在同步至 GitHub…" : publishButtonLabel }}
         </button>
@@ -292,6 +301,22 @@
       </template>
     </BaseModal>
 
+    <BaseModal
+      :model-value="showRevertToGitHubConfirm"
+      title="還原 GitHub 版本"
+      description="確定要放棄目前編輯器中的本機變更，並回到 GitHub 上的版本嗎？此操作無法復原。"
+      variant="danger"
+      role="alertdialog"
+      @update:model-value="onRevertToGitHubModalVisibilityChange"
+    >
+      <template #actions>
+        <button type="button" class="ui-btn ui-btn-ghost" @click="showRevertToGitHubConfirm = false">取消</button>
+        <button type="button" class="ui-btn ui-btn-danger" :disabled="revertingToGitHub" @click="confirmRevertToGitHubVersion">
+          {{ revertingToGitHub ? "還原中…" : "還原" }}
+        </button>
+      </template>
+    </BaseModal>
+
   </div>
 </template>
 
@@ -473,6 +498,8 @@ const savingDraft = ref(false);
 const unpublishing = ref(false);
 const deletingDraft = ref(false);
 const showDeleteDraftConfirm = ref(false);
+const showRevertToGitHubConfirm = ref(false);
+const revertingToGitHub = ref(false);
 /** Shake delete modal when user clicks backdrop (destructive action — must choose). */
 const deleteModalShake = ref(false);
 let deleteModalShakeTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -509,6 +536,22 @@ const serverLastModified = ref<string | null>(null);
 /** 選擇「使用本機版本」時遞增，強制編輯器重新掛載以讀取 body。 */
 const editorMountKey = ref(0);
 let beforeUnloadHandler: ((e: BeforeUnloadEvent) => void) | null = null;
+/** 載入遠端內容時暫停 local autosave，避免初次賦值被誤判成使用者輸入。 */
+const isHydratingFromRemote = ref(false);
+/** 用於比較「目前編輯器內容是否等於 GitHub 版本」。等於時可清除本機草稿。 */
+const serverBaselineSnapshot = ref<string | null>(null);
+
+function currentSnapshot(): string {
+  return serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
+}
+
+function clearLocalDraftKey(key = draftKey.value) {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    /* ignore */
+  }
+}
 
 function serializeMeta(): string {
   const metaCopy = { ...meta, tags: [...meta.tags], series: [...meta.series] };
@@ -578,7 +621,12 @@ function buildFrontmatterStr(): string {
 
 function getBodyContent(): string {
   if (viewMode.value === "raw") return rawBody.value;
-  return milkdownRef.value?.getMarkdown?.() ?? getMarkdownRef.value?.() ?? rawBody.value;
+  try {
+    return milkdownRef.value?.getMarkdown?.() ?? getMarkdownRef.value?.() ?? rawBody.value;
+  } catch {
+    // Milkdown may be remounting; fall back to raw markdown snapshot.
+    return rawBody.value;
+  }
 }
 
 function saveDraft() {
@@ -598,9 +646,16 @@ function saveDraft() {
 /** 有變更尚未寫入 localStorage 時排程 1s 後寫入。已發布文章也會寫入本機作為恢復用。非作者不自動儲存。 */
 function scheduleDebouncedLocalSave() {
   if (versionChoicePending.value) return;
+  if (isHydratingFromRemote.value) return;
   if (docType.value !== "post" && docType.value !== "author") return;
   if (docType.value === "post" && !canEditPost.value) return;
-  const snapshot = serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
+  const snapshot = currentSnapshot();
+  if (serverBaselineSnapshot.value && snapshot === serverBaselineSnapshot.value) {
+    clearLocalDraftKey();
+    lastSavedToLocalSnapshot.value = snapshot;
+    isDirty.value = false;
+    return;
+  }
   if (snapshot === lastSavedToLocalSnapshot.value) return;
   isDirty.value = true;
   if (debounceSaveTimer) clearTimeout(debounceSaveTimer);
@@ -650,27 +705,20 @@ function restoreLocalVersion() {
 }
 
 function discardLocalVersion() {
-  try {
-    localStorage.removeItem(draftKey.value);
-  } catch {
-    /* ignore */
-  }
+  clearLocalDraftKey();
   showRecoveryBar.value = false;
   serverLastModified.value = null;
-  lastSavedToLocalSnapshot.value = serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
+  lastSavedToLocalSnapshot.value = currentSnapshot();
 }
 
 /** 版本選擇：使用 GitHub 上的已發布版本（捨棄本機草稿）。 */
 function useGitHubVersion() {
   versionChoicePending.value = false;
-  try {
-    localStorage.removeItem(draftKey.value);
-  } catch {
-    /* ignore */
-  }
+  clearLocalDraftKey();
   showVersionChoiceModal.value = false;
   serverLastModified.value = null;
-  lastSavedToLocalSnapshot.value = serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
+  lastSavedToLocalSnapshot.value = currentSnapshot();
+  serverBaselineSnapshot.value = lastSavedToLocalSnapshot.value;
   contentReady.value = true;
   nextTick(() => {
     setTimeout(() => {
@@ -702,8 +750,47 @@ function useLocalVersion() {
   });
 }
 
+function openRevertToGitHubConfirm() {
+  if (!pathQuery.value || !canEditPost.value) return;
+  showRevertToGitHubConfirm.value = true;
+}
+
+function onRevertToGitHubModalVisibilityChange(next: boolean) {
+  showRevertToGitHubConfirm.value = next;
+}
+
+async function confirmRevertToGitHubVersion() {
+  if (!pathQuery.value) return;
+  revertingToGitHub.value = true;
+  showRevertToGitHubConfirm.value = false;
+  isHydratingFromRemote.value = true;
+  showRecoveryBar.value = false;
+  versionChoicePending.value = false;
+  clearLocalDraftKey();
+  if (debounceSaveTimer) {
+    clearTimeout(debounceSaveTimer);
+    debounceSaveTimer = null;
+  }
+  isDirty.value = false;
+  contentReady.value = false;
+  try {
+    await loadFromApi();
+  } finally {
+    contentReady.value = true;
+    isHydratingFromRemote.value = false;
+    revertingToGitHub.value = false;
+  }
+}
+
 function loadFromApi(): Promise<void> {
+  isHydratingFromRemote.value = true;
+  if (debounceSaveTimer) {
+    clearTimeout(debounceSaveTimer);
+    debounceSaveTimer = null;
+  }
+  isDirty.value = false;
   if (!filePath.value) {
+    serverBaselineSnapshot.value = null;
     if (docType.value === "post") {
       meta.date = new Date().toISOString().slice(0, 16);
     }
@@ -712,6 +799,7 @@ function loadFromApi(): Promise<void> {
       cachedMetaJson.value = serializeMeta();
     });
     contentReady.value = true;
+    isHydratingFromRemote.value = false;
     return Promise.resolve();
   }
   return $fetch<{ content: string; sha?: string; lastModified?: string }>(`/api/admin/repo/files?path=${encodeURIComponent(filePath.value)}`)
@@ -740,12 +828,14 @@ function loadFromApi(): Promise<void> {
         cachedMetaJson.value = serializeMeta();
         lastSavedMetaJson.value = cachedMetaJson.value;
         lastSavedBody.value = normalizeBodyForCompare(rawBody.value);
-        lastSavedToLocalSnapshot.value = serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
+        lastSavedToLocalSnapshot.value = currentSnapshot();
+        serverBaselineSnapshot.value = lastSavedToLocalSnapshot.value;
         const serverAuthor = meta.author;
         const rawDraft = typeof localStorage !== "undefined" ? localStorage.getItem(draftKey.value) : null;
         if (rawDraft && docType.value === "post") {
           if (pathQuery.value && (pathQuery.value.startsWith("content/blog/") || pathQuery.value.startsWith("content/drafts/"))) {
             showVersionChoiceModal.value = true;
+            isHydratingFromRemote.value = false;
             return;
           }
           if (serverLastModified.value) {
@@ -757,6 +847,7 @@ function loadFromApi(): Promise<void> {
                 showRecoveryBar.value = true;
                 if (serverAuthor !== undefined) meta.author = serverAuthor;
                 contentReady.value = true;
+                isHydratingFromRemote.value = false;
                 setTimeout(() => {
                   lastSavedBody.value = normalizeBodyForCompare(getBodyContent());
                 }, 600);
@@ -775,12 +866,15 @@ function loadFromApi(): Promise<void> {
           lastSavedBody.value = normalizeBodyForCompare(getBodyContent());
         }, 600);
         contentReady.value = true;
+        isHydratingFromRemote.value = false;
       });
     })
     .catch(() => {
+      serverBaselineSnapshot.value = null;
       loadDraft();
       if (docType.value === "post") meta.date = new Date().toISOString().slice(0, 16);
       contentReady.value = true;
+      isHydratingFromRemote.value = false;
     });
 }
 
@@ -811,21 +905,45 @@ async function publish() {
   try {
     if (docType.value === "post" && isDraftOnGitHub.value && pathQuery.value) {
       const fromPath = pathQuery.value;
+      const sourceDraftSha = fileSha.value;
       const stem = meta.path?.replace(/^\/blog\/?/, "").trim() || slugifyTitle(meta.title);
       const toPath = `content/blog/${stem}.md`;
-      const res = await $fetch<{ sha?: string }>("/api/admin/repo/files-move", {
-        method: "POST",
-        body: { fromPath, toPath, message: `Publish: move ${fromPath} to ${toPath}` },
-      });
-      fileSha.value = res?.sha;
+      let toSha: string | undefined;
       try {
-        localStorage.removeItem(draftKey.value);
-        localStorage.removeItem(`admin-draft-post-${toPath}`);
+        const existingTarget = await $fetch<{ sha?: string }>(`/api/admin/repo/files?path=${encodeURIComponent(toPath)}`);
+        toSha = existingTarget?.sha;
       } catch {
-        /* ignore */
+        toSha = undefined;
       }
+      const res = await $fetch<{ sha?: string }>("/api/admin/repo/files", {
+        method: "PUT",
+        body: { path: toPath, content, sha: toSha, message: `Publish ${toPath} from ${fromPath}` },
+      });
+      fileSha.value = res?.sha ?? fileSha.value;
+      let fromSha = sourceDraftSha;
+      if (!fromSha) {
+        try {
+          const fromInfo = await $fetch<{ sha?: string }>(`/api/admin/repo/files?path=${encodeURIComponent(fromPath)}`);
+          fromSha = fromInfo?.sha;
+        } catch {
+          fromSha = undefined;
+        }
+      }
+      if (!fromSha) {
+        throw new Error(`Failed to resolve source draft SHA for ${fromPath}`);
+      }
+      await $fetch("/api/admin/repo/files-delete", {
+        method: "POST",
+        body: {
+          path: fromPath,
+          sha: fromSha,
+          message: `Delete source draft ${fromPath} after publishing ${toPath}`,
+        },
+      });
+      clearLocalDraftKey();
+      clearLocalDraftKey(`admin-draft-post-${toPath}`);
       captureLastSavedSnapshot();
-      lastSavedToLocalSnapshot.value = serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
+      lastSavedToLocalSnapshot.value = currentSnapshot();
       await navigateTo({ path: "/admin/editor", query: { type: "post", path: toPath } });
     } else {
       const res = await $fetch<{ sha?: string }>("/api/admin/repo/files", {
@@ -833,16 +951,12 @@ async function publish() {
         body: { path, content, sha: fileSha.value, message: pathQuery.value ? `Update ${path}` : `Publish ${path}` },
       });
       fileSha.value = res?.sha ?? fileSha.value;
-      try {
-        localStorage.removeItem(draftKey.value);
-        if (docType.value === "post" && path) {
-          localStorage.removeItem(`admin-draft-post-${path}`);
-        }
-      } catch {
-        /* ignore */
+      clearLocalDraftKey();
+      if (docType.value === "post" && path) {
+        clearLocalDraftKey(`admin-draft-post-${path}`);
       }
       captureLastSavedSnapshot();
-      lastSavedToLocalSnapshot.value = serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
+      lastSavedToLocalSnapshot.value = currentSnapshot();
       if (!pathQuery.value && docType.value === "post") {
         const stem = meta.path?.replace(/^\/blog\/?/, "").trim() || slugifyTitle(meta.title);
         await navigateTo({ path: "/admin/editor", query: { type: "post", path: `content/blog/${stem}.md` } });
@@ -877,13 +991,9 @@ async function saveDraftToGitHub() {
         message: pathQuery.value ? `Update draft ${draftPath}` : `Save draft ${draftPath}`,
       },
     });
-    try {
-      localStorage.removeItem(draftKey.value);
-    } catch {
-      /* ignore */
-    }
+    clearLocalDraftKey();
     captureLastSavedSnapshot();
-    lastSavedToLocalSnapshot.value = serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
+    lastSavedToLocalSnapshot.value = currentSnapshot();
     await navigateTo({ path: "/admin/editor", query: { type: "post", path: draftPath } });
   } catch (e) {
     console.error(e);
@@ -905,11 +1015,7 @@ async function unpublish() {
       method: "POST",
       body: { fromPath, toPath: toPath.endsWith(".md") ? toPath : `${toPath}.md`, message: `Unpublish: move to drafts` },
     });
-    try {
-      localStorage.removeItem(draftKey.value);
-    } catch {
-      /* ignore */
-    }
+    clearLocalDraftKey();
     await navigateTo({ path: "/admin/editor", query: { type: "post", path: `content/drafts/${stem}.md` } });
   } catch (e) {
     console.error(e);
@@ -949,12 +1055,13 @@ async function confirmDeleteDraft() {
         return;
       }
     }
-    try {
-      localStorage.removeItem(draftKey.value);
-    } catch {
-      /* ignore */
-    }
-    await navigateTo({ path: "/admin/posts" });
+    clearLocalDraftKey();
+    await navigateTo({
+      path: "/admin/posts",
+      query: pathQuery.value
+        ? { deletedPath: pathQuery.value, refresh: String(Date.now()) }
+        : { refresh: String(Date.now()) },
+    });
   } catch (e) {
     console.error(e);
     toast.error("刪除草稿失敗，請查看主控台。");

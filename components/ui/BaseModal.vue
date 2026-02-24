@@ -51,9 +51,14 @@ function onEscape(event: KeyboardEvent) {
   close();
 }
 
+function canUseDocument(): boolean {
+  return import.meta.client && typeof document !== "undefined";
+}
+
 watch(
   () => props.modelValue,
   (open) => {
+    if (!canUseDocument()) return;
     if (open) {
       document.addEventListener("keydown", onEscape);
       return;
@@ -64,6 +69,7 @@ watch(
 );
 
 onBeforeUnmount(() => {
+  if (!canUseDocument()) return;
   document.removeEventListener("keydown", onEscape);
 });
 </script>
