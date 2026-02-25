@@ -95,6 +95,8 @@ export default defineNuxtConfig({
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap' },
       ],
       script: [
+        { src: '/_vercel/insights/script.js', defer: true },
+        { src: '/_vercel/speed-insights/script.js', defer: true },
         { src: 'https://events.vercount.one/js', defer: true },
       ]
     }
@@ -123,7 +125,7 @@ export default defineNuxtConfig({
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
           "font-src 'self' https://fonts.gstatic.com",
           "img-src 'self' data: https: blob:",
-          "connect-src 'self' https://waline.chinono.dev https://api.github.com https://placehold.co https://raw.githubusercontent.com https://events.vercount.one https://unpkg.com",
+          "connect-src 'self' https://waline.chinono.dev https://api.github.com https://placehold.co https://raw.githubusercontent.com https://events.vercount.one https://unpkg.com https://vitals.vercel-insights.com",
           "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
         ].join('; '),
         'X-Content-Type-Options': 'nosniff',
