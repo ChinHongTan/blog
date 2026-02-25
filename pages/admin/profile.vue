@@ -20,7 +20,7 @@
             @change="onBannerFileChange"
           >
           <div class="admin-profile-banner" :class="{ empty: !form.banner }">
-            <img v-if="form.banner" :src="form.banner" alt="" >
+            <img v-if="form.banner" :src="form.banner" alt="" loading="lazy" decoding="async" >
             <div v-else class="admin-profile-banner-placeholder" />
           </div>
           <div class="admin-profile-banner-overlay">
@@ -44,7 +44,7 @@
               @click.stop
               @change="onAvatarFileChange"
             >
-            <img :src="form.avatar || profileMe?.avatar_url" :alt="form.name" class="admin-profile-avatar" >
+            <img :src="form.avatar || profileMe?.avatar_url" :alt="form.name" class="admin-profile-avatar" decoding="async" >
             <div class="admin-profile-avatar-overlay">
               <Icon name="heroicons:pencil-square" size="20" />
               <span>{{ avatarUploading ? "上傳中…" : "上傳" }}</span>
@@ -139,28 +139,13 @@
 </template>
 
 <script setup lang="ts">
+import { useAdminProfileMe } from "~/composables/useAdminProfileMe";
+
 definePageMeta({ layout: "admin" });
 
 const toast = useToast();
 
-type ProfileMe = {
-  login: string;
-  name: string | null;
-  avatar_url: string;
-  authorPath: string | null;
-  sha?: string;
-  profile: {
-    name?: string;
-    email?: string;
-    bio?: string;
-    avatar?: string;
-    banner?: string;
-    social?: { github?: string; twitter?: string; website?: string };
-    body?: string;
-  } | null;
-};
-
-const profileMe = ref<ProfileMe | null>(null);
+const { profileMe, fetchProfileMe } = useAdminProfileMe();
 const loading = ref(true);
 const saving = ref(false);
 const contentReady = ref(false);
@@ -211,10 +196,8 @@ function buildFrontmatter(): string {
 
 async function load() {
   loading.value = true;
-  try {
-    const data = await $fetch<ProfileMe>("/api/admin/profile/me");
-    profileMe.value = data;
-    if (data?.profile) {
+  const data = await fetchProfileMe({ force: true });
+  if (data?.profile) {
       form.name = data.profile.name ?? "";
       form.email = data.profile.email ?? "";
       form.bio = data.profile.bio ?? "";
@@ -228,12 +211,8 @@ async function load() {
       form.name = data?.name ?? data?.login ?? "";
       form.avatar = data?.avatar_url ?? "";
     }
-  } catch {
-    profileMe.value = null;
-  } finally {
-    loading.value = false;
-    contentReady.value = true;
-  }
+  loading.value = false;
+  contentReady.value = true;
 }
 
 async function save() {

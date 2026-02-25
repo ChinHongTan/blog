@@ -22,8 +22,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: boolean): void;
-  (e: "close"): void;
-  (e: "overlay-click"): void;
+  (e: "close" | "overlay-click"): void;
 }>();
 
 const uid = Math.random().toString(36).slice(2, 10);
@@ -52,7 +51,7 @@ function onEscape(event: KeyboardEvent) {
 }
 
 function canUseDocument(): boolean {
-  return import.meta.client && typeof document !== "undefined";
+  return typeof document !== "undefined";
 }
 
 watch(

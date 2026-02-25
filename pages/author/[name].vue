@@ -12,7 +12,7 @@ const authorId = computed(() => {
 });
 
 // Fetch all authors for metadata
-const { data: allAuthors } = await useAsyncData("author-profiles-list", () =>
+const { data: allAuthors } = useAsyncData("author-profiles-list", () =>
 	queryCollection("authors").all()
 );
 
@@ -37,7 +37,7 @@ const authorRecord = computed(() => {
 });
 
 // Fetch author page separately to get body content for README
-const { data: authorPage } = await useAsyncData(
+const { data: authorPage } = useAsyncData(
 	`author-page-${authorId.value}`,
 	async () => {
 		const all = await queryCollection("authors").all();
@@ -67,7 +67,7 @@ const hasReadme = computed(() => {
 });
 
 // Fetch all posts by this author
-const { data: allPosts } = await useAsyncData<BlogCollectionItem[]>(
+const { data: allPosts } = useAsyncData<BlogCollectionItem[]>(
 	`author-posts-${authorId.value}`,
 	() => queryCollection("blog").order("date", "DESC").all()
 );

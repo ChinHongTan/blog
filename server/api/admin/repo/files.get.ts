@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
       const sha = (data as { sha?: string }).sha;
       const commits = commitsResponse.data;
       const lastModified =
-        commits?.length && commits[0].commit?.author?.date ? commits[0].commit.author.date : undefined;
+        commits?.length && commits[0]?.commit?.author?.date ? commits[0].commit.author.date : undefined;
       return { content, sha, lastModified };
     }
     throw createError({ statusCode: 404, message: "Not found" });

@@ -3,12 +3,12 @@ import type { BlogCollectionItem } from "@nuxt/content";
 import { getAuthorId } from "~/composables/useAuthorId";
 
 // Fetch all authors from the authors collection
-const { data: authors } = await useAsyncData("all-authors", () =>
+const { data: authors } = useAsyncData("all-authors", () =>
 	queryCollection("authors").all()
 );
 
 // Fetch all posts to count per author
-const { data: posts } = await useAsyncData<BlogCollectionItem[]>("authors-page-posts", () =>
+const { data: posts } = useAsyncData<BlogCollectionItem[]>("authors-page-posts", () =>
 	queryCollection("blog").all()
 );
 

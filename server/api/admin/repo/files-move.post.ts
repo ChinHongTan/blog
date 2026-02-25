@@ -57,6 +57,9 @@ export default defineEventHandler(async (event) => {
       content: Buffer.from(content, "utf-8").toString("base64"),
       ...(toSha ? { sha: toSha } : {}),
     });
+    if (!fromSha) {
+      throw createError({ statusCode: 500, message: "Failed to resolve source SHA" });
+    }
     await octokit.repos.deleteFile({
       owner,
       repo,

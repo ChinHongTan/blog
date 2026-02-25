@@ -42,10 +42,15 @@ export const spanClassSchema = $markSchema(SPAN_CLASS_MARK_ID, () => ({
   parseMarkdown: {
     match: (node) => (node as { type: string }).type === "spanClass",
     runner: (state, node, markType) => {
-      const n = node as { type: string; className?: string; children?: unknown[] };
+      const n = node as {
+        type: string;
+        className?: string;
+        data?: { className?: string };
+        children?: unknown[];
+      };
       const className = n.className ?? n.data?.className ?? "red";
       state.openMark(markType, { class: className });
-      state.next(n.children ?? []);
+      state.next((n.children ?? []) as unknown as import("@milkdown/transformer").MarkdownNode[]);
       state.closeMark(markType);
     },
   },
@@ -106,7 +111,7 @@ function remarkSpanClassParse(): (tree: import("mdast").Root) => void {
 function spanClassRemarkPlugin(): MilkdownPlugin {
   const parsePlugin = remarkSpanClassParse();
   const remarkEntry = {
-    plugin: parsePlugin as import("@milkdown/transformer").RemarkPlugin["plugin"],
+    plugin: parsePlugin as unknown as import("@milkdown/transformer").RemarkPlugin["plugin"],
     options: {} as Record<string, unknown>,
   };
   return (ctx: Ctx) => {
@@ -134,7 +139,8 @@ function spanClassRemarkPlugin(): MilkdownPlugin {
       return () => {
         ctx.update(remarkPluginsCtx, (plugs) => plugs.filter((p) => p !== remarkEntry));
         ctx.update(remarkStringifyOptionsCtx, (opts) => {
-          const { spanClass: _, ...rest } = opts.handlers ?? {};
+          const handlers = (opts.handlers ?? {}) as Record<string, unknown>;
+          const { spanClass: _, ...rest } = handlers;
           return { ...opts, handlers: rest };
         });
         ctx.clearTimer(SpanClassStringifyReady);
@@ -144,7 +150,7 @@ function spanClassRemarkPlugin(): MilkdownPlugin {
 }
 
 /** Command key to apply spanClass mark with given class. */
-export const applySpanClassCommand = $command<string>("ApplySpanClass", (ctx) => (className = "red") => (state, dispatch) => {
+export const applySpanClassCommand = $command("ApplySpanClass", (ctx) => (className = "red") => (state, dispatch) => {
   const { from, to } = state.selection;
   const markType = spanClassSchema.type(ctx);
   if (from >= to) return false;

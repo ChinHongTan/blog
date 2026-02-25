@@ -10,7 +10,7 @@ const seriesName = computed(() => {
 	return decodeURIComponent(raw || "");
 });
 
-const { data: allPosts } = await useAsyncData<BlogCollectionItem[]>(
+const { data: allPosts } = useAsyncData<BlogCollectionItem[]>(
 	`series-${seriesName.value}`,
 	() => queryCollection("blog").order("date", "DESC").all()
 );
@@ -35,7 +35,7 @@ function getPostPath(post: BlogCollectionItem): string {
 }
 
 // Fetch author directory for avatars
-const { data: authors } = await useAsyncData("series-authors", () =>
+const { data: authors } = useAsyncData("series-authors", () =>
 	queryCollection("authors").all()
 );
 

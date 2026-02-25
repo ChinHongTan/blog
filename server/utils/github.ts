@@ -1,13 +1,27 @@
 import { Octokit } from "@octokit/rest";
 import { getCookie, setCookie, deleteCookie, type H3Event } from "h3";
-import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
+import { withRequestCache } from "./request-cache";
 
 const COOKIE_NAME = "gh_admin_token";
 const ALGORITHM = "aes-256-gcm";
 
 function getEncryptionKey(event: H3Event): Buffer {
   const config = useRuntimeConfig(event);
-  const secret = (config.cookieEncryptionSecret as string) || "default-dev-secret-change-in-prod!!";
+  const secret = (config.cookieEncryptionSecret as string) || "";
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw createError({
+        statusCode: 500,
+        message: "NUXT_COOKIE_ENCRYPTION_SECRET must be configured in production",
+      });
+    }
+    // Dev-only fallback to keep local startup friction low.
+    const devFallback = "default-dev-secret-change-in-prod!!";
+    const key = Buffer.alloc(32);
+    Buffer.from(devFallback).copy(key);
+    return key;
+  }
   const key = Buffer.alloc(32);
   Buffer.from(secret).copy(key);
   return key;
@@ -42,6 +56,16 @@ export function getGitHubToken(event: H3Event): string | null {
   return decryptToken(cookie, key);
 }
 
+function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex").slice(0, 16);
+}
+
+export function getGitHubTokenCacheKey(event: H3Event): string | null {
+  const token = getGitHubToken(event);
+  if (!token) return null;
+  return hashToken(token);
+}
+
 export function setGitHubToken(event: H3Event, token: string) {
   const key = getEncryptionKey(event);
   const encrypted = encryptToken(token, key);
@@ -67,7 +91,7 @@ export function getOctokit(event: H3Event): Octokit | null {
 export function getRepoOwnerRepo(event: H3Event): { owner: string; repo: string } {
   const config = useRuntimeConfig(event);
   const repo = (config.public?.githubRepo || config.githubRepo || "ChinHongTan/blog") as string;
-  const [owner, repoName] = repo.split("/");
+  const [owner = "ChinHongTan", repoName = "blog"] = repo.split("/");
   return { owner, repo: repoName || "blog" };
 }
 
@@ -89,10 +113,10 @@ export function isPostContentPath(path: string): boolean {
 export function extractFrontmatterAuthor(raw: string): string | null {
   const match = raw.match(/^---\s*\n([\s\S]*?)\n---/);
   if (!match) return null;
-  const front = match[1];
+  const front = match[1] ?? "";
   const authorMatch = front.match(/^\s*author:\s*(.+)\s*$/m);
   if (!authorMatch) return null;
-  const v = authorMatch[1].trim().replace(/^["']|["']$/g, "");
+  const v = (authorMatch[1] ?? "").trim().replace(/^["']|["']$/g, "");
   return v || null;
 }
 
@@ -100,7 +124,7 @@ function githubUrlToLogin(url: string): string | null {
   const s = (url || "").trim();
   if (!s) return null;
   const m = s.match(/github\.com\/([^/?#]+)/i);
-  if (m) return m[1];
+  if (m) return m[1] ?? null;
   if (/^[a-zA-Z0-9_-]+$/.test(s)) return s;
   return null;
 }
@@ -108,55 +132,104 @@ function githubUrlToLogin(url: string): string | null {
 function extractAuthorGithubLogin(raw: string): string | null {
   const match = raw.match(/^---\s*\n([\s\S]*?)\n---/);
   if (!match) return null;
-  const front = match[1];
+  const front = match[1] ?? "";
   const ghMatch = front.match(/^\s*github:\s*(.+)\s*$/m);
   if (!ghMatch) return null;
-  return githubUrlToLogin(ghMatch[1].trim().replace(/^["']|["']$/g, ""));
+  return githubUrlToLogin((ghMatch[1] ?? "").trim().replace(/^["']|["']$/g, ""));
+}
+
+type AuthorGithubIndexItem = {
+  path: string;
+  githubLogin: string | null;
+};
+
+async function getAuthorGithubIndex(
+  octokit: Octokit,
+  owner: string,
+  repo: string
+): Promise<AuthorGithubIndexItem[]> {
+  return withRequestCache<AuthorGithubIndexItem[]>(
+    `author-github-index:${owner}/${repo}`,
+    60 * 1000,
+    async () => {
+      const { data: list } = await octokit.repos.getContent({
+        owner,
+        repo,
+        path: "content/authors",
+      });
+      if (!Array.isArray(list)) return [];
+      const mdFiles = list.filter((f: { name?: string }) =>
+        (f.name || "").endsWith(".md")
+      ) as { path: string }[];
+      const results = await Promise.all(
+        mdFiles.map(async (f) => {
+          try {
+            const { data: file } = await octokit.repos.getContent({
+              owner,
+              repo,
+              path: f.path,
+            });
+            if (Array.isArray(file) || !("content" in file) || !file.content) {
+              return { path: f.path, githubLogin: null };
+            }
+            const raw = Buffer.from(file.content, "base64").toString("utf-8");
+            return { path: f.path, githubLogin: extractAuthorGithubLogin(raw) };
+          } catch {
+            return { path: f.path, githubLogin: null };
+          }
+        })
+      );
+      return results;
+    }
+  );
 }
 
 export async function resolveCurrentAuthorId(event: H3Event): Promise<string | null> {
   const octokit = getOctokit(event);
   if (!octokit) return null;
   const { owner, repo } = getRepoOwnerRepo(event);
-  let login: string;
-  try {
-    const { data: user } = await octokit.users.getAuthenticated();
-    login = user.login;
-  } catch {
-    return null;
-  }
+  const tokenKey = getGitHubTokenCacheKey(event);
+  if (!tokenKey) return null;
 
-  try {
-    const { data: list } = await octokit.repos.getContent({ owner, repo, path: "content/authors" });
-    if (Array.isArray(list)) {
-      const mdFiles = list.filter((f: { name?: string }) => (f.name || "").endsWith(".md")) as { path: string }[];
-      for (const f of mdFiles) {
+  return withRequestCache<string | null>(
+    `resolve-author:${owner}/${repo}:${tokenKey}`,
+    30 * 1000,
+    async () => {
+      let login: string;
+      try {
+        const { data: user } = await octokit.users.getAuthenticated();
+        login = user.login;
+      } catch {
+        return null;
+      }
+
+      try {
+        const authorIndex = await getAuthorGithubIndex(octokit, owner, repo);
+        const match = authorIndex.find(
+          (item) =>
+            item.githubLogin &&
+            item.githubLogin.toLowerCase() === login.toLowerCase()
+        );
+        if (match) {
+          return match.path
+            .replace(/^content\/authors\//i, "")
+            .replace(/\.md$/i, "");
+        }
+      } catch {
+        /* ignore */
+      }
+
+      const defaultCandidates = [login, login.toLowerCase()];
+      for (const candidate of defaultCandidates) {
         try {
-          const { data: file } = await octokit.repos.getContent({ owner, repo, path: f.path });
-          if (Array.isArray(file) || !("content" in file) || !file.content) continue;
-          const raw = Buffer.from(file.content, "base64").toString("utf-8");
-          const ghLogin = extractAuthorGithubLogin(raw);
-          if (ghLogin && ghLogin.toLowerCase() === login.toLowerCase()) {
-            return f.path.replace(/^content\/authors\//i, "").replace(/\.md$/i, "");
-          }
+          const path = `content/authors/${candidate}.md`;
+          const { data } = await octokit.repos.getContent({ owner, repo, path });
+          if (!Array.isArray(data)) return candidate;
         } catch {
-          /* ignore */
+          /* try next */
         }
       }
+      return null;
     }
-  } catch {
-    /* ignore */
-  }
-
-  const defaultCandidates = [login, login.toLowerCase()];
-  for (const candidate of defaultCandidates) {
-    try {
-      const path = `content/authors/${candidate}.md`;
-      const { data } = await octokit.repos.getContent({ owner, repo, path });
-      if (!Array.isArray(data)) return candidate;
-    } catch {
-      /* try next */
-    }
-  }
-  return null;
+  );
 }

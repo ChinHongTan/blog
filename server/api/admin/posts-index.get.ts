@@ -13,12 +13,14 @@ function fallbackAvatarUrl(label: string, size = 40): string {
 function parseFrontmatter(raw: string): Record<string, string> {
   const match = raw.match(/^---\s*\n([\s\S]*?)\n---/);
   if (!match) return {};
-  const front = match[1];
+  const front = match[1] ?? "";
   const out: Record<string, string> = {};
   front.split("\n").forEach((line) => {
     const m = line.match(/^(\w+):\s*(.*)$/);
     if (m) {
-      out[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
+      const key = m[1];
+      const value = (m[2] ?? "").trim().replace(/^["']|["']$/g, "");
+      if (key) out[key] = value;
     }
   });
   return out;

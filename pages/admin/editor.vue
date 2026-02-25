@@ -150,7 +150,7 @@
             @change="onFeaturedFileChange"
           >
           <template v-if="meta.featured_image">
-            <img :src="featuredImagePreviewUrl" :alt="meta.title || '精選圖片'" >
+            <img :src="featuredImagePreviewUrl" :alt="meta.title || '精選圖片'" loading="lazy" decoding="async" >
             <div class="admin-hero-title-wrap">
               <h2 class="admin-hero-title">{{ meta.title || "未命名" }}</h2>
             </div>
@@ -323,11 +323,13 @@
 <script setup lang="ts">
 import type { EditorToolbarApi } from "~/components/admin/MilkdownEditorInner.vue";
 import BaseModal from "~/components/ui/BaseModal.vue";
+import { useAdminProfileMe } from "~/composables/useAdminProfileMe";
 
 definePageMeta({ layout: "admin" });
 
 const route = useRoute();
 useAdminAuth();
+const { fetchProfileMe } = useAdminProfileMe();
 const toast = useToast();
 const docType = computed(() => (route.query.type as string) || "post");
 const slug = computed(() => (route.query.slug as string) || "");
@@ -378,7 +380,6 @@ const showFixedToolbar = computed(
 );
 /** When true, rawBody was just set from Milkdown — skip pushing back to Milkdown in rawBody watcher. */
 const rawBodyUpdateFromMilkdown = ref(false);
-const authors = ref<{ name: string; path: string; displayName?: string }[]>([]);
 const saving = ref(false);
 const propertiesOpen = ref(true);
 const { uploadImage, uploading: featuredUploading } = useUploadImage();
@@ -1128,11 +1129,8 @@ watch(
 
 
 onMounted(async () => {
-  $fetch<{ name: string; path: string; displayName?: string }[]>("/api/admin/repo/authors")
-    .then((list) => (authors.value = list))
-    .catch(() => (authors.value = []));
-  const profilePromise = $fetch<{ authorId?: string | null }>("/api/admin/profile/me")
-    .then((profile) => {
+  const profilePromise = fetchProfileMe()
+    .then((profile: { authorId?: string | null } | null) => {
       currentUserAuthorId.value = profile?.authorId ?? null;
     })
     .catch(() => {

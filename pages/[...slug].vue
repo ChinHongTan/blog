@@ -107,25 +107,26 @@ useHead(() => ({
 	title: page.value?.title ? `${page.value.title} | 星谷雜貨店` : "星谷雜貨店",
 }));
 
-useSeoMeta(() => {
-	const title = page.value?.title ?? "星谷雜貨店";
-	const description =
-		(page.value as Record<string, unknown> | null)?.description as string | undefined ??
-		title;
-	const image =
-		(page.value as Record<string, unknown> | null)?.featured_image as string | undefined;
-	const url = `https://blog.chinono.dev${route.path}`;
-	return {
-		ogTitle: title,
-		ogDescription: description,
-		ogUrl: url,
-		ogType: "article",
-		ogImage: image,
-		twitterCard: image ? "summary_large_image" : "summary",
-		twitterTitle: title,
-		twitterDescription: description,
-		description,
-	};
+useSeoMeta({
+	ogTitle: () => page.value?.title ?? "星谷雜貨店",
+	ogDescription: () =>
+		((page.value as Record<string, unknown> | null)?.description as string | undefined) ??
+		(page.value?.title ?? "星谷雜貨店"),
+	ogUrl: () => `https://blog.chinono.dev${route.path}`,
+	ogType: "article",
+	ogImage: () =>
+		(page.value as Record<string, unknown> | null)?.featured_image as string | undefined,
+	twitterCard: () =>
+		((page.value as Record<string, unknown> | null)?.featured_image as string | undefined)
+			? "summary_large_image"
+			: "summary",
+	twitterTitle: () => page.value?.title ?? "星谷雜貨店",
+	twitterDescription: () =>
+		((page.value as Record<string, unknown> | null)?.description as string | undefined) ??
+		(page.value?.title ?? "星谷雜貨店"),
+	description: () =>
+		((page.value as Record<string, unknown> | null)?.description as string | undefined) ??
+		(page.value?.title ?? "星谷雜貨店"),
 });
 
 // Fetch author profile if author name exists and it's a blog post

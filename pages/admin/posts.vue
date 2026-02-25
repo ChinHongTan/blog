@@ -89,7 +89,7 @@
             <td class="admin-posts-td admin-posts-td-author">
               <NuxtLink :to="row.editorLink" class="admin-posts-row-link">
                 <span class="admin-posts-avatar-wrap" aria-hidden="true">
-                  <img v-if="row.authorAvatar" :src="row.authorAvatar" alt="" class="admin-posts-avatar" width="32" height="32">
+                  <img v-if="row.authorAvatar" :src="row.authorAvatar" alt="" class="admin-posts-avatar" width="32" height="32" loading="lazy" decoding="async">
                   <span v-else class="admin-posts-avatar admin-posts-avatar-fallback">{{ row.authorInitial }}</span>
                 </span>
                 <span class="admin-posts-author-name">{{ row.authorDisplayName || "—" }}</span>
@@ -139,6 +139,7 @@
 
 <script setup lang="ts">
 import BaseModal from "~/components/ui/BaseModal.vue";
+import { useAdminProfileMe } from "~/composables/useAdminProfileMe";
 
 definePageMeta({ layout: "admin" });
 const route = useRoute();
@@ -201,6 +202,7 @@ const localDrafts = ref<LocalDraftItem[]>([]);
 const discardConfirmDraft = ref<LocalDraftItem | null>(null);
 const currentUserAuthorId = ref<string | null>(null);
 const filterMineOnly = ref(false);
+const { fetchProfileMe } = useAdminProfileMe();
 
 function getRelativeTime(ms: number): string {
   const now = Date.now();
@@ -393,7 +395,7 @@ onMounted(async () => {
   load();
   loadLocalDrafts();
   try {
-    const profile = await $fetch<{ authorId?: string | null }>("/api/admin/profile/me").catch(() => null);
+    const profile = await fetchProfileMe();
     currentUserAuthorId.value = profile?.authorId ?? null;
   } catch {
     currentUserAuthorId.value = null;

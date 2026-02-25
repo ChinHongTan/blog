@@ -2,12 +2,12 @@
 import type { BlogCollectionItem } from "@nuxt/content";
 import { getAuthorId } from "~/composables/useAuthorId";
 
-const { data: posts } = await useAsyncData<BlogCollectionItem[]>("series-posts", () =>
+const { data: posts } = useAsyncData<BlogCollectionItem[]>("series-posts", () =>
 	queryCollection("blog").order("date", "DESC").all()
 );
 
 // Fetch author directory for avatars
-const { data: authorsData } = await useAsyncData("series-index-authors", () =>
+const { data: authorsData } = useAsyncData("series-index-authors", () =>
 	queryCollection("authors").all()
 );
 

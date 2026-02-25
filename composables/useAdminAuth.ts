@@ -1,19 +1,37 @@
-export function useAdminAuth() {
-  const user = useState<{ login: string; name: string | null; avatar_url: string } | null>("admin-user", () => null);
-  const loading = useState<boolean>("admin-loading", () => true);
+type AdminAuthUser = { login: string; name: string | null; avatar_url: string };
+let authMeInFlight: Promise<AdminAuthUser | null> | null = null;
 
-  async function fetchUser() {
-    loading.value = true;
-    try {
-      const data = await $fetch<{ login: string; name: string | null; avatar_url: string } | null>("/api/admin/auth/me");
-      user.value = data;
-      return data;
-    } catch {
-      user.value = null;
-      return null;
-    } finally {
-      loading.value = false;
+export function useAdminAuth() {
+  const user = useState<AdminAuthUser | null>("admin-user", () => null);
+  const loading = useState<boolean>("admin-loading", () => true);
+  const initialized = useState<boolean>("admin-auth-initialized", () => false);
+
+  async function fetchUser(opts?: { force?: boolean }) {
+    const force = !!opts?.force;
+    if (!force) {
+      if (authMeInFlight) return authMeInFlight;
+      if (initialized.value) {
+        loading.value = false;
+        return user.value;
+      }
     }
+    loading.value = true;
+    authMeInFlight = (async () => {
+      try {
+        const data = await $fetch<AdminAuthUser | null>("/api/admin/auth/me");
+        user.value = data;
+        initialized.value = true;
+        return data;
+      } catch {
+        user.value = null;
+        initialized.value = true;
+        return null;
+      } finally {
+        loading.value = false;
+        authMeInFlight = null;
+      }
+    })();
+    return authMeInFlight;
   }
 
   function login() {
@@ -23,12 +41,13 @@ export function useAdminAuth() {
   async function logout() {
     await $fetch("/api/admin/auth/logout", { method: "POST" });
     user.value = null;
+    initialized.value = true;
     window.location.href = "/admin";
   }
 
   onMounted(() => {
-    if (user.value === null && loading.value) {
-      fetchUser();
+    if (!initialized.value) {
+      void fetchUser();
     }
   });
 

@@ -1,4 +1,5 @@
-import { getOctokit, getRepoOwnerRepo } from "../../../utils/github";
+import { getGitHubTokenCacheKey, getOctokit, getRepoOwnerRepo } from "../../../utils/github";
+import { withRequestCache } from "../../../utils/request-cache";
 
 /**
  * After GitHub OAuth, we only get an access_token in the callback.
@@ -37,7 +38,7 @@ function githubUrlToLogin(url: string): string | null {
   const s = (url || "").trim();
   if (!s) return null;
   const m = s.match(/github\.com\/([^/?#]+)/i);
-  if (m) return m[1];
+  if (m) return m[1] ?? null;
   if (/^[a-zA-Z0-9_-]+$/.test(s)) return s;
   return null;
 }
@@ -45,10 +46,10 @@ function githubUrlToLogin(url: string): string | null {
 function parseAuthorFrontmatter(raw: string): { front: string; body: string; socialGithub?: string } | null {
   const match = raw.match(/^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/);
   if (!match) return null;
-  const front = match[1];
-  const body = match[2].trim();
+  const front = match[1] ?? "";
+  const body = (match[2] ?? "").trim();
   const ghLine = front.match(/github:\s*(.+)/m);
-  const socialGithub = ghLine ? ghLine[1].trim().replace(/^["']|["']$/g, "") : undefined;
+  const socialGithub = ghLine ? (ghLine[1] ?? "").trim().replace(/^["']|["']$/g, "") : undefined;
   return { front, body, socialGithub };
 }
 
@@ -66,7 +67,7 @@ function parseProfileFromRaw(raw: string, sha?: string): { profile: ProfileMe["p
     const m = line.match(/^(\w+):\s*(.*)$/);
     if (m) {
       const key = m[1];
-      const val = m[2].trim().replace(/^["']|["']$/g, "");
+      const val = (m[2] ?? "").trim().replace(/^["']|["']$/g, "");
       if (key === "name") name = val;
       else if (key === "email") email = val;
       else if (key === "bio") bio = val;
@@ -78,9 +79,9 @@ function parseProfileFromRaw(raw: string, sha?: string): { profile: ProfileMe["p
     const gh = front.match(/github:\s*(.+)/m);
     const tw = front.match(/twitter:\s*(.+)/m);
     const web = front.match(/website:\s*(.+)/m);
-    if (gh) social.github = gh[1].trim().replace(/^["']|["']$/g, "");
-    if (tw) social.twitter = tw[1].trim().replace(/^["']|["']$/g, "");
-    if (web) social.website = web[1].trim().replace(/^["']|["']$/g, "");
+    if (gh) social.github = (gh[1] ?? "").trim().replace(/^["']|["']$/g, "");
+    if (tw) social.twitter = (tw[1] ?? "").trim().replace(/^["']|["']$/g, "");
+    if (web) social.website = (web[1] ?? "").trim().replace(/^["']|["']$/g, "");
   }
   const profile: ProfileMe["profile"] = {
     name,
@@ -97,104 +98,114 @@ function parseProfileFromRaw(raw: string, sha?: string): { profile: ProfileMe["p
 export default defineEventHandler(async (event): Promise<ProfileMe | null> => {
   const octokit = getOctokit(event);
   if (!octokit) return null;
-  try {
-    const { data: user } = await octokit.users.getAuthenticated();
-    const login = user.login;
-    const defaultPath = `content/authors/${login}.md`;
-    const { owner, repo } = getRepoOwnerRepo(event);
+  const tokenKey = getGitHubTokenCacheKey(event);
+  if (!tokenKey) return null;
+  return withRequestCache<ProfileMe | null>(
+    `admin-profile-me:${tokenKey}`,
+    20 * 1000,
+    async () => {
+      try {
+        const { data: user } = await octokit.users.getAuthenticated();
+        const login = user.login;
+        const defaultPath = `content/authors/${login}.md`;
+        const { owner, repo } = getRepoOwnerRepo(event);
 
-    let resolvedPath: string = defaultPath;
-    let profile: ProfileMe["profile"] = null;
-    let sha: string | undefined;
+        let resolvedPath: string = defaultPath;
+        let profile: ProfileMe["profile"] = null;
+        let sha: string | undefined;
 
-    // 1) Find author file by social.github matching this GitHub user (fetch all author files in parallel)
-    try {
-      const { data: list } = await octokit.repos.getContent({ owner, repo, path: "content/authors" });
-      if (Array.isArray(list)) {
-        const mdFiles = list.filter((f: { name: string }) => f.name.endsWith(".md")) as { name: string; path: string }[];
-        const fileResults = await Promise.all(
-          mdFiles.map((f) => octokit.repos.getContent({ owner, repo, path: f.path }).catch(() => null))
-        );
-        for (let i = 0; i < mdFiles.length; i++) {
-          const res = fileResults[i];
-          if (!res?.data || Array.isArray(res.data) || !("content" in res.data) || !res.data.content) continue;
-          const raw = Buffer.from(res.data.content, "base64").toString("utf-8");
-          const parsed = parseAuthorFrontmatter(raw);
-          if (!parsed?.socialGithub) continue;
-          const fileLogin = githubUrlToLogin(parsed.socialGithub);
-          if (fileLogin && fileLogin.toLowerCase() === login.toLowerCase()) {
-            resolvedPath = mdFiles[i].path;
-            const fileSha = (res.data as { sha?: string }).sha;
-            const result = parseProfileFromRaw(raw, fileSha);
-            profile = result.profile;
-            sha = result.sha;
-            break;
-          }
-        }
-      }
-    } catch {
-      // ignore list/read errors
-    }
-
-    // 2) If no match by social.github, try content/authors/{login}.md (then case-insensitive)
-    if (profile === null) {
-      const pathsToTry = [
-        defaultPath,
-        `content/authors/${login.toLowerCase()}.md`,
-      ].filter((p, i, a) => a.indexOf(p) === i);
-      for (const tryPath of pathsToTry) {
-        try {
-          const { data } = await octokit.repos.getContent({ owner, repo, path: tryPath });
-          if (!Array.isArray(data) && "content" in data && data.content) {
-            resolvedPath = tryPath;
-            sha = (data as { sha?: string }).sha;
-            const raw = Buffer.from(data.content, "base64").toString("utf-8");
-            const result = parseProfileFromRaw(raw, sha);
-            profile = result.profile;
-            break;
-          }
-        } catch {
-          // try next path
-        }
-      }
-      // 2b) If still no match, list files and find case-insensitive match on name
-      if (profile === null) {
+        // 1) Find author file by social.github matching this GitHub user (fetch all author files in parallel)
         try {
           const { data: list } = await octokit.repos.getContent({ owner, repo, path: "content/authors" });
           if (Array.isArray(list)) {
-            const want = `${login}.md`.toLowerCase();
-            const f = list.find((item: { name: string }) => item.name.toLowerCase() === want);
-            if (f && "path" in f) {
-              const { data: file } = await octokit.repos.getContent({ owner, repo, path: (f as { path: string }).path });
-              if (!Array.isArray(file) && "content" in file && file.content) {
-                resolvedPath = (f as { path: string }).path;
-                sha = (file as { sha?: string }).sha;
-                const raw = Buffer.from(file.content, "base64").toString("utf-8");
-                const result = parseProfileFromRaw(raw, sha);
+            const mdFiles = list.filter((f: { name: string }) => f.name.endsWith(".md")) as { name: string; path: string }[];
+            const fileResults = await Promise.all(
+              mdFiles.map((f) => octokit.repos.getContent({ owner, repo, path: f.path }).catch(() => null))
+            );
+            for (let i = 0; i < mdFiles.length; i++) {
+              const fileMeta = mdFiles[i];
+              if (!fileMeta?.path) continue;
+              const res = fileResults[i];
+              if (!res?.data || Array.isArray(res.data) || !("content" in res.data) || !res.data.content) continue;
+              const raw = Buffer.from(res.data.content, "base64").toString("utf-8");
+              const parsed = parseAuthorFrontmatter(raw);
+              if (!parsed?.socialGithub) continue;
+              const fileLogin = githubUrlToLogin(parsed.socialGithub);
+              if (fileLogin && fileLogin.toLowerCase() === login.toLowerCase()) {
+                resolvedPath = fileMeta.path;
+                const fileSha = (res.data as { sha?: string }).sha;
+                const result = parseProfileFromRaw(raw, fileSha);
                 profile = result.profile;
+                sha = result.sha;
+                break;
               }
             }
           }
         } catch {
-          // ignore
+          // ignore list/read errors
         }
+
+        // 2) If no match by social.github, try content/authors/{login}.md (then case-insensitive)
+        if (profile === null) {
+          const pathsToTry = [
+            defaultPath,
+            `content/authors/${login.toLowerCase()}.md`,
+          ].filter((p, i, a) => a.indexOf(p) === i);
+          for (const tryPath of pathsToTry) {
+            try {
+              const { data } = await octokit.repos.getContent({ owner, repo, path: tryPath });
+              if (!Array.isArray(data) && "content" in data && data.content) {
+                resolvedPath = tryPath;
+                sha = (data as { sha?: string }).sha;
+                const raw = Buffer.from(data.content, "base64").toString("utf-8");
+                const result = parseProfileFromRaw(raw, sha);
+                profile = result.profile;
+                break;
+              }
+            } catch {
+              // try next path
+            }
+          }
+          // 2b) If still no match, list files and find case-insensitive match on name
+          if (profile === null) {
+            try {
+              const { data: list } = await octokit.repos.getContent({ owner, repo, path: "content/authors" });
+              if (Array.isArray(list)) {
+                const want = `${login}.md`.toLowerCase();
+                const f = list.find((item: { name: string }) => item.name.toLowerCase() === want);
+                if (f && "path" in f) {
+                  const { data: file } = await octokit.repos.getContent({ owner, repo, path: (f as { path: string }).path });
+                  if (!Array.isArray(file) && "content" in file && file.content) {
+                    resolvedPath = (f as { path: string }).path;
+                    sha = (file as { sha?: string }).sha;
+                    const raw = Buffer.from(file.content, "base64").toString("utf-8");
+                    const result = parseProfileFromRaw(raw, sha);
+                    profile = result.profile;
+                  }
+                }
+              }
+            } catch {
+              // ignore
+            }
+          }
+        }
+
+        const authorId = resolvedPath
+          ? resolvedPath.replace(/^content\/authors\//i, "").replace(/\.md$/i, "")
+          : null;
+
+        return {
+          login: user.login,
+          name: user.name ?? null,
+          avatar_url: user.avatar_url,
+          authorPath: resolvedPath,
+          sha,
+          profile,
+          authorId,
+        };
+      } catch {
+        return null;
       }
     }
-
-    const authorId = resolvedPath
-      ? resolvedPath.replace(/^content\/authors\//i, "").replace(/\.md$/i, "")
-      : null;
-
-    return {
-      login: user.login,
-      name: user.name ?? null,
-      avatar_url: user.avatar_url,
-      authorPath: resolvedPath,
-      sha,
-      profile,
-      authorId,
-    };
-  } catch {
-    return null;
-  }
+  );
 });

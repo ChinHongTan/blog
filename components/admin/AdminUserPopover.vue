@@ -8,7 +8,7 @@
       :aria-expanded="open"
       @click="open = !open"
     >
-      <img :src="displayAvatar" :alt="displayName" class="admin-user-chip-avatar" width="28" height="28" >
+      <img :src="displayAvatar" :alt="displayName" class="admin-user-chip-avatar" width="28" height="28" decoding="async" >
       <span class="admin-user-chip-name">{{ displayName }}</span>
       <Icon name="heroicons:chevron-down" size="14" class="admin-user-chip-chevron" :class="{ open }" />
     </button>
@@ -25,11 +25,11 @@
         >
           <!-- Mini banner -->
           <div class="admin-user-popover-banner" :class="{ empty: !profileBanner }">
-            <img v-if="profileBanner" :src="profileBanner" alt="" class="admin-user-popover-banner-img" >
+            <img v-if="profileBanner" :src="profileBanner" alt="" class="admin-user-popover-banner-img" loading="lazy" decoding="async" >
             <div v-else class="admin-user-popover-banner-placeholder" />
           </div>
           <div class="admin-user-popover-body">
-            <img :src="displayAvatar" :alt="displayName" class="admin-user-popover-avatar" width="56" height="56" >
+            <img :src="displayAvatar" :alt="displayName" class="admin-user-popover-avatar" width="56" height="56" loading="lazy" decoding="async" >
             <h3 class="admin-user-popover-name">{{ displayName }}</h3>
             <p v-if="profileBio" class="admin-user-popover-bio">{{ profileBio }}</p>
             <NuxtLink to="/admin/profile" class="admin-user-popover-edit" @click="open = false">
@@ -49,29 +49,14 @@
 </template>
 
 <script setup lang="ts">
-type ProfileMe = {
-  login: string;
-  name: string | null;
-  avatar_url: string;
-  authorPath: string | null;
-  profile: {
-    name?: string;
-    email?: string;
-    bio?: string;
-    avatar?: string;
-    banner?: string;
-    social?: { github?: string; twitter?: string; website?: string };
-    body?: string;
-  } | null;
-};
+import { useAdminProfileMe } from "~/composables/useAdminProfileMe";
 
 const { user, logout } = useAdminAuth();
+const { profileMe, fetchProfileMe } = useAdminProfileMe();
 const open = ref(false);
 const triggerRef = ref<HTMLElement | null>(null);
 const panelRef = ref<HTMLElement | null>(null);
 const panelStyle = ref<Record<string, string>>({});
-
-const profileMe = ref<ProfileMe | null>(null);
 
 const displayName = computed(() => {
   if (profileMe.value?.profile?.name) return profileMe.value.profile.name;
@@ -88,15 +73,11 @@ const profileBio = computed(() => profileMe.value?.profile?.bio ?? null);
 
 async function fetchProfile() {
   if (!user.value) return;
-  try {
-    profileMe.value = await $fetch<ProfileMe>("/api/admin/profile/me");
-  } catch {
-    profileMe.value = null;
-  }
+  await fetchProfileMe();
 }
 
 function canUseWindow(): boolean {
-  return import.meta.client && typeof window !== "undefined";
+  return typeof window !== "undefined";
 }
 
 function bindWindowListeners() {
@@ -123,10 +104,6 @@ watch(open, (isOpen) => {
   unbindWindowListeners();
 });
 
-watch(() => user.value, (u) => {
-  if (u) fetchProfile();
-}, { immediate: true });
-
 function onLogout() {
   open.value = false;
   logout();
@@ -149,10 +126,6 @@ function updatePanelPosition() {
     left: `${left}px`,
   };
 }
-
-onMounted(() => {
-  if (user.value) fetchProfile();
-});
 
 onBeforeUnmount(() => {
   unbindWindowListeners();
