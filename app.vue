@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Analytics } from '@vercel/analytics/nuxt';
+
 const searchQuery = ref("");
 
 provide("searchQuery", searchQuery);
@@ -61,6 +63,7 @@ onUnmounted(() => {
 
 <template>
 	<div :class="['app-wrapper', { 'post-mood': isPostPage }]">
+		<Analytics />
 		<NuxtLoadingIndicator color="var(--color-primary)" :height="3" />
 		<ToastContainer />
 		<AdminTopBar v-if="isAdminRoute" />
