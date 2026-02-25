@@ -95,8 +95,6 @@ export default defineNuxtConfig({
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap' },
       ],
       script: [
-        { src: '/_vercel/insights/script.js', defer: true },
-        { src: '/_vercel/speed-insights/script.js', defer: true },
         { src: 'https://events.vercount.one/js', defer: true },
       ]
     }
