@@ -49,6 +49,8 @@ onUnmounted(() => {
 					<NuxtLink to="/code-of-conduct">行為準則</NuxtLink>
 					<span class="separator">&bull;</span>
 					<a href="https://github.com/ChinHongTan/blog" target="_blank" rel="noopener">GitHub</a>
+					<span class="separator">&bull;</span>
+					<NuxtLink to="/writing-guide">撰寫指南</NuxtLink>
 				</div>
 			</div>
 
