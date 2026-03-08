@@ -12,7 +12,14 @@
         <span v-else class="admin-status-dot" />
       </span>
       <template v-if="docType === 'post'">
-        <button v-if="!isPublishedPost" type="button" class="admin-btn admin-btn-ghost" :disabled="savingDraft || saving || !canEditPost" @click="saveDraftToGitHub">
+        <button
+          v-if="!isPublishedPost"
+          type="button"
+          class="admin-btn admin-btn-ghost"
+          :disabled="savingDraft || saving || !canEditPost || !isPostTitleValidForSave"
+          :title="postTitleValidationMessage"
+          @click="saveDraftToGitHub"
+        >
           {{ savingDraft ? "儲存中…" : "儲存草稿" }}
         </button>
         <button v-if="isPublishedPost" type="button" class="admin-btn admin-btn-ghost" :disabled="saving || unpublishing || !canEditPost" @click="unpublish">
@@ -30,7 +37,13 @@
         >
           還原 GitHub 版本
         </button>
-        <button type="button" class="admin-btn admin-btn-primary" :disabled="saving || !canEditPost || (isPublishedPost && !hasUnsavedChanges)" :title="canEditPost ? '' : '您只能編輯自己的文章'" @click="publish">
+        <button
+          type="button"
+          class="admin-btn admin-btn-primary"
+          :disabled="saving || !canEditPost || !isPostTitleValidForSave || (isPublishedPost && !hasUnsavedChanges)"
+          :title="!canEditPost ? '您只能編輯自己的文章' : postTitleValidationMessage"
+          @click="publish"
+        >
           {{ saving ? "正在同步至 GitHub…" : publishButtonLabel }}
         </button>
       </template>
@@ -74,9 +87,15 @@
           <Transition name="properties-panel">
             <div v-show="propertiesOpen" class="admin-properties-table-wrap">
           <div class="admin-properties-table">
-            <div class="admin-property-tr">
+            <div class="admin-property-tr admin-property-tr-title">
               <span class="admin-property-name">標題</span>
-              <input v-model="meta.title" type="text" class="admin-property-cell" placeholder="未命名" >
+              <div class="admin-property-field">
+                <input v-model="meta.title" type="text" class="admin-property-cell" placeholder="未命名" >
+                <small class="admin-property-hint">必填。標題會用來產生文章網址。</small>
+                <small v-if="!isPostTitleValidForSave" class="admin-property-hint admin-property-hint-warning">
+                  請填寫標題（不可為空或 untitled）
+                </small>
+              </div>
             </div>
             <div class="admin-property-tr">
               <span class="admin-property-name">簡述</span>
@@ -448,6 +467,24 @@ function syncTitleFromFirstH1() {
   const md = getBodyContent();
   const m = md.match(/^#\s+(.+)$/m);
   if (m) meta.title = m[1].trim();
+}
+
+const isPostTitleValidForSave = computed(() => docType.value !== "post" || slugifyTitle(meta.title) !== "untitled");
+const postTitleValidationMessage = computed(() => {
+  if (docType.value !== "post") return "";
+  if (!canEditPost.value) return "";
+  return isPostTitleValidForSave.value ? "" : "請先填寫標題（不可為空或 untitled）";
+});
+
+function ensurePostTitleForSave(): boolean {
+  if (docType.value !== "post") return true;
+  if (!meta.title) syncTitleFromFirstH1();
+  const stem = slugifyTitle(meta.title);
+  if (stem === "untitled") {
+    toast.error("請先填寫文章標題，再儲存或發布。");
+    return false;
+  }
+  return true;
 }
 
 const _previewSource = computed(() =>
@@ -881,7 +918,7 @@ function loadFromApi(): Promise<void> {
 
 async function publish() {
   if (docType.value === "post") {
-    if (!meta.title) syncTitleFromFirstH1();
+    if (!ensurePostTitleForSave()) return;
     if (meta.date) {
       meta.edited_at = new Date().toISOString();
     } else {
@@ -975,8 +1012,8 @@ async function publish() {
 
 async function saveDraftToGitHub() {
   if (docType.value !== "post") return;
-  if (!meta.title) syncTitleFromFirstH1();
-  const stem = meta.path?.replace(/^\/blog\/?/, "").trim() || slugifyTitle(meta.title) || "untitled";
+  if (!ensurePostTitleForSave()) return;
+  const stem = meta.path?.replace(/^\/blog\/?/, "").trim() || slugifyTitle(meta.title);
   const draftPath = `content/drafts/${stem}.md`;
   if (!meta.date) meta.date = new Date().toISOString().slice(0, 16);
   meta.author = currentUserAuthorId.value ?? meta.author;
@@ -1400,9 +1437,18 @@ onUnmounted(() => {
   min-height: 2rem;
   border: none;
 }
+.admin-property-tr-title {
+  align-items: start;
+}
 .admin-property-name {
   color: var(--color-text-secondary);
   flex-shrink: 0;
+}
+.admin-property-field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 .admin-property-cell {
   min-width: 0;
@@ -1416,6 +1462,14 @@ onUnmounted(() => {
 .admin-property-cell:focus {
   outline: 1px solid var(--color-primary);
   outline-offset: 1px;
+}
+.admin-property-hint {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--color-text-tertiary);
+}
+.admin-property-hint-warning {
+  color: var(--color-warning-text);
 }
 .admin-property-readonly {
   opacity: 0.7;
