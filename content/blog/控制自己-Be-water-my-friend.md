@@ -1,14 +1,14 @@
 ---
 title: 控制自己 Be water my friend
-description: 來給對PT有興趣的路人們簡單講解一下學渣對這門課的理解 
+description: 來給對PT有興趣的路人們簡單講解一下學渣對這門課的理解
 date: 2026-03-20T02:38
-edited_at: 2026-03-20T03:48:18.899Z
+edited_at: 2026-03-20T05:22:27.922Z
 author: hibiki12141132
 path: /blog/控制自己-Be-water-my-friend
 featured_image: /images/uploads/1773978280816-20201130_205814.jpg
 ---
 
-早安各位孩子 我是你們顧著逆而沒讀書結果期中考了20分的前領導人
+早安各位孩子 我是你們的黑奴前領導人之一
 
 今天我是來為大家講解我們PT的其中一個負責領域 神經領域的入門
 
