@@ -2,9 +2,10 @@
 title: 控制自己 Be water my friend（五）
 description: 來給對PT有興趣的路人們簡單講解一下學渣對這門課的理解
 date: 2026-03-20T05:22
-edited_at: 2026-03-20T05:45:10.241Z
+edited_at: 2026-03-20T05:47:39.985Z
 author: hibiki12141132
 path: /blog/控制自己-Be-water-my-friend（五）
+featured_image: /images/uploads/1773985655349-___.jpg
 ---
 
 書接上回\
@@ -17,7 +18,7 @@ path: /blog/控制自己-Be-water-my-friend（五）
 Stability我就把他理解成固定的不動的\
 顧名思義 站立不動 坐著不動 躺著不動 這些都叫固定\
 那Transport我就解釋成移動\
-走路 跑步 泳遊 跳 
+走路 跑步 泳遊 跳
 
 而第二類有沒有操作\
 最基本理解就是手部有沒有被分心出去做事\
