@@ -98,7 +98,8 @@ async function handleImageUpload(file: File): Promise<string> {
   const path = await uploadImage(file);
   const config = useRuntimeConfig();
   const repo = config.public.githubRepo as string;
-  return `https://raw.githubusercontent.com/${repo}/main/public${path}`;
+  const branch = (config.public.githubBranch as string) || "main";
+  return `https://raw.githubusercontent.com/${repo}/${branch}/public${path}`;
 }
 
 const zhTWConfig = {

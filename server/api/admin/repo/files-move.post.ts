@@ -1,10 +1,11 @@
 import { readBody } from "h3";
-import { extractFrontmatterAuthor, getOctokit, getRepoOwnerRepo, isPostContentPath, resolveCurrentAuthorId, validateAdminPath } from "../../../utils/github";
+import { extractFrontmatterAuthor, getOctokit, getRepoBranch, getRepoOwnerRepo, isPostContentPath, resolveCurrentAuthorId, validateAdminPath } from "../../../utils/github";
 
 export default defineEventHandler(async (event) => {
   const octokit = getOctokit(event);
   if (!octokit) throw createError({ statusCode: 401, message: "Not authenticated" });
   const { owner, repo } = getRepoOwnerRepo(event);
+  const branch = getRepoBranch(event);
   const body = await readBody<{ fromPath: string; toPath: string; message?: string }>(event);
   const { fromPath, toPath, message } = body || {};
   if (!fromPath || !toPath) {
@@ -19,7 +20,7 @@ export default defineEventHandler(async (event) => {
     if (isPostMove && !me) {
       throw createError({ statusCode: 403, message: "Unable to resolve current author identity" });
     }
-    const { data: fileData } = await octokit.repos.getContent({ owner, repo, path: fromPath });
+    const { data: fileData } = await octokit.repos.getContent({ owner, repo, path: fromPath, ref: branch });
     if (Array.isArray(fileData) || !("content" in fileData) || !fileData.content) {
       throw createError({ statusCode: 404, message: "Source file not found" });
     }
@@ -33,7 +34,7 @@ export default defineEventHandler(async (event) => {
     const fromSha = (fileData as { sha?: string }).sha;
     let toSha: string | undefined;
     try {
-      const { data: existing } = await octokit.repos.getContent({ owner, repo, path: toPath });
+      const { data: existing } = await octokit.repos.getContent({ owner, repo, path: toPath, ref: branch });
       if (!Array.isArray(existing) && existing && "sha" in existing) {
         toSha = (existing as { sha?: string }).sha;
         if ("content" in existing && existing.content && isPostContentPath(toPath)) {
@@ -52,6 +53,7 @@ export default defineEventHandler(async (event) => {
     const { data: createData } = await octokit.repos.createOrUpdateFileContents({
       owner,
       repo,
+      branch,
       path: toPath,
       message: commitMessage,
       content: Buffer.from(content, "utf-8").toString("base64"),
@@ -63,6 +65,7 @@ export default defineEventHandler(async (event) => {
     await octokit.repos.deleteFile({
       owner,
       repo,
+      branch,
       path: fromPath,
       sha: fromSha,
       message: `Remove ${fromPath} (moved to ${toPath})`,

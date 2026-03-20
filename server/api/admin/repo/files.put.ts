@@ -1,10 +1,11 @@
 import { readBody } from "h3";
-import { extractFrontmatterAuthor, getOctokit, getRepoOwnerRepo, isPostContentPath, resolveCurrentAuthorId, validateAdminPath } from "../../../utils/github";
+import { extractFrontmatterAuthor, getOctokit, getRepoBranch, getRepoOwnerRepo, isPostContentPath, resolveCurrentAuthorId, validateAdminPath } from "../../../utils/github";
 
 export default defineEventHandler(async (event) => {
   const octokit = getOctokit(event);
   if (!octokit) throw createError({ statusCode: 401, message: "Not authenticated" });
   const { owner, repo } = getRepoOwnerRepo(event);
+  const branch = getRepoBranch(event);
   const body = await readBody<{ path: string; content: string; sha?: string; message?: string }>(event);
   const { path, content, sha, message } = body || {};
   if (!path || content === undefined) {
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event) => {
       }
       let existingAuthor: string | null = null;
       try {
-        const { data: existing } = await octokit.repos.getContent({ owner, repo, path });
+        const { data: existing } = await octokit.repos.getContent({ owner, repo, path, ref: branch });
         if (!Array.isArray(existing) && "content" in existing && existing.content) {
           const raw = Buffer.from(existing.content, "base64").toString("utf-8");
           existingAuthor = extractFrontmatterAuthor(raw)?.toLowerCase() ?? null;
@@ -40,9 +41,10 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    const params: { owner: string; repo: string; path: string; message: string; content: string; sha?: string } = {
+    const params: { owner: string; repo: string; branch: string; path: string; message: string; content: string; sha?: string } = {
       owner,
       repo,
+      branch,
       path,
       message: commitMessage,
       content: Buffer.from(content, "utf-8").toString("base64"),
@@ -52,6 +54,27 @@ export default defineEventHandler(async (event) => {
     return { sha: data.content?.sha, url: data.content?.html_url };
   } catch (e: unknown) {
     const err = e as { status?: number; message?: string };
-    throw createError({ statusCode: err.status || 500, message: err.message || "Failed to save file" });
+    console.error("[admin/repo/files] GitHub save failed", {
+      method: event.method,
+      owner,
+      repo,
+      branch,
+      path,
+      githubStatus: err.status,
+      githubMessage: err.message,
+    });
+    throw createError({
+      statusCode: err.status || 500,
+      statusMessage: "GitHub file save failed",
+      message: err.message || "Failed to save file",
+      data: {
+        route: "PUT /api/admin/repo/files",
+        path,
+        owner,
+        repo,
+        branch,
+        githubStatus: err.status || null,
+      },
+    });
   }
 });

@@ -1,4 +1,4 @@
-import { getGitHubTokenCacheKey, getOctokit, getRepoOwnerRepo } from "../../../utils/github";
+import { getGitHubTokenCacheKey, getOctokit, getRepoBranch, getRepoOwnerRepo } from "../../../utils/github";
 import { withRequestCache } from "../../../utils/request-cache";
 
 /**
@@ -107,20 +107,35 @@ export default defineEventHandler(async (event): Promise<ProfileMe | null> => {
       try {
         const { data: user } = await octokit.users.getAuthenticated();
         const login = user.login;
-        const defaultPath = `content/authors/${login}.md`;
+        const defaultPath = `content/authors/${login.toLowerCase()}.md`;
         const { owner, repo } = getRepoOwnerRepo(event);
+        const branch = getRepoBranch(event);
+        const logGitHubError = (stage: string, error: unknown) => {
+          const err = error as { status?: number; message?: string };
+          console.error("[admin/profile/me] GitHub request failed", {
+            method: event.method,
+            owner,
+            repo,
+            branch,
+            stage,
+            githubStatus: err.status,
+            githubMessage: err.message,
+          });
+        };
 
         let resolvedPath: string = defaultPath;
         let profile: ProfileMe["profile"] = null;
         let sha: string | undefined;
+        let authorFiles: { name: string; path: string }[] = [];
 
         // 1) Find author file by social.github matching this GitHub user (fetch all author files in parallel)
         try {
-          const { data: list } = await octokit.repos.getContent({ owner, repo, path: "content/authors" });
+          const { data: list } = await octokit.repos.getContent({ owner, repo, path: "content/authors", ref: branch });
           if (Array.isArray(list)) {
             const mdFiles = list.filter((f: { name: string }) => f.name.endsWith(".md")) as { name: string; path: string }[];
+            authorFiles = mdFiles;
             const fileResults = await Promise.all(
-              mdFiles.map((f) => octokit.repos.getContent({ owner, repo, path: f.path }).catch(() => null))
+              mdFiles.map((f) => octokit.repos.getContent({ owner, repo, path: f.path, ref: branch }).catch(() => null))
             );
             for (let i = 0; i < mdFiles.length; i++) {
               const fileMeta = mdFiles[i];
@@ -141,51 +156,39 @@ export default defineEventHandler(async (event): Promise<ProfileMe | null> => {
               }
             }
           }
-        } catch {
-          // ignore list/read errors
+        } catch (e: unknown) {
+          logGitHubError("indexBySocialGithub", e);
         }
 
-        // 2) If no match by social.github, try content/authors/{login}.md (then case-insensitive)
+        // 2) If no match by social.github, use directory listing to resolve file without triggering avoidable 404s.
         if (profile === null) {
-          const pathsToTry = [
-            defaultPath,
-            `content/authors/${login.toLowerCase()}.md`,
-          ].filter((p, i, a) => a.indexOf(p) === i);
-          for (const tryPath of pathsToTry) {
+          if (!authorFiles.length) {
             try {
-              const { data } = await octokit.repos.getContent({ owner, repo, path: tryPath });
-              if (!Array.isArray(data) && "content" in data && data.content) {
-                resolvedPath = tryPath;
-                sha = (data as { sha?: string }).sha;
-                const raw = Buffer.from(data.content, "base64").toString("utf-8");
-                const result = parseProfileFromRaw(raw, sha);
-                profile = result.profile;
-                break;
+              const { data: list } = await octokit.repos.getContent({ owner, repo, path: "content/authors", ref: branch });
+              if (Array.isArray(list)) {
+                authorFiles = list
+                  .filter((item: { name: string }) => item.name.endsWith(".md"))
+                  .map((item: { name: string; path: string }) => ({ name: item.name, path: item.path }));
               }
-            } catch {
-              // try next path
+            } catch (e: unknown) {
+              logGitHubError("listAuthorsForFallback", e);
+              authorFiles = [];
             }
           }
-          // 2b) If still no match, list files and find case-insensitive match on name
-          if (profile === null) {
+          const want = `${login}.md`.toLowerCase();
+          const matched = authorFiles.find((item) => item.name.toLowerCase() === want);
+          if (matched?.path) {
             try {
-              const { data: list } = await octokit.repos.getContent({ owner, repo, path: "content/authors" });
-              if (Array.isArray(list)) {
-                const want = `${login}.md`.toLowerCase();
-                const f = list.find((item: { name: string }) => item.name.toLowerCase() === want);
-                if (f && "path" in f) {
-                  const { data: file } = await octokit.repos.getContent({ owner, repo, path: (f as { path: string }).path });
-                  if (!Array.isArray(file) && "content" in file && file.content) {
-                    resolvedPath = (f as { path: string }).path;
-                    sha = (file as { sha?: string }).sha;
-                    const raw = Buffer.from(file.content, "base64").toString("utf-8");
-                    const result = parseProfileFromRaw(raw, sha);
-                    profile = result.profile;
-                  }
-                }
+              const { data: file } = await octokit.repos.getContent({ owner, repo, path: matched.path, ref: branch });
+              if (!Array.isArray(file) && "content" in file && file.content) {
+                resolvedPath = matched.path;
+                sha = (file as { sha?: string }).sha;
+                const raw = Buffer.from(file.content, "base64").toString("utf-8");
+                const result = parseProfileFromRaw(raw, sha);
+                profile = result.profile;
               }
-            } catch {
-              // ignore
+            } catch (e: unknown) {
+              logGitHubError("readMatchedAuthorFile", e);
             }
           }
         }
@@ -203,7 +206,13 @@ export default defineEventHandler(async (event): Promise<ProfileMe | null> => {
           profile,
           authorId,
         };
-      } catch {
+      } catch (e: unknown) {
+        const err = e as { status?: number; message?: string };
+        console.error("[admin/profile/me] Failed to resolve profile", {
+          method: event.method,
+          githubStatus: err.status,
+          githubMessage: err.message,
+        });
         return null;
       }
     }

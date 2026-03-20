@@ -95,6 +95,12 @@ export function getRepoOwnerRepo(event: H3Event): { owner: string; repo: string 
   return { owner, repo: repoName || "blog" };
 }
 
+export function getRepoBranch(event: H3Event): string {
+  const config = useRuntimeConfig(event);
+  const branch = (config.public?.githubBranch || config.githubBranch || "main") as string;
+  return (branch || "main").trim();
+}
+
 const ALLOWED_PATH_PREFIXES = ["content/", "public/images/"];
 
 export function validateAdminPath(path: string): void {

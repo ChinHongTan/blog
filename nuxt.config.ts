@@ -16,10 +16,12 @@ export default defineNuxtConfig({
     githubClientSecret: process.env.NUXT_GITHUB_CLIENT_SECRET || '',
     cookieEncryptionSecret: process.env.NUXT_COOKIE_ENCRYPTION_SECRET || '',
     githubRepo: 'ChinHongTan/blog',
+    githubBranch: process.env.NUXT_GITHUB_BRANCH || 'main',
     public: {
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
       githubClientId: process.env.NUXT_GITHUB_CLIENT_ID || '',
       githubRepo: process.env.NUXT_PUBLIC_GITHUB_REPO || 'ChinHongTan/blog',
+      githubBranch: process.env.NUXT_PUBLIC_GITHUB_BRANCH || process.env.NUXT_GITHUB_BRANCH || 'main',
     },
   },
 

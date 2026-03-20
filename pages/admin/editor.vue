@@ -411,7 +411,8 @@ function toPreviewUrl(path: string | undefined): string {
   if (!path) return '';
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
   const repo = runtimeConfig.public.githubRepo as string;
-  return `https://raw.githubusercontent.com/${repo}/main/public${path}`;
+  const branch = (runtimeConfig.public.githubBranch as string) || "main";
+  return `https://raw.githubusercontent.com/${repo}/${branch}/public${path}`;
 }
 
 const featuredImagePreviewUrl = computed(() => toPreviewUrl(meta.featured_image));

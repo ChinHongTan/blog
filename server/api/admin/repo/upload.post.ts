@@ -1,5 +1,5 @@
 import { readMultipartFormData } from "h3";
-import { getOctokit, getRepoOwnerRepo, validateAdminPath } from "../../../utils/github";
+import { getOctokit, getRepoBranch, getRepoOwnerRepo, validateAdminPath } from "../../../utils/github";
 
 const ALLOWED_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif"]);
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -8,6 +8,7 @@ export default defineEventHandler(async (event) => {
   const octokit = getOctokit(event);
   if (!octokit) throw createError({ statusCode: 401, message: "Not authenticated" });
   const { owner, repo } = getRepoOwnerRepo(event);
+  const branch = getRepoBranch(event);
   const form = await readMultipartFormData(event);
   const file = form?.find((f) => f.name === "file" && f.data);
   const pathPrefix = form?.find((f) => f.name === "pathPrefix")?.data?.toString() || "public/images/uploads";
@@ -30,6 +31,7 @@ export default defineEventHandler(async (event) => {
     await octokit.repos.createOrUpdateFileContents({
       owner,
       repo,
+      branch,
       path,
       message: `Upload image: ${safeName}`,
       content,
@@ -39,6 +41,27 @@ export default defineEventHandler(async (event) => {
     return { path: webPath, url: webPath };
   } catch (e: unknown) {
     const err = e as { status?: number; message?: string };
-    throw createError({ statusCode: err.status || 500, message: err.message || "Upload failed" });
+    console.error("[admin/repo/upload] GitHub upload failed", {
+      method: event.method,
+      owner,
+      repo,
+      branch,
+      path,
+      githubStatus: err.status,
+      githubMessage: err.message,
+    });
+    throw createError({
+      statusCode: err.status || 500,
+      statusMessage: "GitHub upload failed",
+      message: err.message || "Upload failed",
+      data: {
+        route: "POST /api/admin/repo/upload",
+        path,
+        owner,
+        repo,
+        branch,
+        githubStatus: err.status || null,
+      },
+    });
   }
 });
