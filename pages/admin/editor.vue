@@ -350,6 +350,7 @@ const route = useRoute();
 useAdminAuth();
 const { fetchProfileMe } = useAdminProfileMe();
 const toast = useToast();
+const getApiErrorMessage = useApiErrorMessage();
 const docType = computed(() => (route.query.type as string) || "post");
 const slug = computed(() => (route.query.slug as string) || "");
 const pathQuery = computed(() => (route.query.path as string) || "");
@@ -1005,7 +1006,7 @@ async function publish() {
     }
   } catch (e) {
     console.error(e);
-    toast.error("儲存失敗，請查看主控台。");
+    toast.error(getApiErrorMessage(e, "儲存失敗，請稍後再試。"));
   } finally {
     saving.value = false;
   }
@@ -1036,7 +1037,7 @@ async function saveDraftToGitHub() {
     await navigateTo({ path: "/admin/editor", query: { type: "post", path: draftPath } });
   } catch (e) {
     console.error(e);
-    toast.error("儲存草稿失敗，請查看主控台。");
+    toast.error(getApiErrorMessage(e, "儲存草稿失敗，請稍後再試。"));
   } finally {
     savingDraft.value = false;
   }
@@ -1058,7 +1059,7 @@ async function unpublish() {
     await navigateTo({ path: "/admin/editor", query: { type: "post", path: `content/drafts/${stem}.md` } });
   } catch (e) {
     console.error(e);
-    toast.error("取消發布失敗，請查看主控台。");
+    toast.error(getApiErrorMessage(e, "取消發布失敗，請稍後再試。"));
   } finally {
     unpublishing.value = false;
   }
@@ -1103,7 +1104,7 @@ async function confirmDeleteDraft() {
     });
   } catch (e) {
     console.error(e);
-    toast.error("刪除草稿失敗，請查看主控台。");
+    toast.error(getApiErrorMessage(e, "刪除草稿失敗，請稍後再試。"));
   } finally {
     deletingDraft.value = false;
   }
@@ -1117,7 +1118,7 @@ async function onFeaturedDrop(e: DragEvent) {
     meta.featured_image = await uploadImage(file);
   } catch (err) {
     console.error(err);
-    toast.error("上傳失敗");
+    toast.error(getApiErrorMessage(err, "上傳失敗，請稍後再試。"));
   }
 }
 
@@ -1126,7 +1127,7 @@ function onFeaturedFileChange(e: Event) {
   const file = input.files?.[0];
   input.value = "";
   if (!file) return;
-  uploadImage(file).then((path) => { meta.featured_image = path; }).catch((err) => { console.error(err); toast.error("上傳失敗"); });
+  uploadImage(file).then((path) => { meta.featured_image = path; }).catch((err) => { console.error(err); toast.error(getApiErrorMessage(err, "上傳失敗，請稍後再試。")); });
 }
 
 async function onAuthorAvatarFileChange(e: Event) {
@@ -1138,7 +1139,7 @@ async function onAuthorAvatarFileChange(e: Event) {
     meta.avatar = await uploadImageAvatar(file);
   } catch (err) {
     console.error(err);
-    toast.error("上傳失敗");
+    toast.error(getApiErrorMessage(err, "上傳失敗，請稍後再試。"));
   }
 }
 
@@ -1151,7 +1152,7 @@ async function onAuthorBannerFileChange(e: Event) {
     meta.banner = await uploadImageBanner(file);
   } catch (err) {
     console.error(err);
-    toast.error("上傳失敗");
+    toast.error(getApiErrorMessage(err, "上傳失敗，請稍後再試。"));
   }
 }
 

@@ -101,6 +101,20 @@ export function getRepoBranch(event: H3Event): string {
   return (branch || "main").trim();
 }
 
+export async function hasRepoWriteAccess(
+  octokit: Octokit,
+  owner: string,
+  repo: string
+): Promise<boolean> {
+  try {
+    const { data } = await octokit.repos.get({ owner, repo });
+    const permissions = (data as { permissions?: { admin?: boolean; maintain?: boolean; push?: boolean } }).permissions;
+    return !!(permissions?.admin || permissions?.maintain || permissions?.push);
+  } catch {
+    return false;
+  }
+}
+
 const ALLOWED_PATH_PREFIXES = ["content/", "public/images/"];
 
 export function validateAdminPath(path: string): void {

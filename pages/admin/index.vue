@@ -5,6 +5,7 @@
       <h1>後台</h1>
       <p>請使用 GitHub 登入以編輯文章與作者。</p>
       <button type="button" class="admin-btn admin-btn-primary" @click="login">使用 GitHub 登入</button>
+      <p v-if="permissionMessage" class="admin-login-error">{{ permissionMessage }}</p>
       <p class="admin-login-note">您需要具備部落格儲存庫的寫入權限。</p>
     </div>
     <div v-else class="admin-dashboard">
@@ -22,7 +23,14 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: "admin" });
-const { user, loading, login } = useAdminAuth();
+const route = useRoute();
+const { user, loading, authError, login } = useAdminAuth();
+const permissionMessage = computed(() => {
+  if (typeof route.query.authError === "string" && route.query.authError === "no_write") {
+    return "此 GitHub 帳號沒有此儲存庫的寫入權限，請改用具有 write access 的帳號登入。";
+  }
+  return authError.value;
+});
 </script>
 
 <style scoped>
@@ -63,6 +71,11 @@ const { user, loading, login } = useAdminAuth();
   font-size: 0.8125rem;
   margin-top: 1rem;
   color: var(--color-text-tertiary);
+}
+.admin-login-error {
+  margin-top: 0.75rem;
+  color: var(--color-error-text);
+  font-size: 0.875rem;
 }
 .admin-quick-actions {
   display: grid;

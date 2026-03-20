@@ -1,5 +1,6 @@
 import { getRequestURL, getQuery } from "h3";
-import { setGitHubToken } from "../../../utils/github";
+import { Octokit } from "@octokit/rest";
+import { getRepoOwnerRepo, hasRepoWriteAccess, setGitHubToken } from "../../../utils/github";
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
@@ -24,6 +25,12 @@ export default defineEventHandler(async (event) => {
   });
   if (res.error || !res.access_token) {
     throw createError({ statusCode: 401, message: res.error || "Failed to get access token" });
+  }
+  const { owner, repo } = getRepoOwnerRepo(event);
+  const octokit = new Octokit({ auth: res.access_token });
+  const canWrite = await hasRepoWriteAccess(octokit, owner, repo);
+  if (!canWrite) {
+    return sendRedirect(event, "/admin?authError=no_write");
   }
   setGitHubToken(event, res.access_token);
   return sendRedirect(event, "/admin");

@@ -144,6 +144,7 @@ import { useAdminProfileMe } from "~/composables/useAdminProfileMe";
 definePageMeta({ layout: "admin" });
 
 const toast = useToast();
+const getApiErrorMessage = useApiErrorMessage();
 
 const { profileMe, fetchProfileMe } = useAdminProfileMe();
 const loading = ref(true);
@@ -232,7 +233,7 @@ async function save() {
     await load();
   } catch (e) {
     console.error(e);
-    toast.error("儲存失敗，請查看主控台。");
+    toast.error(getApiErrorMessage(e, "儲存失敗，請稍後再試。"));
   } finally {
     saving.value = false;
   }
@@ -246,7 +247,7 @@ async function onBannerDrop(e: DragEvent) {
     form.banner = await uploadBanner(file);
   } catch (err) {
     console.error(err);
-    toast.error("上傳失敗");
+    toast.error(getApiErrorMessage(err, "上傳失敗，請稍後再試。"));
   }
 }
 
@@ -255,7 +256,7 @@ function onBannerFileChange(e: Event) {
   const file = input.files?.[0];
   input.value = "";
   if (!file) return;
-  uploadBanner(file).then((path) => { form.banner = path; }).catch((err) => { console.error(err); toast.error("上傳失敗"); });
+  uploadBanner(file).then((path) => { form.banner = path; }).catch((err) => { console.error(err); toast.error(getApiErrorMessage(err, "上傳失敗，請稍後再試。")); });
 }
 
 async function onAvatarDrop(e: DragEvent) {
@@ -266,7 +267,7 @@ async function onAvatarDrop(e: DragEvent) {
     form.avatar = await uploadAvatar(file);
   } catch (err) {
     console.error(err);
-    toast.error("上傳失敗");
+    toast.error(getApiErrorMessage(err, "上傳失敗，請稍後再試。"));
   }
 }
 
@@ -275,7 +276,7 @@ function onAvatarFileChange(e: Event) {
   const file = input.files?.[0];
   input.value = "";
   if (!file) return;
-  uploadAvatar(file).then((path) => { form.avatar = path; }).catch((err) => { console.error(err); toast.error("上傳失敗"); });
+  uploadAvatar(file).then((path) => { form.avatar = path; }).catch((err) => { console.error(err); toast.error(getApiErrorMessage(err, "上傳失敗，請稍後再試。")); });
 }
 
 onMounted(load);

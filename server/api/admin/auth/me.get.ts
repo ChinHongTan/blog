@@ -1,4 +1,4 @@
-import { getGitHubTokenCacheKey, getOctokit } from "../../../utils/github";
+import { getGitHubTokenCacheKey, getOctokit, getRepoOwnerRepo, hasRepoWriteAccess } from "../../../utils/github";
 import { withRequestCache } from "../../../utils/request-cache";
 
 export default defineEventHandler(async (event) => {
@@ -14,8 +14,17 @@ export default defineEventHandler(async (event) => {
     async () => {
       try {
         const { data } = await octokit.users.getAuthenticated();
+        const { owner, repo } = getRepoOwnerRepo(event);
+        const canWrite = await hasRepoWriteAccess(octokit, owner, repo);
+        if (!canWrite) {
+          throw createError({ statusCode: 403, message: "You do not have write access to this repository" });
+        }
         return { login: data.login, name: data.name, avatar_url: data.avatar_url };
-      } catch {
+      } catch (e: unknown) {
+        const err = e as { statusCode?: number; status?: number };
+        if (err.statusCode === 403 || err.status === 403) {
+          throw e;
+        }
         return null;
       }
     }
