@@ -2,7 +2,7 @@
 title: 中樞理論學派（二）Motor Program
 description: 越讀越爽了 哈嘶哈嘶哈嘶
 date: 2026-03-21T01:30
-edited_at: 2026-03-21T03:33:38.479Z
+edited_at: 2026-03-21T03:34:39.107Z
 author: hibiki12141132
 path: /blog/中樞理論學派（二）Motor-Program
 featured_image: /images/uploads/1774063674180-EhtmpujU4AAFKcy.jpg
