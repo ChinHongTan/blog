@@ -2,7 +2,7 @@
 title: 中樞理論學派（二）Motor Program
 description: 越讀越爽了 哈嘶哈嘶哈嘶
 date: 2026-03-21T01:30
-edited_at: 2026-03-21T04:47:30.857Z
+edited_at: 2026-03-21T12:57:10.515Z
 author: hibiki12141132
 path: /blog/中樞理論學派（二）Motor-Program
 featured_image: /images/uploads/1774063674180-EhtmpujU4AAFKcy.jpg
@@ -17,7 +17,7 @@ featured_image: /images/uploads/1774063674180-EhtmpujU4AAFKcy.jpg
 
 以下將用動作程式代指Motor Program
 
-那通用動作有三個理論 \
+ 那通用動作有三個理論 \
 1\. 開鏈式系統 2. 通用動作程式 3. 階層特性
 
 先來講開鏈式系統 像剛描述到的 一被執行則必須被完成 \
