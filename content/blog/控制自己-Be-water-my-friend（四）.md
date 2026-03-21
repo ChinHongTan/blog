@@ -1,8 +1,8 @@
 ---
-title: 控制自己 Be water my friend（四）
+title: Motor Control（四）
 description: 來給對PT有興趣的路人們簡單講解一下學渣對這門課的理解
 date: 2026-03-20T05:00
-edited_at: 2026-03-20T05:21:31.967Z
+edited_at: 2026-03-21T12:54:18.709Z
 author: hibiki12141132
 path: /blog/控制自己-Be-water-my-friend（四）
 featured_image: /images/uploads/1773983954366-IMG_20200722_231036.jpg
@@ -43,4 +43,3 @@ featured_image: /images/uploads/1773983954366-IMG_20200722_231036.jpg
 ![1.00](https://raw.githubusercontent.com/ChinHongTan/blog/main/public/images/uploads/1773983922403-Screenshot_2026-03-20_131746.png)
 
 ![1.00](https://raw.githubusercontent.com/ChinHongTan/blog/main/public/images/uploads/1773984031992-Screenshot_2026-03-20_132002.png)
-
