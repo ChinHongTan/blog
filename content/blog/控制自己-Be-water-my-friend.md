@@ -1,8 +1,8 @@
 ---
-title: 控制自己 Be water my friend
+title: Motor Control（一）
 description: 來給對PT有興趣的路人們簡單講解一下學渣對這門課的理解
 date: 2026-03-20T02:38
-edited_at: 2026-03-20T05:22:27.922Z
+edited_at: 2026-03-21T12:53:28.499Z
 author: hibiki12141132
 path: /blog/控制自己-Be-water-my-friend
 featured_image: /images/uploads/1773978280816-20201130_205814.jpg
