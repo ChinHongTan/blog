@@ -2,7 +2,7 @@
 title: 中樞理論學派（二）Motor Program
 description: 越讀越爽了 哈嘶哈嘶哈嘶
 date: 2026-03-21T01:30
-edited_at: 2026-03-21T03:27:58.699Z
+edited_at: 2026-03-21T03:30:51.806Z
 author: hibiki12141132
 path: /blog/中樞理論學派（二）Motor-Program
 featured_image: /images/uploads/1774063674180-EhtmpujU4AAFKcy.jpg
@@ -38,7 +38,7 @@ featured_image: /images/uploads/1774063674180-EhtmpujU4AAFKcy.jpg
 
 來突擊問一下 跑步跟走路兩種通用動作程式一樣嗎
 
-而在通用動作程式裡可以改的參數\\
+而在通用動作程式裡可以改的參數
 
 1. 肌肉(部位) 意思就是 右撇子的你用左手寫同一個字 雖然字是比較醜 \
    但同一個字的不變參數相同 不影響同一個通用動作程式在不同部位的應用\
@@ -48,7 +48,7 @@ featured_image: /images/uploads/1774063674180-EhtmpujU4AAFKcy.jpg
 
 而最後講到階層特性 他跟前面周圍理論學派的階層理論不同\
 這邊的階層是指說 今天我要做一個任務例如拿水杯 就會讓小的動作程式組合成拿水杯的任務\
-動作程式\\
+動作程式如下
 
 1. 身體前彎的動作程式 2. 手臂往前伸的動作程式 3. 手指打開的動作程式 \\
 2. 抓握水杯的動作程式 5. 手臂回來的動作程式 \
