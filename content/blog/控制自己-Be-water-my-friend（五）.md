@@ -1,8 +1,8 @@
 ---
-title: 控制自己 Be water my friend（五）
+title: Motor Control（五）
 description: 來給對PT有興趣的路人們簡單講解一下學渣對這門課的理解
 date: 2026-03-20T05:22
-edited_at: 2026-03-20T05:47:39.985Z
+edited_at: 2026-03-21T12:54:55.046Z
 author: hibiki12141132
 path: /blog/控制自己-Be-water-my-friend（五）
 featured_image: /images/uploads/1773985655349-___.jpg
@@ -34,8 +34,5 @@ Stability我就把他理解成固定的不動的\
 結果 按照環境的兩大類跟身體動作的兩大類 我們就能變出上一節課講的4X4表格
 
 ![1.00](https://raw.githubusercontent.com/ChinHongTan/blog/main/public/images/uploads/1773985213471-Screenshot_2026-03-20_133959.png)
-
-嘻嘻 又能憑空變出來一張表格了 而且講了這麼多篇還有140頁的PPT才過了不到十頁而已\
-不過後面就講理論了 那是我自己吃的部份就不給你們講了
 
 歡迎發揮你們抽象的想法在最後一張圖挑幾個留言分享
