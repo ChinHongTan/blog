@@ -2,7 +2,7 @@
 title: 動作學習（二）forms of learning
 description: 絕讚啃書中
 date: 2026-03-22T00:47
-edited_at: 2026-03-22T01:27:50.138Z
+edited_at: 2026-03-23T03:15:18.675Z
 author: hibiki12141132
 path: /blog/動作學習（二）form-of-learning
 featured_image: /images/uploads/1774142429929-20201202_121927.jpg
@@ -61,7 +61,7 @@ featured_image: /images/uploads/1774142429929-20201202_121927.jpg
 
 而非敍述性有一個小分類叫做\[程式學習]{.bg-green-4}\
 意思就是一直練一直練練到會\
-這點玩遊戲的同學就很有感受了 菜就多練 但這種沒辦法教給別人\
+這點玩遊戲的同學就很有感受了 菜就多練 但這種沒辦法教給別人 \
 有這些特徵\
 因重複學習而獲得行為表現的進步\
 不需要經過思考就能做出來(像是所謂的肌肉記憶)\
