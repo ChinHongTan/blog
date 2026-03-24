@@ -2,7 +2,7 @@
 title: 動作學習（二）forms of learning
 description: 絕讚啃書中
 date: 2026-03-22T00:47
-edited_at: 2026-03-23T03:15:18.675Z
+edited_at: 2026-03-24T01:00:41.704Z
 author: hibiki12141132
 path: /blog/動作學習（二）form-of-learning
 featured_image: /images/uploads/1774142429929-20201202_121927.jpg
@@ -30,7 +30,7 @@ featured_image: /images/uploads/1774142429929-20201202_121927.jpg
 這個也有兩種演化 一種是傳統制約反應 一種是操作制約反應
 
 傳統制約反應 就是將刺激輸入跟結果緊緊捆綁(有前兆就有結果)(A是刺激輸入)\
-最典型的例子 有A+B就有得吃 假如只有A 那他也只為有得吃
+最典型的例子 有A+B就有得吃 假如只有A 那他也以為有得吃
 
 ![1.00](https://raw.githubusercontent.com/ChinHongTan/blog/main/public/images/uploads/1774089362522-Screenshot_2026-03-21_183544.png)
 
