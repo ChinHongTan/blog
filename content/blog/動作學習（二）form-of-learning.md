@@ -2,7 +2,7 @@
 title: 動作學習（二）forms of learning
 description: 絕讚啃書中
 date: 2026-03-22T00:47
-edited_at: 2026-03-24T01:02:02.270Z
+edited_at: 2026-03-24T01:03:19.787Z
 author: hibiki12141132
 path: /blog/動作學習（二）form-of-learning
 featured_image: /images/uploads/1774142429929-20201202_121927.jpg
@@ -57,7 +57,7 @@ featured_image: /images/uploads/1774142429929-20201202_121927.jpg
 而心像練習也算是一種敍述性
 
 而非敍述性 又叫做內隱性的認知\
-就像是你不太可能教別人玩遊戲 把一些技巧傳給別人 而不用\[刻意回想]{.bg-red-3}
+就像是你不太可能教別人玩遊戲 把一些肌肉記憶 而不用\[刻意回想]{.bg-red-3}
 
 而非敍述性有一個小分類叫做\[程式學習]{.bg-green-4}\
 意思就是一直練一直練練到會\
