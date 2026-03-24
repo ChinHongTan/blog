@@ -2,7 +2,7 @@
 title: 動作學習（二）forms of learning
 description: 絕讚啃書中
 date: 2026-03-22T00:47
-edited_at: 2026-03-24T01:00:41.704Z
+edited_at: 2026-03-24T01:02:02.270Z
 author: hibiki12141132
 path: /blog/動作學習（二）form-of-learning
 featured_image: /images/uploads/1774142429929-20201202_121927.jpg
@@ -46,7 +46,7 @@ featured_image: /images/uploads/1774142429929-20201202_121927.jpg
 ![1.00](https://raw.githubusercontent.com/ChinHongTan/blog/main/public/images/uploads/1774091802836-Screenshot_2026-03-21_191304.png)
 
 接下來講第二類學習的形式\
-敍術性跟非敍術性
+敍述性跟非敍述性
 
 先來講敍述性 又叫做外顯性的認知\
 就像是你玩教別人玩遊戲 變強的竅門 可以被說出來的就是敍述性\
