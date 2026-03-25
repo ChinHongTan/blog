@@ -81,6 +81,13 @@ npm run preview
 └── nuxt.config.ts       # Nuxt configuration
 ```
 
+## Privacy Notes
+
+- Author profiles no longer store or publish email fields in frontmatter.
+- Waline client is configured to use only nickname and optional link metadata (no email field in the widget).
+- Historical email data in the external Waline backend is not removed by this repository. Purge it from the Waline admin/database directly.
+- Historical email exposure may still exist in Git history or search-engine caches from older deployments.
+
 ## License
 
 [MIT](LICENSE) - Copyright 2025 Chin Hong Tan

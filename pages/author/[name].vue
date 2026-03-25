@@ -13,12 +13,11 @@ const authorId = computed(() => {
 
 // Fetch all authors for metadata
 const { data: allAuthors } = useAsyncData("author-profiles-list", () =>
-	queryCollection("authors").all()
+	queryCollection("authors").all(),
 );
 
 type AuthorProfile = {
 	name?: string;
-	email?: string;
 	bio?: string;
 	avatar?: string;
 	banner?: string;
@@ -32,7 +31,9 @@ type AuthorProfile = {
 };
 
 const authorRecord = computed(() => {
-	const records = (allAuthors.value ?? []) as unknown as (AuthorProfile & { path?: string })[];
+	const records = (allAuthors.value ?? []) as unknown as (AuthorProfile & {
+		path?: string;
+	})[];
 	return records.find((a) => getAuthorId(a) === authorId.value) ?? null;
 });
 
@@ -41,25 +42,39 @@ const { data: authorPage } = useAsyncData(
 	`author-page-${authorId.value}`,
 	async () => {
 		const all = await queryCollection("authors").all();
-		const match = all.find((a: { path?: string; name?: string }) => getAuthorId(a) === authorId.value);
+		const match = all.find(
+			(a: { path?: string; name?: string }) =>
+				getAuthorId(a) === authorId.value,
+		);
 		if (!match) return null;
 		if ((match as { path?: string }).path) {
-			const full = await queryCollection("authors").path((match as { path: string }).path).first();
+			const full = await queryCollection("authors")
+				.path((match as { path: string }).path)
+				.first();
 			return full;
 		}
 		return match;
-	}
+	},
 );
 
 const hasReadme = computed(() => {
 	const record = authorPage.value;
 	if (!record?.body) return false;
-	const body = record.body as { type?: string; value?: unknown[]; children?: unknown[] };
+	const body = record.body as {
+		type?: string;
+		value?: unknown[];
+		children?: unknown[];
+	};
 	// Check various body formats
-	if (body.type === 'minimark' && Array.isArray(body.value) && body.value.length > 0) return true;
+	if (
+		body.type === "minimark" &&
+		Array.isArray(body.value) &&
+		body.value.length > 0
+	)
+		return true;
 	if (Array.isArray(body.children) && body.children.length > 0) return true;
 	// If body itself looks like it has content
-	if (typeof body === 'object' && body !== null) {
+	if (typeof body === "object" && body !== null) {
 		const keys = Object.keys(body);
 		return keys.length > 0;
 	}
@@ -69,12 +84,12 @@ const hasReadme = computed(() => {
 // Fetch all posts by this author
 const { data: allPosts } = useAsyncData<BlogCollectionItem[]>(
 	`author-posts-${authorId.value}`,
-	() => queryCollection("blog").order("date", "DESC").all()
+	() => queryCollection("blog").order("date", "DESC").all(),
 );
 
 const authorPosts = computed(() => {
 	return (allPosts.value ?? []).filter(
-		(post) => post.author === authorId.value
+		(post) => post.author === authorId.value,
 	);
 });
 
@@ -93,10 +108,14 @@ function fallbackAvatar(label: string, size = 120) {
 	return `https://placehold.co/${size}x${size}/38bdf8/ffffff?text=${initial}`;
 }
 
-const authorDisplayName = computed(() => authorRecord.value?.name ?? authorId.value);
+const authorDisplayName = computed(
+	() => authorRecord.value?.name ?? authorId.value,
+);
 
 const avatar = computed(() => {
-	return authorRecord.value?.avatar ?? fallbackAvatar(authorDisplayName.value);
+	return (
+		authorRecord.value?.avatar ?? fallbackAvatar(authorDisplayName.value)
+	);
 });
 
 const bannerUrl = computed(() => {
@@ -137,23 +156,33 @@ const authorSeries = computed(() => {
 });
 
 // Tab state
-const activeTab = ref<'posts' | 'readme'>('posts');
+const activeTab = ref<"posts" | "readme">("posts");
 
 // Sorting
-type SortMode = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc';
-const sortMode = ref<SortMode>('date-desc');
+type SortMode = "date-desc" | "date-asc" | "name-asc" | "name-desc";
+const sortMode = ref<SortMode>("date-desc");
 
 const sortedPosts = computed(() => {
 	const posts = [...authorPosts.value];
 	switch (sortMode.value) {
-		case 'date-desc':
-			return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-		case 'date-asc':
-			return posts.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-		case 'name-asc':
-			return posts.sort((a, b) => (a.title ?? '').localeCompare(b.title ?? '', 'zh-TW'));
-		case 'name-desc':
-			return posts.sort((a, b) => (b.title ?? '').localeCompare(a.title ?? '', 'zh-TW'));
+		case "date-desc":
+			return posts.sort(
+				(a, b) =>
+					new Date(b.date).getTime() - new Date(a.date).getTime(),
+			);
+		case "date-asc":
+			return posts.sort(
+				(a, b) =>
+					new Date(a.date).getTime() - new Date(b.date).getTime(),
+			);
+		case "name-asc":
+			return posts.sort((a, b) =>
+				(a.title ?? "").localeCompare(b.title ?? "", "zh-TW"),
+			);
+		case "name-desc":
+			return posts.sort((a, b) =>
+				(b.title ?? "").localeCompare(a.title ?? "", "zh-TW"),
+			);
 		default:
 			return posts;
 	}
@@ -169,7 +198,7 @@ useHead({
 		<!-- Banner -->
 		<div class="banner-section">
 			<div v-if="bannerUrl" class="banner-image">
-				<img :src="bannerUrl" :alt="`${authorDisplayName} banner`">
+				<img :src="bannerUrl" :alt="`${authorDisplayName} banner`" />
 			</div>
 			<div v-else class="banner-default">
 				<div class="banner-pattern" />
@@ -183,7 +212,11 @@ useHead({
 				<div class="profile-card">
 					<!-- Avatar -->
 					<div class="profile-avatar-wrap">
-						<img :src="avatar" :alt="authorDisplayName" class="profile-avatar">
+						<img
+							:src="avatar"
+							:alt="authorDisplayName"
+							class="profile-avatar"
+						/>
 					</div>
 
 					<h1 class="profile-name">{{ authorDisplayName }}</h1>
@@ -194,32 +227,40 @@ useHead({
 					<!-- Stats -->
 					<div class="profile-stats">
 						<div class="stat-item">
-							<Icon name="heroicons:document-text" size="16" class="stat-icon" />
+							<Icon
+								name="heroicons:document-text"
+								size="16"
+								class="stat-icon"
+							/>
 							<span class="stat-value">{{ totalPosts }}</span>
 							<span class="stat-label">文章</span>
 						</div>
 						<div class="stat-item">
-							<Icon name="heroicons:tag" size="16" class="stat-icon" />
-							<span class="stat-value">{{ authorTags.length }}</span>
+							<Icon
+								name="heroicons:tag"
+								size="16"
+								class="stat-icon"
+							/>
+							<span class="stat-value">{{
+								authorTags.length
+							}}</span>
 							<span class="stat-label">標籤</span>
 						</div>
 						<div class="stat-item">
-							<Icon name="heroicons:bookmark" size="16" class="stat-icon" />
-							<span class="stat-value">{{ authorSeries.length }}</span>
+							<Icon
+								name="heroicons:bookmark"
+								size="16"
+								class="stat-icon"
+							/>
+							<span class="stat-value">{{
+								authorSeries.length
+							}}</span>
 							<span class="stat-label">專欄</span>
 						</div>
 					</div>
 
 					<!-- Contact & Links -->
-					<div v-if="authorRecord?.email || authorRecord?.social" class="profile-links">
-						<a
-							v-if="authorRecord?.email"
-							:href="`mailto:${authorRecord.email}`"
-							class="profile-link-item"
-						>
-							<Icon name="heroicons:envelope" size="16" />
-							<span>{{ authorRecord.email }}</span>
-						</a>
+					<div v-if="authorRecord?.social" class="profile-links">
 						<a
 							v-if="authorRecord?.social?.website"
 							:href="authorRecord.social.website"
@@ -228,7 +269,12 @@ useHead({
 							class="profile-link-item"
 						>
 							<Icon name="heroicons:link" size="16" />
-							<span>{{ authorRecord.social.website.replace(/^https?:\/\//, '') }}</span>
+							<span>{{
+								authorRecord.social.website.replace(
+									/^https?:\/\//,
+									"",
+								)
+							}}</span>
 						</a>
 						<a
 							v-if="authorRecord?.social?.github"
@@ -241,7 +287,10 @@ useHead({
 							<span>GitHub</span>
 						</a>
 						<a
-							v-if="authorRecord?.social?.twitter && authorRecord.social.twitter !== ''"
+							v-if="
+								authorRecord?.social?.twitter &&
+								authorRecord.social.twitter !== ''
+							"
 							:href="authorRecord.social.twitter"
 							target="_blank"
 							rel="noopener"
@@ -281,7 +330,9 @@ useHead({
 						>
 							<Icon name="heroicons:bookmark-square" size="16" />
 							<span class="series-list-name">{{ s.name }}</span>
-							<span class="series-list-count">{{ s.count }} 篇</span>
+							<span class="series-list-count"
+								>{{ s.count }} 篇</span
+							>
 						</NuxtLink>
 					</div>
 				</div>
@@ -333,22 +384,39 @@ useHead({
 							class="post-card"
 						>
 							<NuxtLink :to="getPostPath(post)" class="post-link">
-								<div v-if="post.featured_image" class="post-image">
-									<img :src="post.featured_image" :alt="post.title">
+								<div
+									v-if="post.featured_image"
+									class="post-image"
+								>
+									<img
+										:src="post.featured_image"
+										:alt="post.title"
+									/>
 								</div>
 							</NuxtLink>
 							<div class="post-body">
-								<NuxtLink :to="getPostPath(post)" class="post-title-link">
+								<NuxtLink
+									:to="getPostPath(post)"
+									class="post-title-link"
+								>
 									<h3 class="post-title">{{ post.title }}</h3>
 								</NuxtLink>
-								<p v-if="post.description" class="post-description">
+								<p
+									v-if="post.description"
+									class="post-description"
+								>
 									{{ post.description }}
 								</p>
 								<div class="post-meta">
 									<span class="post-date">
-										<Icon name="heroicons:calendar-days" size="14" />
+										<Icon
+											name="heroicons:calendar-days"
+											size="14"
+										/>
 										{{
-											new Date(post.date).toLocaleDateString("zh-TW", {
+											new Date(
+												post.date,
+											).toLocaleDateString("zh-TW", {
 												year: "numeric",
 												month: "2-digit",
 												day: "2-digit",
@@ -356,7 +424,10 @@ useHead({
 										}}
 									</span>
 									<div
-										v-if="Array.isArray(post.tags) && post.tags.length"
+										v-if="
+											Array.isArray(post.tags) &&
+											post.tags.length
+										"
 										class="post-tags"
 									>
 										<span
@@ -368,7 +439,10 @@ useHead({
 										</span>
 									</div>
 									<div
-										v-if="Array.isArray(post.series) && post.series.length"
+										v-if="
+											Array.isArray(post.series) &&
+											post.series.length
+										"
 										class="post-series-badges"
 									>
 										<NuxtLink
@@ -377,7 +451,10 @@ useHead({
 											:to="`/series/${encodeURIComponent(s)}`"
 											class="series-chip"
 										>
-											<Icon name="heroicons:bookmark" size="12" />
+											<Icon
+												name="heroicons:bookmark"
+												size="12"
+											/>
 											{{ s }}
 										</NuxtLink>
 									</div>
@@ -387,7 +464,10 @@ useHead({
 					</div>
 
 					<div v-else class="empty-state">
-						<Icon name="heroicons:document-magnifying-glass" size="48" />
+						<Icon
+							name="heroicons:document-magnifying-glass"
+							size="48"
+						/>
 						<p>此作者還沒有發表文章。</p>
 					</div>
 				</div>
@@ -397,12 +477,20 @@ useHead({
 					<div v-if="hasReadme && authorPage" class="readme-content">
 						<div class="readme-card">
 							<div class="readme-header">
-								<img :src="avatar" :alt="authorDisplayName" class="readme-avatar">
-								<span class="readme-filename">{{ authorDisplayName }} / README.md</span>
+								<img
+									:src="avatar"
+									:alt="authorDisplayName"
+									class="readme-avatar"
+								/>
+								<span class="readme-filename"
+									>{{ authorDisplayName }} / README.md</span
+								>
 							</div>
 							<div class="readme-body nuxt-content">
 								<ContentRenderer :value="authorPage">
-									<ContentRendererMarkdown :value="authorPage" />
+									<ContentRendererMarkdown
+										:value="authorPage"
+									/>
 								</ContentRenderer>
 							</div>
 						</div>
@@ -449,9 +537,16 @@ useHead({
 	height: 100%;
 	background: linear-gradient(
 		135deg,
-		color-mix(in srgb, var(--color-primary) 30%, var(--color-bg-tertiary)) 0%,
-		color-mix(in srgb, var(--color-accent) 20%, var(--color-bg-tertiary)) 50%,
-		color-mix(in srgb, var(--color-primary-light) 25%, var(--color-bg-tertiary)) 100%
+		color-mix(in srgb, var(--color-primary) 30%, var(--color-bg-tertiary))
+			0%,
+		color-mix(in srgb, var(--color-accent) 20%, var(--color-bg-tertiary))
+			50%,
+		color-mix(
+				in srgb,
+				var(--color-primary-light) 25%,
+				var(--color-bg-tertiary)
+			)
+			100%
 	);
 	position: relative;
 }
@@ -460,8 +555,16 @@ useHead({
 	position: absolute;
 	inset: 0;
 	background-image:
-		radial-gradient(circle at 20% 50%, color-mix(in srgb, var(--color-primary) 15%, transparent) 0%, transparent 50%),
-		radial-gradient(circle at 80% 30%, color-mix(in srgb, var(--color-accent) 12%, transparent) 0%, transparent 50%);
+		radial-gradient(
+			circle at 20% 50%,
+			color-mix(in srgb, var(--color-primary) 15%, transparent) 0%,
+			transparent 50%
+		),
+		radial-gradient(
+			circle at 80% 30%,
+			color-mix(in srgb, var(--color-accent) 12%, transparent) 0%,
+			transparent 50%
+		);
 }
 
 /* ===== Main layout ===== */

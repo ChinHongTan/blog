@@ -31,11 +31,13 @@ const { data: page } = await useAsyncData(route.path, async () => {
 	const normalizedRoutePath = normalizePath(route.path);
 	const decodedRoutePath = normalizePath(safeDecode(route.path));
 	const blogPathCandidates = Array.from(
-		new Set([normalizedRoutePath, decodedRoutePath])
+		new Set([normalizedRoutePath, decodedRoutePath]),
 	);
 
 	for (const candidatePath of blogPathCandidates) {
-		const blogResult = await queryCollection("blog").path(candidatePath).first();
+		const blogResult = await queryCollection("blog")
+			.path(candidatePath)
+			.first();
 		if (blogResult) {
 			return blogResult;
 		}
@@ -46,20 +48,22 @@ const { data: page } = await useAsyncData(route.path, async () => {
 	const slugSegments = Array.isArray(slugParam)
 		? slugParam.filter(
 				(segment): segment is string =>
-					typeof segment === "string" && segment.length > 0
+					typeof segment === "string" && segment.length > 0,
 			)
 		: typeof slugParam === "string" && slugParam.length > 0
 			? [slugParam]
 			: [];
 	const normalizedSlugSegments = slugSegments.map((segment) =>
-		safeDecode(segment)
+		safeDecode(segment),
 	);
 	const targetStem = normalizedSlugSegments.join("/");
 	const decodedRouteStem = normalizePath(decodedRoutePath)
 		.replace(/^\/+/, "")
 		.trim();
 	const stemCandidates = Array.from(
-		new Set([targetStem, decodedRouteStem].filter((value) => value.length > 0))
+		new Set(
+			[targetStem, decodedRouteStem].filter((value) => value.length > 0),
+		),
 	);
 
 	if (stemCandidates.length > 0) {
@@ -85,7 +89,9 @@ const { data: page } = await useAsyncData(route.path, async () => {
 
 	// Fallback: try pages collection by possible path variants
 	for (const candidatePath of blogPathCandidates) {
-		const pageResult = await queryCollection("pages").path(candidatePath).first();
+		const pageResult = await queryCollection("pages")
+			.path(candidatePath)
+			.first();
 		if (pageResult) {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			return pageResult as any;
@@ -97,36 +103,51 @@ const { data: page } = await useAsyncData(route.path, async () => {
 
 // Determine if this is a blog post (has date and author)
 const isBlogPost = computed(
-	() => page.value && "date" in page.value && "author" in page.value
+	() => page.value && "date" in page.value && "author" in page.value,
 );
 
 // Check if page has a date but is not a blog post (like static pages with last updated date)
 const hasDate = computed(() => page.value && "date" in page.value);
 
 useHead(() => ({
-	title: page.value?.title ? `${page.value.title} | 星谷雜貨店` : "星谷雜貨店",
+	title: page.value?.title
+		? `${page.value.title} | 星谷雜貨店`
+		: "星谷雜貨店",
 }));
 
 useSeoMeta({
 	ogTitle: () => page.value?.title ?? "星谷雜貨店",
 	ogDescription: () =>
-		((page.value as Record<string, unknown> | null)?.description as string | undefined) ??
-		(page.value?.title ?? "星谷雜貨店"),
+		((page.value as Record<string, unknown> | null)?.description as
+			| string
+			| undefined) ??
+		page.value?.title ??
+		"星谷雜貨店",
 	ogUrl: () => `https://blog.chinono.dev${route.path}`,
 	ogType: "article",
 	ogImage: () =>
-		(page.value as Record<string, unknown> | null)?.featured_image as string | undefined,
+		(page.value as Record<string, unknown> | null)?.featured_image as
+			| string
+			| undefined,
 	twitterCard: () =>
-		((page.value as Record<string, unknown> | null)?.featured_image as string | undefined)
+		((page.value as Record<string, unknown> | null)?.featured_image as
+			| string
+			| undefined)
 			? "summary_large_image"
 			: "summary",
 	twitterTitle: () => page.value?.title ?? "星谷雜貨店",
 	twitterDescription: () =>
-		((page.value as Record<string, unknown> | null)?.description as string | undefined) ??
-		(page.value?.title ?? "星谷雜貨店"),
+		((page.value as Record<string, unknown> | null)?.description as
+			| string
+			| undefined) ??
+		page.value?.title ??
+		"星谷雜貨店",
 	description: () =>
-		((page.value as Record<string, unknown> | null)?.description as string | undefined) ??
-		(page.value?.title ?? "星谷雜貨店"),
+		((page.value as Record<string, unknown> | null)?.description as
+			| string
+			| undefined) ??
+		page.value?.title ??
+		"星谷雜貨店",
 });
 
 // Fetch author profile if author name exists and it's a blog post
@@ -141,12 +162,20 @@ const authorAvatar = computed(() => {
 		const profile = authorProfile.value as { avatar?: string };
 		if (profile.avatar) return profile.avatar;
 	}
-	const label = (authorProfile?.value as { name?: string })?.name ?? page.value?.author ?? "A";
+	const label =
+		(authorProfile?.value as { name?: string })?.name ??
+		page.value?.author ??
+		"A";
 	const firstLetter = (typeof label === "string" ? label[0] : "A") || "A";
 	return `https://placehold.co/40x40/38bdf8/ffffff?text=${firstLetter}`;
 });
 
-const authorDisplayName = computed(() => (authorProfile?.value as { name?: string })?.name ?? page.value?.author ?? "Anonymous");
+const authorDisplayName = computed(
+	() =>
+		(authorProfile?.value as { name?: string })?.name ??
+		page.value?.author ??
+		"Anonymous",
+);
 
 // Calculate reading time (assuming average reading speed of 200 words per minute)
 const readingTime = computed(() => {
@@ -219,7 +248,8 @@ const scrollPercentage = ref(0);
 const updateScrollPercentage = () => {
 	if (typeof window === "undefined") return;
 	const scrollTop = window.scrollY;
-	const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+	const docHeight =
+		document.documentElement.scrollHeight - window.innerHeight;
 	const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
 	scrollPercentage.value = Math.min(100, Math.max(0, scrollPercent));
 };
@@ -229,9 +259,11 @@ const scrollToTop = () => {
 };
 
 onMounted(() => {
-	window.addEventListener("scroll", updateScrollPercentage, { passive: true });
+	window.addEventListener("scroll", updateScrollPercentage, {
+		passive: true,
+	});
 	updateScrollPercentage();
-	
+
 	// Default hide TOC on small screens
 	if (window.innerWidth < 1280) {
 		showToc.value = false;
@@ -259,6 +291,8 @@ onMounted(async () => {
 			el: "#waline",
 			serverURL: "https://waline.chinono.dev",
 			lang: "zh-TW",
+			meta: ["nick", "link"],
+			requiredMeta: ["nick"],
 			dark: "html.dark",
 		});
 	}
@@ -281,7 +315,7 @@ function saveReadingProgress() {
 	if (pct < 5 || pct > 95) return;
 	localStorage.setItem(
 		READING_KEY_PREFIX + page.value.path,
-		JSON.stringify({ scrollY: window.scrollY, percent: Math.round(pct) })
+		JSON.stringify({ scrollY: window.scrollY, percent: Math.round(pct) }),
 	);
 }
 
@@ -313,7 +347,9 @@ onMounted(() => {
 				savedScrollPercent.value = data.percent;
 				showResumeBar.value = true;
 			}
-		} catch { /* ignore */ }
+		} catch {
+			/* ignore */
+		}
 	}
 	window.addEventListener("scroll", debouncedSave, { passive: true });
 });
@@ -330,7 +366,12 @@ const activeSeriesName = computed(() => {
 	const querySeries = route.query.series as string | undefined;
 	if (querySeries) return querySeries;
 	// Otherwise, use the first series of the current post
-	if (page.value && 'series' in page.value && Array.isArray(page.value.series) && page.value.series.length > 0) {
+	if (
+		page.value &&
+		"series" in page.value &&
+		Array.isArray(page.value.series) &&
+		page.value.series.length > 0
+	) {
 		return page.value.series[0] as string;
 	}
 	return null;
@@ -340,18 +381,26 @@ const hasSeries = computed(() => !!activeSeriesName.value);
 
 // Fetch all posts in the active series
 const { data: seriesAllPosts } = await useAsyncData(
-	`series-sidebar-${activeSeriesName.value || 'none'}`,
+	`series-sidebar-${activeSeriesName.value || "none"}`,
 	async () => {
 		if (!activeSeriesName.value) return [];
-		const allPosts = await queryCollection("blog").order("date", "DESC").all();
+		const allPosts = await queryCollection("blog")
+			.order("date", "DESC")
+			.all();
 		return allPosts.filter(
-			(post) => Array.isArray(post.series) && post.series.includes(activeSeriesName.value!)
+			(post) =>
+				Array.isArray(post.series) &&
+				post.series.includes(activeSeriesName.value!),
 		);
-	}
+	},
 );
 
 // Get the post path helper
-function getSeriesPostPath(post: { path?: string; stem?: string; id?: string }): string {
+function getSeriesPostPath(post: {
+	path?: string;
+	stem?: string;
+	id?: string;
+}): string {
 	if (post.path && post.path !== "/blog") return post.path;
 	if (post.stem) return `/${post.stem}`;
 	if (post.id) {
@@ -380,15 +429,17 @@ const seriesWindow = computed(() => {
 		return { posts, startIndex: 0 };
 	}
 	const idx = currentSeriesIndex.value;
-	if (idx < 0) return { posts: posts.slice(0, WINDOW_SIZE * 2 + 1), startIndex: 0 };
-	
+	if (idx < 0)
+		return { posts: posts.slice(0, WINDOW_SIZE * 2 + 1), startIndex: 0 };
+
 	let start = Math.max(0, idx - WINDOW_SIZE);
 	let end = Math.min(posts.length, idx + WINDOW_SIZE + 1);
-	
+
 	// Adjust if near edges
 	if (start === 0) end = Math.min(posts.length, WINDOW_SIZE * 2 + 1);
-	if (end === posts.length) start = Math.max(0, posts.length - (WINDOW_SIZE * 2 + 1));
-	
+	if (end === posts.length)
+		start = Math.max(0, posts.length - (WINDOW_SIZE * 2 + 1));
+
 	return { posts: posts.slice(start, end), startIndex: start };
 });
 
@@ -396,20 +447,31 @@ const showSeriesSidebar = ref(true);
 
 onMounted(() => {
 	// Hide series sidebar on small screens
-	if (typeof window !== 'undefined' && window.innerWidth < 1400) {
+	if (typeof window !== "undefined" && window.innerWidth < 1400) {
 		showSeriesSidebar.value = false;
 	}
 });
 </script>
 
 <template>
-	<div v-if="page" class="post-layout-container" :class="{ 'has-series': hasSeries }">
+	<div
+		v-if="page"
+		class="post-layout-container"
+		:class="{ 'has-series': hasSeries }"
+	>
 		<Transition name="resume-bar">
 			<div v-if="showResumeBar" class="resume-reading-bar">
 				<Icon name="heroicons:bookmark" size="16" />
 				<span>上次讀到 {{ savedScrollPercent }}%，繼續閱讀？</span>
-				<button type="button" class="resume-btn" @click="resumeReading">繼續</button>
-				<button type="button" class="resume-dismiss" aria-label="關閉" @click="dismissResume">
+				<button type="button" class="resume-btn" @click="resumeReading">
+					繼續
+				</button>
+				<button
+					type="button"
+					class="resume-dismiss"
+					aria-label="關閉"
+					@click="dismissResume"
+				>
 					<Icon name="heroicons:x-mark" size="16" />
 				</button>
 			</div>
@@ -417,15 +479,29 @@ onMounted(() => {
 
 		<article class="blog-post">
 			<!-- Main Content Grid -->
-			<div class="layout-wrapper" :class="{ 'no-toc': !hasToc || !showToc, 'has-series-sidebar': hasSeries && showSeriesSidebar }">
-				
+			<div
+				class="layout-wrapper"
+				:class="{
+					'no-toc': !hasToc || !showToc,
+					'has-series-sidebar': hasSeries && showSeriesSidebar,
+				}"
+			>
 				<!-- Series Sidebar (Left) -->
 				<Transition name="series-sidebar-transition">
-					<aside v-if="hasSeries && showSeriesSidebar" class="series-sidebar-column">
+					<aside
+						v-if="hasSeries && showSeriesSidebar"
+						class="series-sidebar-column"
+					>
 						<div class="series-sidebar-sticky">
 							<div class="series-sidebar-header">
-								<NuxtLink :to="`/series/${encodeURIComponent(activeSeriesName!)}`" class="series-sidebar-title">
-									<Icon name="heroicons:bookmark-square" size="18" />
+								<NuxtLink
+									:to="`/series/${encodeURIComponent(activeSeriesName!)}`"
+									class="series-sidebar-title"
+								>
+									<Icon
+										name="heroicons:bookmark-square"
+										size="18"
+									/>
 									<span>{{ activeSeriesName }}</span>
 								</NuxtLink>
 								<span class="series-sidebar-count">
@@ -435,9 +511,18 @@ onMounted(() => {
 
 							<div class="series-sidebar-list">
 								<!-- Show "..." indicator if windowed from top -->
-								<div v-if="seriesWindow.startIndex > 0" class="series-window-indicator">
-									<Icon name="heroicons:ellipsis-horizontal" size="16" />
-									<span>前 {{ seriesWindow.startIndex }} 篇</span>
+								<div
+									v-if="seriesWindow.startIndex > 0"
+									class="series-window-indicator"
+								>
+									<Icon
+										name="heroicons:ellipsis-horizontal"
+										size="16"
+									/>
+									<span
+										>前
+										{{ seriesWindow.startIndex }} 篇</span
+									>
 								</div>
 
 								<NuxtLink
@@ -445,16 +530,44 @@ onMounted(() => {
 									:key="post.id"
 									:to="`${getSeriesPostPath(post)}?series=${encodeURIComponent(activeSeriesName!)}`"
 									class="series-sidebar-item"
-									:class="{ 'is-current': getSeriesPostPath(post) === normalizePath(safeDecode(route.path)) }"
+									:class="{
+										'is-current':
+											getSeriesPostPath(post) ===
+											normalizePath(
+												safeDecode(route.path),
+											),
+									}"
 								>
-									<span class="series-item-number">{{ seriesWindow.startIndex + idx + 1 }}</span>
-									<span class="series-item-title">{{ post.title }}</span>
+									<span class="series-item-number">{{
+										seriesWindow.startIndex + idx + 1
+									}}</span>
+									<span class="series-item-title">{{
+										post.title
+									}}</span>
 								</NuxtLink>
 
 								<!-- Show "..." indicator if windowed from bottom -->
-								<div v-if="seriesWindow.startIndex + seriesWindow.posts.length < (seriesAllPosts?.length ?? 0)" class="series-window-indicator">
-									<Icon name="heroicons:ellipsis-horizontal" size="16" />
-									<span>後 {{ (seriesAllPosts?.length ?? 0) - seriesWindow.startIndex - seriesWindow.posts.length }} 篇</span>
+								<div
+									v-if="
+										seriesWindow.startIndex +
+											seriesWindow.posts.length <
+										(seriesAllPosts?.length ?? 0)
+									"
+									class="series-window-indicator"
+								>
+									<Icon
+										name="heroicons:ellipsis-horizontal"
+										size="16"
+									/>
+									<span
+										>後
+										{{
+											(seriesAllPosts?.length ?? 0) -
+											seriesWindow.startIndex -
+											seriesWindow.posts.length
+										}}
+										篇</span
+									>
 								</div>
 							</div>
 
@@ -472,10 +585,15 @@ onMounted(() => {
 				<div class="content-column">
 					<!-- Post Header -->
 					<header class="post-header">
-						<div v-if="isBlogPost && page.featured_image" class="featured-hero">
-							<img :src="page.featured_image" :alt="page.title">
+						<div
+							v-if="isBlogPost && page.featured_image"
+							class="featured-hero"
+						>
+							<img :src="page.featured_image" :alt="page.title" />
 							<div class="hero-title-wrap">
-								<h1 class="post-title hero-title">{{ page.title }}</h1>
+								<h1 class="post-title hero-title">
+									{{ page.title }}
+								</h1>
 							</div>
 						</div>
 
@@ -486,11 +604,14 @@ onMounted(() => {
 							<span class="meta-item">
 								<Icon name="heroicons:calendar" size="16" />
 								最後更新：{{
-									new Date(page.date).toLocaleDateString("zh-TW", {
-										year: "numeric",
-										month: "long",
-										day: "numeric",
-									})
+									new Date(page.date).toLocaleDateString(
+										"zh-TW",
+										{
+											year: "numeric",
+											month: "long",
+											day: "numeric",
+										},
+									)
 								}}
 							</span>
 						</div>
@@ -502,8 +623,10 @@ onMounted(() => {
 									:src="authorAvatar"
 									:alt="authorDisplayName"
 									class="author-avatar"
-								>
-								<span class="author-name">{{ authorDisplayName }}</span>
+								/>
+								<span class="author-name">{{
+									authorDisplayName
+								}}</span>
 							</div>
 
 							<div class="meta-divider" />
@@ -512,17 +635,26 @@ onMounted(() => {
 								<span class="meta-item">
 									<Icon name="heroicons:calendar" size="16" />
 									{{
-										new Date(page.date).toLocaleDateString("en-US", {
-											month: "long",
-											day: "numeric",
-											year: "numeric",
-										})
+										new Date(page.date).toLocaleDateString(
+											"en-US",
+											{
+												month: "long",
+												day: "numeric",
+												year: "numeric",
+											},
+										)
 									}}
 								</span>
 								<span v-if="page.edited_at" class="meta-item">
-									<Icon name="heroicons:pencil-square" size="16" />
-									Edited {{
-										new Date(page.edited_at).toLocaleDateString("en-US", {
+									<Icon
+										name="heroicons:pencil-square"
+										size="16"
+									/>
+									Edited
+									{{
+										new Date(
+											page.edited_at,
+										).toLocaleDateString("en-US", {
 											month: "long",
 											day: "numeric",
 											year: "numeric",
@@ -535,7 +667,8 @@ onMounted(() => {
 								</span>
 								<span class="meta-item">
 									<Icon name="heroicons:eye" size="16" />
-									<span id="vercount_value_page_pv">-</span> 次瀏覽
+									<span id="vercount_value_page_pv">-</span>
+									次瀏覽
 								</span>
 							</div>
 						</div>
@@ -547,7 +680,11 @@ onMounted(() => {
 						>
 							<Icon name="heroicons:tag" size="16" />
 							<div class="tags-list">
-								<span v-for="tag in page.tags" :key="tag" class="tag">
+								<span
+									v-for="tag in page.tags"
+									:key="tag"
+									class="tag"
+								>
 									{{ tag }}
 								</span>
 							</div>
@@ -583,7 +720,10 @@ onMounted(() => {
 				<Transition name="toc-transition">
 					<div v-show="hasToc && showToc" class="sidebar-column">
 						<div class="sidebar-sticky">
-							<RightSidebar :toc="page.body?.toc" :is-post-page="true" />
+							<RightSidebar
+								:toc="page.body?.toc"
+								:is-post-page="true"
+							/>
 						</div>
 					</div>
 				</Transition>
@@ -596,32 +736,53 @@ onMounted(() => {
 		<div v-if="hasSeries" class="floating-series-toggle">
 			<button
 				class="widget-button series-button"
-				:class="{ 'active': showSeriesSidebar }"
+				:class="{ active: showSeriesSidebar }"
 				aria-label="Toggle Series Sidebar"
 				@click="showSeriesSidebar = !showSeriesSidebar"
 			>
 				<Icon name="heroicons:bookmark-square" class="widget-icon" />
-				<span class="tooltip tooltip-right">{{ showSeriesSidebar ? '隱藏專欄' : '顯示專欄' }}</span>
+				<span class="tooltip tooltip-right">{{
+					showSeriesSidebar ? "隱藏專欄" : "顯示專欄"
+				}}</span>
 			</button>
 		</div>
 
 		<!-- TOC Toggle Button (Upper Right) -->
 		<div v-if="hasToc" class="floating-toc-toggle">
-			<button 
-				class="widget-button toc-button" 
-				:class="{ 'active': showToc }"
+			<button
+				class="widget-button toc-button"
+				:class="{ active: showToc }"
 				aria-label="Toggle Table of Contents"
 				@click="showToc = !showToc"
 			>
-				<Icon :name="showToc ? 'heroicons:list-bullet' : 'heroicons:list-bullet'" class="widget-icon" />
-				<span class="tooltip">{{ showToc ? '隱藏目錄' : '顯示目錄' }}</span>
+				<Icon
+					:name="
+						showToc
+							? 'heroicons:list-bullet'
+							: 'heroicons:list-bullet'
+					"
+					class="widget-icon"
+				/>
+				<span class="tooltip">{{
+					showToc ? "隱藏目錄" : "顯示目錄"
+				}}</span>
 			</button>
 		</div>
 
 		<!-- Scroll Progress Widget (Lower Right) -->
 		<div class="floating-scroll-widget">
-			<button type="button" class="progress-ring-container" aria-label="回到頂部" @click="scrollToTop">
-				<svg class="progress-ring" width="48" height="48" viewBox="0 0 48 48">
+			<button
+				type="button"
+				class="progress-ring-container"
+				aria-label="回到頂部"
+				@click="scrollToTop"
+			>
+				<svg
+					class="progress-ring"
+					width="48"
+					height="48"
+					viewBox="0 0 48 48"
+				>
 					<circle
 						class="progress-ring-circle-bg"
 						stroke="currentColor"
@@ -639,16 +800,20 @@ onMounted(() => {
 						r="20"
 						cx="24"
 						cy="24"
-						:style="{ strokeDashoffset: 125.6 - (125.6 * scrollPercentage) / 100 }"
+						:style="{
+							strokeDashoffset:
+								125.6 - (125.6 * scrollPercentage) / 100,
+						}"
 					/>
 				</svg>
 				<div class="progress-text-container">
-					<span class="progress-text">{{ Math.round(scrollPercentage) }}</span>
+					<span class="progress-text">{{
+						Math.round(scrollPercentage)
+					}}</span>
 					<Icon name="heroicons:arrow-up" class="back-to-top-icon" />
 				</div>
 			</button>
 		</div>
-
 	</div>
 
 	<div v-else class="not-found">
@@ -894,7 +1059,6 @@ onMounted(() => {
 	margin-left: 0;
 }
 
-
 .blog-post {
 	padding: 2rem 0;
 	min-width: 0;
@@ -1005,7 +1169,8 @@ onMounted(() => {
 	background: color-mix(in srgb, var(--color-bg-primary) 45%, transparent);
 	backdrop-filter: blur(8px) saturate(1.1);
 	-webkit-backdrop-filter: blur(8px) saturate(1.1);
-	border: 1px solid color-mix(in srgb, var(--color-border-light) 68%, transparent);
+	border: 1px solid
+		color-mix(in srgb, var(--color-border-light) 68%, transparent);
 	border-radius: 10px;
 	box-shadow: var(--shadow-sm);
 }
@@ -1451,7 +1616,6 @@ html.dark .post-content :deep(thead) {
 }
 
 /* Optional: If you want it to show arrow at bottom even without hover, add class via JS or keep pure hover */
-
 
 /* Hide floating widgets on very small screens if needed, or adjust position */
 @media (max-width: 768px) {

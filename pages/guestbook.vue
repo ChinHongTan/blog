@@ -25,6 +25,8 @@ onMounted(() => {
 		serverURL: "https://waline.chinono.dev",
 		path: "/guestbook",
 		lang: "zh-TW",
+		meta: ["nick", "link"],
+		requiredMeta: ["nick"],
 		dark: "html.dark",
 	});
 });
@@ -45,7 +47,10 @@ onMounted(() => {
 				{{ composerCollapsed ? "點這裡留言" : "收起" }}
 			</button>
 		</header>
-		<div class="guestbook-waline-wrap" :class="{ 'is-composer-collapsed': composerCollapsed }">
+		<div
+			class="guestbook-waline-wrap"
+			:class="{ 'is-composer-collapsed': composerCollapsed }"
+		>
 			<div id="guestbook-waline" />
 		</div>
 	</div>
@@ -90,7 +95,11 @@ onMounted(() => {
 
 .guestbook-composer-toggle:hover {
 	color: var(--color-primary-dark);
-	border-color: color-mix(in srgb, var(--color-primary) 55%, var(--color-border-light));
+	border-color: color-mix(
+		in srgb,
+		var(--color-primary) 55%,
+		var(--color-border-light)
+	);
 	background: color-mix(in srgb, var(--color-bg-primary) 82%, transparent);
 }
 
@@ -109,14 +118,18 @@ onMounted(() => {
 
 .guestbook-waline-wrap :deep(.wl-panel) {
 	background: color-mix(in srgb, var(--color-bg-primary) 50%, transparent);
-	border: 1px solid color-mix(in srgb, var(--color-border-light) 78%, transparent);
+	border: 1px solid
+		color-mix(in srgb, var(--color-border-light) 78%, transparent);
 	border-radius: var(--radius-xl);
 	box-shadow: var(--shadow-sm);
 	padding: 0.75rem;
 	max-height: 520px;
 	opacity: 1;
 	overflow: hidden;
-	transition: max-height 0.28s ease, opacity 0.2s ease, margin-bottom 0.2s ease;
+	transition:
+		max-height 0.28s ease,
+		opacity 0.2s ease,
+		margin-bottom 0.2s ease;
 	margin-bottom: 0.8rem;
 }
 
@@ -130,7 +143,11 @@ onMounted(() => {
 .guestbook-waline-wrap :deep(.wl-editor),
 .guestbook-waline-wrap :deep(.wl-input) {
 	background: color-mix(in srgb, var(--color-bg-primary) 58%, transparent);
-	border-color: color-mix(in srgb, var(--color-border-light) 72%, transparent);
+	border-color: color-mix(
+		in srgb,
+		var(--color-border-light) 72%,
+		transparent
+	);
 	border-radius: var(--radius-lg);
 }
 
