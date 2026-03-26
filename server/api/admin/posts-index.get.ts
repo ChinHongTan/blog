@@ -81,8 +81,9 @@ type Row = {
 	slug: string;
 	draft: boolean;
 	series: string[];
+	tags: string[];
 };
-type PostsIndexResponse = { posts: Row[]; series: string[] };
+type PostsIndexResponse = { posts: Row[]; series: string[]; tags: string[] };
 
 export default defineEventHandler(async (event) => {
 	const octokit = getOctokit(event);
@@ -155,8 +156,9 @@ export default defineEventHandler(async (event) => {
 			}),
 		);
 
-		// Collect all series names
+		// Collect all series and tags names
 		const allSeries = new Set<string>();
+		const allTags = new Set<string>();
 
 		function toRow(
 			f: { path?: string; sha?: string | null },
@@ -174,6 +176,14 @@ export default defineEventHandler(async (event) => {
 				series.forEach((s) => allSeries.add(s));
 			} else if (typeof series === "string" && series) {
 				allSeries.add(series);
+			}
+
+			// Collect tags
+			const tags = fm.tags;
+			if (Array.isArray(tags)) {
+				tags.forEach((t) => allTags.add(t));
+			} else if (typeof tags === "string" && tags) {
+				allTags.add(tags);
 			}
 
 			return {
@@ -199,6 +209,11 @@ export default defineEventHandler(async (event) => {
 					? series.filter((s) => typeof s === "string" && s.trim())
 					: typeof series === "string" && series.trim()
 						? [series]
+						: [],
+				tags: Array.isArray(tags)
+					? tags.filter((t) => typeof t === "string" && t.trim())
+					: typeof tags === "string" && tags.trim()
+						? [tags]
 						: [],
 			};
 		}
@@ -245,6 +260,10 @@ export default defineEventHandler(async (event) => {
 					new Date(b.date).getTime() - new Date(a.date).getTime(),
 			);
 
-		return { posts, series: Array.from(allSeries).sort() };
+		return {
+			posts,
+			series: Array.from(allSeries).sort(),
+			tags: Array.from(allTags).sort(),
+		};
 	});
 });

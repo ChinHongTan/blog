@@ -178,7 +178,7 @@
 											type="text"
 											class="admin-property-cell"
 											placeholder="未命名"
-										>
+										/>
 										<small class="admin-property-hint"
 											>必填。標題會用來產生文章網址。</small
 										>
@@ -199,7 +199,7 @@
 										type="text"
 										class="admin-property-cell"
 										placeholder="空"
-									>
+									/>
 								</div>
 								<div
 									class="admin-property-tr admin-property-tr-tags"
@@ -229,11 +229,46 @@
 										</template>
 										<input
 											ref="tagInputRef"
+											v-model="tagInputValue"
 											type="text"
 											class="admin-property-tag-input"
 											placeholder="空"
 											@keydown.enter.prevent="addTag"
+											@focus="onTagInputFocus"
+											@blur="onTagInputBlur"
+										/>
+										<div
+											v-if="
+												showTagSuggestions &&
+												(tagSuggestions.length > 0 ||
+													canCreateNewTag)
+											"
+											class="admin-series-suggestions"
 										>
+											<button
+												v-for="t in tagSuggestions"
+												:key="t"
+												type="button"
+												class="admin-series-suggestion"
+												@mousedown.prevent="
+													selectTag(t)
+												"
+											>
+												{{ t }}
+											</button>
+											<button
+												v-if="canCreateNewTag"
+												type="button"
+												class="admin-series-suggestion admin-series-suggestion-new"
+												@mousedown.prevent="addTag"
+											>
+												{{ tagInputValue }}
+												<span
+													class="admin-series-new-badge"
+													>新標籤</span
+												>
+											</button>
+										</div>
 									</div>
 								</div>
 								<div
@@ -275,7 +310,7 @@
 											@keydown.enter.prevent="addSeries"
 											@focus="onSeriesInputFocus"
 											@blur="onSeriesInputBlur"
-										>
+										/>
 										<div
 											v-if="
 												showSeriesSuggestions &&
@@ -310,8 +345,12 @@
 										</div>
 									</div>
 								</div>
-								<div class="admin-property-tr admin-property-tr-pinned">
-									<span class="admin-property-name">置頂</span>
+								<div
+									class="admin-property-tr admin-property-tr-pinned"
+								>
+									<span class="admin-property-name"
+										>置頂</span
+									>
 									<div class="admin-property-field">
 										<label class="admin-pinned-toggle">
 											<input
@@ -319,8 +358,7 @@
 												type="checkbox"
 												:disabled="!canEditPost"
 												aria-label="置頂"
-											>
-											<span>Pinned</span>
+											/>
 										</label>
 									</div>
 								</div>
@@ -361,14 +399,14 @@
 						accept="image/*"
 						class="admin-hero-file-input"
 						@change="onFeaturedFileChange"
-					>
+					/>
 					<template v-if="meta.featured_image">
 						<img
 							:src="featuredImagePreviewUrl"
 							:alt="meta.title || '精選圖片'"
 							loading="lazy"
 							decoding="async"
-						>
+						/>
 						<div class="admin-hero-title-wrap">
 							<h2 class="admin-hero-title">
 								{{ meta.title || "未命名" }}
@@ -457,7 +495,7 @@
 								type="text"
 								class="admin-input"
 								placeholder="顯示名稱"
-							>
+							/>
 						</div>
 						<div class="admin-form-row">
 							<label>簡介</label>
@@ -466,7 +504,7 @@
 								type="text"
 								class="admin-input"
 								placeholder="一行簡介"
-							>
+							/>
 						</div>
 						<div class="admin-form-row">
 							<label>頭像</label>
@@ -476,14 +514,14 @@
 									type="text"
 									class="admin-input"
 									placeholder="/images/uploads/avatar.png"
-								>
+								/>
 								<input
 									ref="authorAvatarFileInput"
 									type="file"
 									accept="image/*"
 									class="admin-upload-hidden"
 									@change="onAuthorAvatarFileChange"
-								>
+								/>
 								<button
 									type="button"
 									class="admin-btn admin-btn-sm"
@@ -502,14 +540,14 @@
 									type="text"
 									class="admin-input"
 									placeholder="/images/uploads/banner.jpg"
-								>
+								/>
 								<input
 									ref="authorBannerFileInput"
 									type="file"
 									accept="image/*"
 									class="admin-upload-hidden"
 									@change="onAuthorBannerFileChange"
-								>
+								/>
 								<button
 									type="button"
 									class="admin-btn admin-btn-sm"
@@ -527,7 +565,7 @@
 								type="url"
 								class="admin-input"
 								placeholder="https://github.com/..."
-							>
+							/>
 						</div>
 						<div class="admin-form-row">
 							<label>網站</label>
@@ -536,7 +574,7 @@
 								type="url"
 								class="admin-input"
 								placeholder="https://..."
-							>
+							/>
 						</div>
 					</div>
 					<div class="admin-wysiwyg-site admin-editor-main">
@@ -782,6 +820,28 @@ const fileSha = ref<string | undefined>(undefined);
 /** True after initial content load (or no file to load). Ensures Milkdown mounts with correct body. */
 const contentReady = ref(false);
 
+// Tags autocomplete state
+const availableTags = ref<string[]>([]);
+const tagInputValue = ref("");
+const showTagSuggestions = ref(false);
+const tagSuggestions = computed(() => {
+	const query = tagInputValue.value.toLowerCase().trim();
+	if (!query)
+		return availableTags.value.filter((t) => !meta.tags.includes(t));
+	return availableTags.value.filter(
+		(t) => t.toLowerCase().includes(query) && !meta.tags.includes(t),
+	);
+});
+const canCreateNewTag = computed(() => {
+	const query = tagInputValue.value.trim();
+	if (!query) return false;
+	const lowerQuery = query.toLowerCase();
+	return (
+		!availableTags.value.some((t) => t.toLowerCase() === lowerQuery) &&
+		!meta.tags.includes(query)
+	);
+});
+
 // Series autocomplete state
 const availableSeries = ref<string[]>([]);
 const seriesInputValue = ref("");
@@ -806,13 +866,16 @@ const canCreateNewSeries = computed(() => {
 
 async function fetchAvailableSeries() {
 	try {
-		const result = await $fetch<{ posts: unknown[]; series: string[] }>(
-			"/api/admin/posts-index",
-			{ query: { t: Date.now() } },
-		);
+		const result = await $fetch<{
+			posts: unknown[];
+			series: string[];
+			tags: string[];
+		}>("/api/admin/posts-index", { query: { t: Date.now() } });
 		availableSeries.value = result.series ?? [];
+		availableTags.value = result.tags ?? [];
 	} catch {
 		availableSeries.value = [];
+		availableTags.value = [];
 	}
 }
 
@@ -835,17 +898,39 @@ function formatEditedAt(iso: string): string {
 		return iso;
 	}
 }
+
 function addTag() {
-	const el = tagInputRef.value;
-	const v = (el?.value ?? "").trim();
+	const v = tagInputValue.value.trim();
 	if (v && !meta.tags.includes(v)) {
 		meta.tags.push(v);
-		if (el) el.value = "";
+		// Add to available tags if it's new
+		if (!availableTags.value.includes(v)) {
+			availableTags.value.push(v);
+			availableTags.value.sort();
+		}
 	}
+	tagInputValue.value = "";
+	showTagSuggestions.value = false;
+}
+function selectTag(t: string) {
+	if (!meta.tags.includes(t)) {
+		meta.tags.push(t);
+	}
+	tagInputValue.value = "";
+	showTagSuggestions.value = false;
+}
+function onTagInputFocus() {
+	showTagSuggestions.value = true;
+}
+function onTagInputBlur() {
+	setTimeout(() => {
+		showTagSuggestions.value = false;
+	}, 150);
 }
 function removeTag(t: string) {
 	meta.tags = meta.tags.filter((x) => x !== t);
 }
+
 function addSeries() {
 	const v = seriesInputValue.value.trim();
 	if (v && !meta.series.includes(v)) {
@@ -1998,7 +2083,7 @@ onUnmounted(() => {
 	color: var(--color-primary);
 }
 .admin-properties-table-wrap {
-	overflow: hidden;
+	overflow: visible;
 }
 .admin-properties-table {
 	display: flex;
@@ -2013,6 +2098,7 @@ onUnmounted(() => {
 	transition:
 		max-height 0.25s ease-out,
 		opacity 0.2s ease-out;
+	overflow: hidden;
 }
 .properties-panel-enter-from,
 .properties-panel-leave-to {
@@ -2262,11 +2348,21 @@ onUnmounted(() => {
 }
 
 /* Series autocomplete */
+.admin-property-tr-tags {
+	position: relative;
+	z-index: 50;
+}
+.admin-property-tr-tags .admin-property-tags-wrap {
+	position: relative;
+	width: fit-content;
+	max-width: min(100%, 28rem);
+}
 .admin-property-tr-series {
 	position: relative;
 	z-index: 40;
 }
-.admin-series-input-wrap {
+.admin-series-input-wrap,
+.admin-property-tags-wrap {
 	position: relative;
 	width: fit-content;
 	max-width: min(100%, 28rem);
