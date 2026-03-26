@@ -73,7 +73,7 @@ const seriesList = computed(() => {
 });
 
 useHead({
-	title: "專欄 - 星谷雜貨店",
+	title: "系列 - 星谷雜貨店",
 });
 </script>
 
@@ -82,7 +82,7 @@ useHead({
 		<header class="page-header">
 			<h1 class="page-title">
 				<Icon name="heroicons:bookmark-square" size="36" />
-				專欄
+				系列
 			</h1>
 			<p class="page-description">
 				系列文章合集，按主題整理的深度內容
@@ -149,7 +149,7 @@ useHead({
 							</div>
 						</div>
 						<span class="series-readmore">
-							<span>查看專欄</span>
+							<span>查看系列</span>
 							<Icon name="heroicons:chevron-right" size="16" />
 						</span>
 					</div>
@@ -159,7 +159,7 @@ useHead({
 
 		<div v-else class="no-results">
 			<Icon name="heroicons:bookmark-slash" size="48" />
-			<p>目前還沒有任何專欄。</p>
+			<p>目前還沒有任何系列。</p>
 		</div>
 	</div>
 </template>

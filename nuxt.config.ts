@@ -1,11 +1,4 @@
-import remarkMath from "remark-math";
-import remarkDirective from "remark-directive";
-import rehypeMathjax from "rehype-mathjax";
-import remarkInfoBox from "./remark-info-box.mjs";
-import remarkDirectiveFallback from "./remark-directive-fallback.mjs";
-import remarkHeadingId from "./remark-heading-id.mjs";
-import rehypeFigureCaption from "./rehype-figure-caption.mjs";
-import rehypeSpanAttributes from "./rehype-span-attributes.mjs";
+import { fileURLToPath } from 'url';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -95,34 +88,24 @@ export default defineNuxtConfig({
 					],
 				},
 				remarkPlugins: {
-					"remark-directive": {
-						instance: remarkDirective,
-					},
-					"remark-directive-fallback": {
-						instance: remarkDirectiveFallback,
-					},
-					"remark-info-box": {
-						instance: remarkInfoBox,
-					},
-					"remark-heading-id": {
-						instance: remarkHeadingId,
-					},
-					"remark-math": {
-						instance: remarkMath,
-					},
+					"remark-directive": {},
+					[fileURLToPath(new URL('./remark-directive-fallback.mjs', import.meta.url))]: {},
+					[fileURLToPath(new URL('./remark-info-box.mjs', import.meta.url))]: {},
+					[fileURLToPath(new URL('./remark-heading-id.mjs', import.meta.url))]: {},
+					"remark-math": {},
 				},
 				rehypePlugins: {
-					"rehype-figure-caption": {
-						instance: rehypeFigureCaption,
-					},
-					"rehype-span-attributes": {
-						instance: rehypeSpanAttributes,
-					},
-					"rehype-mathjax": {
-						instance: rehypeMathjax,
-					},
+					[fileURLToPath(new URL('./rehype-figure-caption.mjs', import.meta.url))]: {},
+					[fileURLToPath(new URL('./rehype-span-attributes.mjs', import.meta.url))]: {},
+					"rehype-mathjax": {},
 				},
 			},
+		},
+	},
+
+	vite: {
+		optimizeDeps: {
+			exclude: ["#app-manifest"],
 		},
 	},
 

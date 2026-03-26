@@ -237,13 +237,13 @@
 									</div>
 								</div>
 								<div
-									class="admin-property-tr admin-property-tr-tags"
+									class="admin-property-tr admin-property-tr-tags admin-property-tr-series"
 								>
 									<span class="admin-property-name"
 										>系列</span
 									>
 									<div
-										class="admin-property-cell admin-property-tags-wrap"
+										class="admin-property-cell admin-property-tags-wrap admin-series-input-wrap"
 										@click="focusSeriesInput"
 									>
 										<template
@@ -268,11 +268,60 @@
 										</template>
 										<input
 											ref="seriesInputRef"
+											v-model="seriesInputValue"
 											type="text"
 											class="admin-property-tag-input"
-											placeholder="空"
+											placeholder="輸入系列名稱…"
 											@keydown.enter.prevent="addSeries"
+											@focus="onSeriesInputFocus"
+											@blur="onSeriesInputBlur"
 										/>
+										<div
+											v-if="
+												showSeriesSuggestions &&
+												(seriesSuggestions.length > 0 ||
+													canCreateNewSeries)
+											"
+											class="admin-series-suggestions"
+										>
+											<button
+												v-for="s in seriesSuggestions"
+												:key="s"
+												type="button"
+												class="admin-series-suggestion"
+												@mousedown.prevent="
+													selectSeries(s)
+												"
+											>
+												{{ s }}
+											</button>
+											<button
+												v-if="canCreateNewSeries"
+												type="button"
+												class="admin-series-suggestion admin-series-suggestion-new"
+												@mousedown.prevent="addSeries"
+											>
+												{{ seriesInputValue }}
+												<span
+													class="admin-series-new-badge"
+													>新系列</span
+												>
+											</button>
+										</div>
+									</div>
+								</div>
+								<div class="admin-property-tr admin-property-tr-pinned">
+									<span class="admin-property-name">置頂</span>
+									<div class="admin-property-field">
+										<label class="admin-pinned-toggle">
+											<input
+												v-model="meta.pinned"
+												type="checkbox"
+												:disabled="!canEditPost"
+												aria-label="置頂"
+											/>
+											<span>Pinned</span>
+										</label>
 									</div>
 								</div>
 								<div
@@ -678,6 +727,7 @@ const meta = reactive({
 	series: [] as string[],
 	tags: [] as string[],
 	featured_image: "",
+	pinned: false,
 	name: "",
 	bio: "",
 	avatar: "",
@@ -732,6 +782,40 @@ const fileSha = ref<string | undefined>(undefined);
 /** True after initial content load (or no file to load). Ensures Milkdown mounts with correct body. */
 const contentReady = ref(false);
 
+// Series autocomplete state
+const availableSeries = ref<string[]>([]);
+const seriesInputValue = ref("");
+const showSeriesSuggestions = ref(false);
+const seriesSuggestions = computed(() => {
+	const query = seriesInputValue.value.toLowerCase().trim();
+	if (!query)
+		return availableSeries.value.filter((s) => !meta.series.includes(s));
+	return availableSeries.value.filter(
+		(s) => s.toLowerCase().includes(query) && !meta.series.includes(s),
+	);
+});
+const canCreateNewSeries = computed(() => {
+	const query = seriesInputValue.value.trim();
+	if (!query) return false;
+	const lowerQuery = query.toLowerCase();
+	return (
+		!availableSeries.value.some((s) => s.toLowerCase() === lowerQuery) &&
+		!meta.series.includes(query)
+	);
+});
+
+async function fetchAvailableSeries() {
+	try {
+		const result = await $fetch<{ posts: unknown[]; series: string[] }>(
+			"/api/admin/posts-index",
+			{ query: { t: Date.now() } },
+		);
+		availableSeries.value = result.series ?? [];
+	} catch {
+		availableSeries.value = [];
+	}
+}
+
 function focusTagInput() {
 	tagInputRef.value?.focus();
 }
@@ -763,12 +847,33 @@ function removeTag(t: string) {
 	meta.tags = meta.tags.filter((x) => x !== t);
 }
 function addSeries() {
-	const el = seriesInputRef.value;
-	const v = (el?.value ?? "").trim();
+	const v = seriesInputValue.value.trim();
 	if (v && !meta.series.includes(v)) {
 		meta.series.push(v);
-		if (el) el.value = "";
+		// Add to available series if it's new
+		if (!availableSeries.value.includes(v)) {
+			availableSeries.value.push(v);
+			availableSeries.value.sort();
+		}
 	}
+	seriesInputValue.value = "";
+	showSeriesSuggestions.value = false;
+}
+function selectSeries(s: string) {
+	if (!meta.series.includes(s)) {
+		meta.series.push(s);
+	}
+	seriesInputValue.value = "";
+	showSeriesSuggestions.value = false;
+}
+function onSeriesInputFocus() {
+	showSeriesSuggestions.value = true;
+}
+function onSeriesInputBlur() {
+	// Delay to allow click on suggestion
+	setTimeout(() => {
+		showSeriesSuggestions.value = false;
+	}, 150);
 }
 function removeSeries(s: string) {
 	meta.series = meta.series.filter((x) => x !== s);
@@ -1634,7 +1739,7 @@ onMounted(async () => {
 		.catch(() => {
 			currentUserAuthorId.value = null;
 		});
-	await Promise.all([profilePromise, loadFromApi()]);
+	await Promise.all([profilePromise, loadFromApi(), fetchAvailableSeries()]);
 	bodyCheckInterval = setInterval(() => {
 		bodyCheckTrigger.value++;
 		if (docType.value === "post" && !canEditPost.value) return;
@@ -1972,6 +2077,21 @@ onUnmounted(() => {
 	align-items: center;
 	gap: 0.35rem;
 }
+
+.admin-pinned-toggle {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	cursor: pointer;
+	user-select: none;
+}
+
+.admin-pinned-toggle input[type="checkbox"] {
+	width: 1rem;
+	height: 1rem;
+	accent-color: var(--color-primary);
+}
+
 .admin-property-empty {
 	color: var(--color-text-tertiary);
 	font-size: 0.75rem;
@@ -2139,6 +2259,59 @@ onUnmounted(() => {
 }
 .admin-meta-chip-remove:hover {
 	opacity: 1;
+}
+
+/* Series autocomplete */
+.admin-property-tr-series {
+	position: relative;
+	z-index: 40;
+}
+.admin-series-input-wrap {
+	position: relative;
+	width: fit-content;
+	max-width: min(100%, 28rem);
+}
+.admin-series-suggestions {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	width: min(22rem, calc(100vw - 3rem));
+	z-index: 180;
+	background: var(--color-bg-primary);
+	border: 1px solid var(--color-border-light);
+	border-radius: 0.375rem;
+	box-shadow: var(--shadow-md);
+	max-height: 200px;
+	overflow-y: auto;
+	margin-top: 0.25rem;
+}
+.admin-series-suggestion {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	width: 100%;
+	padding: 0.5rem 0.75rem;
+	background: none;
+	border: none;
+	text-align: left;
+	cursor: pointer;
+	font-size: 0.875rem;
+	color: var(--color-text-primary);
+}
+.admin-series-suggestion:hover {
+	background: var(--color-bg-tertiary);
+}
+.admin-series-suggestion-new {
+	color: var(--color-primary);
+	font-weight: 500;
+}
+.admin-series-new-badge {
+	font-size: 0.6875rem;
+	font-weight: 600;
+	padding: 0.125rem 0.375rem;
+	background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+	border-radius: 0.25rem;
+	color: var(--color-primary);
 }
 
 /* Author layout */

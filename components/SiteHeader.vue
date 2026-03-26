@@ -94,7 +94,7 @@ watch(isMobileMenuOpen, (open) => {
 					</NuxtLink>
 					<NuxtLink to="/series">
 						<Icon name="heroicons:bookmark-square" size="20" />
-						<span>專欄</span>
+						<span>系列</span>
 					</NuxtLink>
 					<NuxtLink to="/about">
 						<Icon name="heroicons:information-circle" size="20" />
@@ -154,7 +154,7 @@ watch(isMobileMenuOpen, (open) => {
 					</NuxtLink>
 					<NuxtLink to="/series" class="mobile-nav-link">
 						<Icon name="heroicons:bookmark-square" size="20" />
-						專欄
+						系列
 					</NuxtLink>
 					<NuxtLink to="/about" class="mobile-nav-link">
 						<Icon name="heroicons:information-circle" size="20" />

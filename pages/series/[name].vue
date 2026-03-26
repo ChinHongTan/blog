@@ -62,7 +62,7 @@ function getAuthorAvatar(authorId: string): string {
 }
 
 useHead({
-	title: `專欄 - ${seriesName.value} - 星谷雜貨店`,
+	title: `系列 - ${seriesName.value} - 星谷雜貨店`,
 });
 </script>
 
@@ -71,11 +71,11 @@ useHead({
 		<header class="page-header">
 			<NuxtLink to="/series" class="breadcrumb">
 				<Icon name="heroicons:arrow-left" size="18" />
-				所有專欄
+				所有系列
 			</NuxtLink>
 			<h1 class="page-title">
 				<Icon name="heroicons:bookmark-square" size="32" />
-				專欄 — {{ seriesName }}
+				系列 — {{ seriesName }}
 			</h1>
 			<p class="page-meta-info">
 				共 {{ seriesPosts.length }} 篇文章
@@ -142,7 +142,7 @@ useHead({
 
 		<div v-else class="no-results">
 			<Icon name="heroicons:document-magnifying-glass" size="48" />
-			<p>此專欄目前沒有文章。</p>
+			<p>此系列目前沒有文章。</p>
 		</div>
 	</div>
 </template>

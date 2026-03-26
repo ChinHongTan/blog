@@ -575,7 +575,7 @@ onMounted(() => {
 								:to="`/series/${encodeURIComponent(activeSeriesName!)}`"
 								class="series-sidebar-view-all"
 							>
-								查看完整專欄
+								查看完整系列
 								<Icon name="heroicons:arrow-right" size="14" />
 							</NuxtLink>
 						</div>
@@ -742,7 +742,7 @@ onMounted(() => {
 			>
 				<Icon name="heroicons:bookmark-square" class="widget-icon" />
 				<span class="tooltip tooltip-right">{{
-					showSeriesSidebar ? "隱藏專欄" : "顯示專欄"
+					showSeriesSidebar ? "隱藏系列" : "顯示系列"
 				}}</span>
 			</button>
 		</div>

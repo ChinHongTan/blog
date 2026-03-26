@@ -8,6 +8,7 @@ interface PostMeta {
 	series: string[];
 	tags: string[];
 	featured_image: string;
+	pinned?: boolean;
 }
 
 interface AuthorMeta {
@@ -31,6 +32,7 @@ export function buildPostFrontmatter(meta: PostMeta): string {
 	if (meta.path) lines.push(`path: ${meta.path}`);
 	if (meta.featured_image)
 		lines.push(`featured_image: ${meta.featured_image}`);
+	if (meta.pinned) lines.push("pinned: true");
 	if (meta.series.length)
 		lines.push(`series:\n  - ${meta.series.join("\n  - ")}`);
 	if (meta.tags.length) lines.push(`tags:\n  - ${meta.tags.join("\n  - ")}`);
@@ -75,6 +77,15 @@ export function parseFrontmatter(
 		if (m) {
 			const key = m[1];
 			const val = m[2].trim().replace(/^["']|["']$/g, "");
+			if (
+				key === "pinned" &&
+				docType === "post" &&
+				(val.toLowerCase() === "true" || val.toLowerCase() === "false")
+			) {
+				(result as Record<string, unknown>).pinned =
+					val.toLowerCase() === "true";
+				return;
+			}
 			if (
 				key === "series" ||
 				key === "tags" ||

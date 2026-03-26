@@ -8,6 +8,7 @@ provide("searchQuery", searchQuery);
 const route = useRoute();
 
 const isAdminRoute = computed(() => route.path.startsWith("/admin"));
+const isHomeRoute = computed(() => route.path === "/");
 const isPostPage = computed(
 	() =>
 		route.path !== "/" &&
@@ -62,7 +63,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-	<div :class="['app-wrapper', { 'post-mood': isPostPage }]">
+	<div
+		:class="[
+			'app-wrapper',
+			{ 'post-mood': isPostPage, 'home-route': isHomeRoute },
+		]"
+	>
 		<Analytics />
 		<NuxtLoadingIndicator color="var(--color-primary)" :height="3" />
 		<ToastContainer />
@@ -157,6 +163,7 @@ onUnmounted(() => {
 }
 .admin-quick-add-wrap {
 	position: relative;
+	z-index: 220;
 }
 .admin-quick-add-btn {
 	display: inline-flex;
@@ -177,16 +184,18 @@ onUnmounted(() => {
 }
 .admin-quick-add-dropdown {
 	position: absolute;
-	top: 100%;
-	left: 0;
-	margin-top: 0.25rem;
-	min-width: 140px;
+	top: calc(100% + 0.3rem);
+	right: 0;
+	left: auto;
+	width: max-content;
+	min-width: 9rem;
+	max-width: min(14rem, 80vw);
 	background: var(--color-bg-primary);
 	border: 1px solid var(--color-border-light);
 	border-radius: var(--radius-sm);
 	box-shadow: var(--shadow-lg);
 	overflow: hidden;
-	z-index: 100;
+	z-index: 260;
 }
 .admin-quick-add-item {
 	display: block;
@@ -568,6 +577,15 @@ onUnmounted(() => {
 	max-width: 100%;
 	margin: 0 auto;
 	width: 100%;
+}
+
+.app-wrapper.home-route .main-content {
+	padding-top: 0;
+}
+
+.app-wrapper.home-route .app-layout {
+	padding-left: 0;
+	padding-right: 0;
 }
 
 /* Responsive Design */

@@ -118,9 +118,7 @@ const router = useRouter();
 const tagFilter = computed(() => route.query.tag as string | undefined);
 const yearFilter = computed(() => route.query.year as string | undefined);
 const authorFilter = computed(() => route.query.author as string | undefined);
-const categoryFilter = computed(
-	() => route.query.category as string | undefined,
-);
+const seriesFilter = computed(() => route.query.series as string | undefined);
 
 const postFilterMeta = computed(() => {
 	const meta = new Map<
@@ -179,9 +177,11 @@ const filteredPosts = computed<DisplayPost[]>(() => {
 		);
 	}
 
-	if (categoryFilter.value) {
+	if (seriesFilter.value) {
 		filtered = filtered.filter(
-			(post) => post.category === categoryFilter.value,
+			(post) =>
+				Array.isArray(post.series) &&
+				post.series.includes(seriesFilter.value as string),
 		);
 	}
 
@@ -199,12 +199,9 @@ const filteredPosts = computed<DisplayPost[]>(() => {
 const POSTS_PER_PAGE = 12;
 const currentPage = ref(1);
 
-watch(
-	[tagFilter, yearFilter, authorFilter, categoryFilter, searchQuery],
-	() => {
-		currentPage.value = 1;
-	},
-);
+watch([tagFilter, yearFilter, authorFilter, seriesFilter, searchQuery], () => {
+	currentPage.value = 1;
+});
 
 const paginatedPosts = computed(() => {
 	const start = 0;
@@ -221,7 +218,7 @@ type FilterPatch = {
 	tag?: string;
 	year?: string;
 	author?: string;
-	category?: string;
+	series?: string;
 };
 
 const EXIT_DURATION_MS = 220;
@@ -266,7 +263,7 @@ function getFilterSnapshot(querySource: Record<string, unknown>) {
 		tag: normalizeQueryValue(querySource.tag),
 		year: normalizeQueryValue(querySource.year),
 		author: normalizeQueryValue(querySource.author),
-		category: normalizeQueryValue(querySource.category),
+		series: normalizeQueryValue(querySource.series),
 	};
 }
 
@@ -278,7 +275,7 @@ function sameFilterSnapshot(
 		a.tag === b.tag &&
 		a.year === b.year &&
 		a.author === b.author &&
-		a.category === b.category
+		a.series === b.series
 	);
 }
 
@@ -415,7 +412,7 @@ function clearAllFilters() {
 		tag: undefined,
 		year: undefined,
 		author: undefined,
-		category: undefined,
+		series: undefined,
 	});
 }
 
@@ -446,7 +443,7 @@ const activeFilter = computed(() => {
 			authorFilter.value;
 		return `作者：${displayName}`;
 	}
-	if (categoryFilter.value) return `分類：${categoryFilter.value}`;
+	if (seriesFilter.value) return `系列：${seriesFilter.value}`;
 	return null;
 });
 
@@ -462,14 +459,14 @@ const totalTags = computed(() => {
 	return tags.size;
 });
 
-const totalCategories = computed(() => {
-	const categories = new Set<string>();
+const totalSeries = computed(() => {
+	const series = new Set<string>();
 	preparedPosts.value.forEach((post) => {
-		if (post.category) {
-			categories.add(post.category);
+		if (Array.isArray(post.series)) {
+			post.series.forEach((s) => series.add(s));
 		}
 	});
-	return categories.size;
+	return series.size;
 });
 
 const selectedAuthorSummary = computed(() => {
@@ -481,14 +478,14 @@ const selectedAuthorSummary = computed(() => {
 		(post) => post.author === selectedAuthorId,
 	);
 	const authorTags = new Set<string>();
-	const authorCategories = new Set<string>();
+	const authorSeries = new Set<string>();
 
 	authorPosts.forEach((post) => {
 		if (Array.isArray(post.tags)) {
 			post.tags.forEach((tag) => authorTags.add(tag));
 		}
-		if (post.category) {
-			authorCategories.add(post.category);
+		if (Array.isArray(post.series)) {
+			post.series.forEach((s) => authorSeries.add(s));
 		}
 	});
 
@@ -499,7 +496,7 @@ const selectedAuthorSummary = computed(() => {
 		social: authorProfile?.social ?? null,
 		posts: authorPosts.length,
 		tags: authorTags.size,
-		categories: authorCategories.size,
+		series: authorSeries.size,
 	};
 });
 
@@ -512,7 +509,7 @@ const sidebarProfileCard = computed(() => {
 			social: selectedAuthorSummary.value.social,
 			posts: selectedAuthorSummary.value.posts,
 			tags: selectedAuthorSummary.value.tags,
-			categories: selectedAuthorSummary.value.categories,
+			series: selectedAuthorSummary.value.series,
 		};
 	}
 
@@ -523,7 +520,7 @@ const sidebarProfileCard = computed(() => {
 		social: null,
 		posts: totalPosts.value,
 		tags: totalTags.value,
-		categories: totalCategories.value,
+		series: totalSeries.value,
 	};
 });
 
@@ -599,17 +596,17 @@ watch(searchQuery, (nextValue, previousValue) => {
 });
 
 watch(
-	[tagFilter, yearFilter, authorFilter, categoryFilter],
+	[tagFilter, yearFilter, authorFilter, seriesFilter],
 	(
-		[nextTag, nextYear, nextAuthor, nextCategory],
-		[prevTag, prevYear, prevAuthor, prevCategory],
+		[nextTag, nextYear, nextAuthor, nextSeries],
+		[prevTag, prevYear, prevAuthor, prevSeries],
 	) => {
 		if (!hasHydrated || isProgrammaticRouteChange) return;
 		if (
 			nextTag === prevTag &&
 			nextYear === prevYear &&
 			nextAuthor === prevAuthor &&
-			nextCategory === prevCategory
+			nextSeries === prevSeries
 		) {
 			return;
 		}
@@ -794,9 +791,9 @@ onBeforeUnmount(() => {
 									</div>
 									<div class="stat-box">
 										<span class="stat-value">{{
-											sidebarProfileCard.categories
+											sidebarProfileCard.series
 										}}</span>
-										<span class="stat-label">分類</span>
+										<span class="stat-label">系列</span>
 									</div>
 								</div>
 							</div>

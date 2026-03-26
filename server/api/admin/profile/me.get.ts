@@ -113,7 +113,7 @@ export default defineEventHandler(async (event): Promise<ProfileMe | null> => {
 	if (!tokenKey) return null;
 	return withRequestCache<ProfileMe | null>(
 		`admin-profile-me:${tokenKey}`,
-		20 * 1000,
+		120 * 1000,
 		async () => {
 			try {
 				const { data: user } = await octokit.users.getAuthenticated();
