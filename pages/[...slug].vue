@@ -589,7 +589,7 @@ onMounted(() => {
 							v-if="isBlogPost && page.featured_image"
 							class="featured-hero"
 						>
-							<img :src="page.featured_image" :alt="page.title" />
+							<img :src="page.featured_image" :alt="page.title" >
 							<div class="hero-title-wrap">
 								<h1 class="post-title hero-title">
 									{{ page.title }}
@@ -623,7 +623,7 @@ onMounted(() => {
 									:src="authorAvatar"
 									:alt="authorDisplayName"
 									class="author-avatar"
-								/>
+								>
 								<span class="author-name">{{
 									authorDisplayName
 								}}</span>

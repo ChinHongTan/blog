@@ -20,7 +20,7 @@
 						accept="image/*"
 						class="admin-profile-file-input"
 						@change="onBannerFileChange"
-					/>
+					>
 					<div
 						class="admin-profile-banner"
 						:class="{ empty: !form.banner }"
@@ -31,7 +31,7 @@
 							alt=""
 							loading="lazy"
 							decoding="async"
-						/>
+						>
 						<div v-else class="admin-profile-banner-placeholder" />
 					</div>
 					<div class="admin-profile-banner-overlay">
@@ -56,13 +56,13 @@
 							class="admin-profile-file-input"
 							@click.stop
 							@change="onAvatarFileChange"
-						/>
+						>
 						<img
 							:src="form.avatar || profileMe?.avatar_url"
 							:alt="form.name"
 							class="admin-profile-avatar"
 							decoding="async"
-						/>
+						>
 						<div class="admin-profile-avatar-overlay">
 							<Icon name="heroicons:pencil-square" size="20" />
 							<span>{{
@@ -75,7 +75,7 @@
 						type="text"
 						class="admin-profile-name-input"
 						placeholder="顯示名稱"
-					/>
+					>
 				</div>
 			</div>
 
@@ -114,7 +114,7 @@
 							type="text"
 							class="admin-input"
 							placeholder="一行簡介"
-						/>
+						>
 					</div>
 					<div class="admin-form-row">
 						<label>社群連結</label>
@@ -130,7 +130,7 @@
 									type="url"
 									class="admin-input"
 									placeholder="https://github.com/..."
-								/>
+								>
 							</div>
 							<div class="admin-social-row">
 								<Icon
@@ -143,7 +143,7 @@
 									type="url"
 									class="admin-input"
 									placeholder="https://x.com/..."
-								/>
+								>
 							</div>
 							<div class="admin-social-row">
 								<Icon
@@ -156,7 +156,7 @@
 									type="url"
 									class="admin-input"
 									placeholder="https://..."
-								/>
+								>
 							</div>
 						</div>
 					</div>

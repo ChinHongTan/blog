@@ -1,3 +1,4 @@
+import type { Octokit } from "@octokit/rest";
 import {
 	getGitHubTokenCacheKey,
 	getOctokit,
@@ -55,9 +56,11 @@ function parseAuthorFrontmatter(
 	const front = match[1] ?? "";
 	const body = (match[2] ?? "").trim();
 	const ghLine = front.match(/github:\s*(.+)/m);
-	const socialGithub = ghLine
-		? (ghLine[1] ?? "").trim().replace(/^["']|["']$/g, "")
-		: undefined;
+	let socialGithub: string | undefined;
+	if (ghLine) {
+		const rawVal = ghLine[1] ?? "";
+		socialGithub = rawVal.trim().replace(/^["']|["']$/g, "");
+	}
 	return { front, body, socialGithub };
 }
 
@@ -73,11 +76,14 @@ function parseProfileFromRaw(
 	let bio: string | undefined;
 	let avatar: string | undefined;
 	let banner: string | undefined;
+
+	const trimQuotes = (str: string) => str.trim().replace(/^["']|["']$/g, "");
+
 	front.split("\n").forEach((line) => {
 		const m = line.match(/^(\w+):\s*(.*)$/);
 		if (m) {
 			const key = m[1];
-			const val = (m[2] ?? "").trim().replace(/^["']|["']$/g, "");
+			const val = trimQuotes(m[2] ?? "");
 			if (key === "name") name = val;
 			else if (key === "bio") bio = val;
 			else if (key === "avatar") avatar = val;
@@ -88,12 +94,9 @@ function parseProfileFromRaw(
 		const gh = front.match(/github:\s*(.+)/m);
 		const tw = front.match(/twitter:\s*(.+)/m);
 		const web = front.match(/website:\s*(.+)/m);
-		if (gh)
-			social.github = (gh[1] ?? "").trim().replace(/^["']|["']$/g, "");
-		if (tw)
-			social.twitter = (tw[1] ?? "").trim().replace(/^["']|["']$/g, "");
-		if (web)
-			social.website = (web[1] ?? "").trim().replace(/^["']|["']$/g, "");
+		if (gh) social.github = trimQuotes(gh[1] ?? "");
+		if (tw) social.twitter = trimQuotes(tw[1] ?? "");
+		if (web) social.website = trimQuotes(web[1] ?? "");
 	}
 	const profile: ProfileMe["profile"] = {
 		name,
@@ -104,6 +107,144 @@ function parseProfileFromRaw(
 		body,
 	};
 	return { profile, sha };
+}
+
+async function resolveAuthorBySocialGithub(
+	octokit: Octokit,
+	owner: string,
+	repo: string,
+	branch: string,
+	login: string,
+	logGitHubError: (stage: string, error: unknown) => void,
+) {
+	let resolvedPath: string | undefined;
+	let profile: ProfileMe["profile"] = null;
+	let sha: string | undefined;
+	let authorFiles: { name: string; path: string }[] = [];
+
+	try {
+		const { data: list } = await octokit.repos.getContent({
+			owner,
+			repo,
+			path: "content/authors",
+			ref: branch,
+		});
+		if (Array.isArray(list)) {
+			const mdFiles = list.filter((f: { name: string }) =>
+				f.name.endsWith(".md"),
+			) as { name: string; path: string }[];
+			authorFiles = mdFiles;
+			const fileResults = await Promise.all(
+				mdFiles.map((f) =>
+					octokit.repos
+						.getContent({
+							owner,
+							repo,
+							path: f.path,
+							ref: branch,
+						})
+						.catch(() => null),
+				),
+			);
+			for (let i = 0; i < mdFiles.length; i++) {
+				const fileMeta = mdFiles[i];
+				if (!fileMeta?.path) continue;
+				const res = fileResults[i];
+				if (
+					!res?.data ||
+					Array.isArray(res.data) ||
+					!("content" in res.data) ||
+					!res.data.content
+				)
+					continue;
+				const raw = Buffer.from(res.data.content, "base64").toString(
+					"utf-8",
+				);
+				const parsed = parseAuthorFrontmatter(raw);
+				if (!parsed?.socialGithub) continue;
+				const fileLogin = githubUrlToLogin(parsed.socialGithub);
+				if (
+					fileLogin &&
+					fileLogin.toLowerCase() === login.toLowerCase()
+				) {
+					resolvedPath = fileMeta.path;
+					const fileSha = (res.data as { sha?: string }).sha;
+					const result = parseProfileFromRaw(raw, fileSha);
+					profile = result.profile;
+					sha = result.sha;
+					break;
+				}
+			}
+		}
+	} catch (e: unknown) {
+		logGitHubError("indexBySocialGithub", e);
+	}
+	return { resolvedPath, profile, sha, authorFiles };
+}
+
+async function resolveAuthorByListing(
+	octokit: Octokit,
+	owner: string,
+	repo: string,
+	branch: string,
+	login: string,
+	logGitHubError: (stage: string, error: unknown) => void,
+	existingAuthorFiles: { name: string; path: string }[],
+) {
+	let authorFiles = existingAuthorFiles;
+	let resolvedPath: string | undefined;
+	let profile: ProfileMe["profile"] = null;
+	let sha: string | undefined;
+
+	if (!authorFiles.length) {
+		try {
+			const { data: list } = await octokit.repos.getContent({
+				owner,
+				repo,
+				path: "content/authors",
+				ref: branch,
+			});
+			if (Array.isArray(list)) {
+				authorFiles = list
+					.filter((item: { name: string }) =>
+						item.name.endsWith(".md"),
+					)
+					.map((item: { name: string; path: string }) => ({
+						name: item.name,
+						path: item.path,
+					}));
+			}
+		} catch (e: unknown) {
+			logGitHubError("listAuthorsForFallback", e);
+			authorFiles = [];
+		}
+	}
+	const want = `${login}.md`.toLowerCase();
+	const matched = authorFiles.find(
+		(item) => item.name.toLowerCase() === want,
+	);
+	if (matched?.path) {
+		try {
+			const { data: file } = await octokit.repos.getContent({
+				owner,
+				repo,
+				path: matched.path,
+				ref: branch,
+			});
+			if (!Array.isArray(file) && "content" in file && file.content) {
+				resolvedPath = matched.path;
+				sha = (file as { sha?: string }).sha;
+				const raw = Buffer.from(file.content, "base64").toString(
+					"utf-8",
+				);
+				const result = parseProfileFromRaw(raw, sha);
+				profile = result.profile;
+			}
+		} catch (e: unknown) {
+			logGitHubError("readMatchedAuthorFile", e);
+		}
+	}
+	return { resolvedPath, profile, sha };
 }
 
 export default defineEventHandler(async (event): Promise<ProfileMe | null> => {
@@ -121,6 +262,7 @@ export default defineEventHandler(async (event): Promise<ProfileMe | null> => {
 				const defaultPath = `content/authors/${login.toLowerCase()}.md`;
 				const { owner, repo } = getRepoOwnerRepo(event);
 				const branch = getRepoBranch(event);
+
 				const logGitHubError = (stage: string, error: unknown) => {
 					const err = error as { status?: number; message?: string };
 					console.error("[admin/profile/me] GitHub request failed", {
@@ -134,146 +276,48 @@ export default defineEventHandler(async (event): Promise<ProfileMe | null> => {
 					});
 				};
 
-				let resolvedPath: string = defaultPath;
-				let profile: ProfileMe["profile"] = null;
-				let sha: string | undefined;
-				let authorFiles: { name: string; path: string }[] = [];
-
-				// 1) Find author file by social.github matching this GitHub user (fetch all author files in parallel)
-				try {
-					const { data: list } = await octokit.repos.getContent({
-						owner,
-						repo,
-						path: "content/authors",
-						ref: branch,
-					});
-					if (Array.isArray(list)) {
-						const mdFiles = list.filter((f: { name: string }) =>
-							f.name.endsWith(".md"),
-						) as { name: string; path: string }[];
-						authorFiles = mdFiles;
-						const fileResults = await Promise.all(
-							mdFiles.map((f) =>
-								octokit.repos
-									.getContent({
-										owner,
-										repo,
-										path: f.path,
-										ref: branch,
-									})
-									.catch(() => null),
-							),
-						);
-						for (let i = 0; i < mdFiles.length; i++) {
-							const fileMeta = mdFiles[i];
-							if (!fileMeta?.path) continue;
-							const res = fileResults[i];
-							if (
-								!res?.data ||
-								Array.isArray(res.data) ||
-								!("content" in res.data) ||
-								!res.data.content
-							)
-								continue;
-							const raw = Buffer.from(
-								res.data.content,
-								"base64",
-							).toString("utf-8");
-							const parsed = parseAuthorFrontmatter(raw);
-							if (!parsed?.socialGithub) continue;
-							const fileLogin = githubUrlToLogin(
-								parsed.socialGithub,
-							);
-							if (
-								fileLogin &&
-								fileLogin.toLowerCase() === login.toLowerCase()
-							) {
-								resolvedPath = fileMeta.path;
-								const fileSha = (res.data as { sha?: string })
-									.sha;
-								const result = parseProfileFromRaw(
-									raw,
-									fileSha,
-								);
-								profile = result.profile;
-								sha = result.sha;
-								break;
-							}
-						}
-					}
-				} catch (e: unknown) {
-					logGitHubError("indexBySocialGithub", e);
-				}
+				// 1) Find author file by social.github matching this GitHub user
+				const ghResult = await resolveAuthorBySocialGithub(
+					octokit,
+					owner,
+					repo,
+					branch,
+					login,
+					logGitHubError,
+				);
+				let resolvedPath = ghResult.resolvedPath;
+				let profile = ghResult.profile;
+				let sha = ghResult.sha;
+				const authorFiles = ghResult.authorFiles;
 
 				// 2) If no match by social.github, use directory listing to resolve file without triggering avoidable 404s.
 				if (profile === null) {
-					if (!authorFiles.length) {
-						try {
-							const { data: list } =
-								await octokit.repos.getContent({
-									owner,
-									repo,
-									path: "content/authors",
-									ref: branch,
-								});
-							if (Array.isArray(list)) {
-								authorFiles = list
-									.filter((item: { name: string }) =>
-										item.name.endsWith(".md"),
-									)
-									.map(
-										(item: {
-											name: string;
-											path: string;
-										}) => ({
-											name: item.name,
-											path: item.path,
-										}),
-									);
-							}
-						} catch (e: unknown) {
-							logGitHubError("listAuthorsForFallback", e);
-							authorFiles = [];
-						}
-					}
-					const want = `${login}.md`.toLowerCase();
-					const matched = authorFiles.find(
-						(item) => item.name.toLowerCase() === want,
+					const fallback = await resolveAuthorByListing(
+						octokit,
+						owner,
+						repo,
+						branch,
+						login,
+						logGitHubError,
+						authorFiles,
 					);
-					if (matched?.path) {
-						try {
-							const { data: file } =
-								await octokit.repos.getContent({
-									owner,
-									repo,
-									path: matched.path,
-									ref: branch,
-								});
-							if (
-								!Array.isArray(file) &&
-								"content" in file &&
-								file.content
-							) {
-								resolvedPath = matched.path;
-								sha = (file as { sha?: string }).sha;
-								const raw = Buffer.from(
-									file.content,
-									"base64",
-								).toString("utf-8");
-								const result = parseProfileFromRaw(raw, sha);
-								profile = result.profile;
-							}
-						} catch (e: unknown) {
-							logGitHubError("readMatchedAuthorFile", e);
-						}
-					}
+					resolvedPath = fallback.resolvedPath ?? resolvedPath;
+					profile = fallback.profile ?? profile;
+					sha = fallback.sha ?? sha;
 				}
 
-				const authorId = resolvedPath
-					? resolvedPath
-							.replace(/^content\/authors\//i, "")
-							.replace(/\.md$/i, "")
-					: null;
+				if (!resolvedPath) {
+					resolvedPath = defaultPath;
+				}
+
+				let authorId: string | null = null;
+				if (resolvedPath) {
+					const noPrefix = resolvedPath.replace(
+						/^content\/authors\//i,
+						"",
+					);
+					authorId = noPrefix.replace(/\.md$/i, "");
+				}
 
 				return {
 					login: user.login,

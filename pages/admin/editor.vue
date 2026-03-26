@@ -178,7 +178,7 @@
 											type="text"
 											class="admin-property-cell"
 											placeholder="未命名"
-										/>
+										>
 										<small class="admin-property-hint"
 											>必填。標題會用來產生文章網址。</small
 										>
@@ -199,7 +199,7 @@
 										type="text"
 										class="admin-property-cell"
 										placeholder="空"
-									/>
+									>
 								</div>
 								<div
 									class="admin-property-tr admin-property-tr-tags"
@@ -233,7 +233,7 @@
 											class="admin-property-tag-input"
 											placeholder="空"
 											@keydown.enter.prevent="addTag"
-										/>
+										>
 									</div>
 								</div>
 								<div
@@ -275,7 +275,7 @@
 											@keydown.enter.prevent="addSeries"
 											@focus="onSeriesInputFocus"
 											@blur="onSeriesInputBlur"
-										/>
+										>
 										<div
 											v-if="
 												showSeriesSuggestions &&
@@ -319,7 +319,7 @@
 												type="checkbox"
 												:disabled="!canEditPost"
 												aria-label="置頂"
-											/>
+											>
 											<span>Pinned</span>
 										</label>
 									</div>
@@ -361,14 +361,14 @@
 						accept="image/*"
 						class="admin-hero-file-input"
 						@change="onFeaturedFileChange"
-					/>
+					>
 					<template v-if="meta.featured_image">
 						<img
 							:src="featuredImagePreviewUrl"
 							:alt="meta.title || '精選圖片'"
 							loading="lazy"
 							decoding="async"
-						/>
+						>
 						<div class="admin-hero-title-wrap">
 							<h2 class="admin-hero-title">
 								{{ meta.title || "未命名" }}
@@ -457,7 +457,7 @@
 								type="text"
 								class="admin-input"
 								placeholder="顯示名稱"
-							/>
+							>
 						</div>
 						<div class="admin-form-row">
 							<label>簡介</label>
@@ -466,7 +466,7 @@
 								type="text"
 								class="admin-input"
 								placeholder="一行簡介"
-							/>
+							>
 						</div>
 						<div class="admin-form-row">
 							<label>頭像</label>
@@ -476,14 +476,14 @@
 									type="text"
 									class="admin-input"
 									placeholder="/images/uploads/avatar.png"
-								/>
+								>
 								<input
 									ref="authorAvatarFileInput"
 									type="file"
 									accept="image/*"
 									class="admin-upload-hidden"
 									@change="onAuthorAvatarFileChange"
-								/>
+								>
 								<button
 									type="button"
 									class="admin-btn admin-btn-sm"
@@ -502,14 +502,14 @@
 									type="text"
 									class="admin-input"
 									placeholder="/images/uploads/banner.jpg"
-								/>
+								>
 								<input
 									ref="authorBannerFileInput"
 									type="file"
 									accept="image/*"
 									class="admin-upload-hidden"
 									@change="onAuthorBannerFileChange"
-								/>
+								>
 								<button
 									type="button"
 									class="admin-btn admin-btn-sm"
@@ -527,7 +527,7 @@
 								type="url"
 								class="admin-input"
 								placeholder="https://github.com/..."
-							/>
+							>
 						</div>
 						<div class="admin-form-row">
 							<label>網站</label>
@@ -536,7 +536,7 @@
 								type="url"
 								class="admin-input"
 								placeholder="https://..."
-							/>
+							>
 						</div>
 					</div>
 					<div class="admin-wysiwyg-site admin-editor-main">

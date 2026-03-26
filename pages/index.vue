@@ -678,13 +678,13 @@ onBeforeUnmount(() => {
 				alt=""
 				class="hero-image light-mode"
 				:class="{ active: theme === 'light' }"
-			/>
+			>
 			<img
 				src="/images/background_dark.jpg"
 				alt=""
 				class="hero-image dark-mode"
 				:class="{ active: theme === 'dark' }"
-			/>
+			>
 			<div class="hero-background-mask" />
 		</div>
 
@@ -720,7 +720,7 @@ onBeforeUnmount(() => {
 										:src="sidebarProfileCard.avatar"
 										:alt="sidebarProfileCard.name"
 										class="site-avatar"
-									/>
+									>
 									<h2 class="site-name">
 										{{ sidebarProfileCard.name }}
 									</h2>
@@ -835,7 +835,7 @@ onBeforeUnmount(() => {
 									:src="author.avatar"
 									:alt="author.name"
 									class="author-avatar"
-								/>
+								>
 							</button>
 						</div>
 					</div>
@@ -878,7 +878,7 @@ onBeforeUnmount(() => {
 									<img
 										:src="post.featured_image"
 										:alt="post.title"
-									/>
+									>
 								</div>
 							</NuxtLink>
 							<div class="post-content">
@@ -910,7 +910,7 @@ onBeforeUnmount(() => {
 													post.author
 												"
 												class="post-author-avatar"
-											/>
+											>
 										</template>
 										<div class="post-meta-text">
 											<button

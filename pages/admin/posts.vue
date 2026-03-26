@@ -241,7 +241,7 @@
 											height="32"
 											loading="lazy"
 											decoding="async"
-										/>
+										>
 										<span
 											v-else
 											class="admin-posts-avatar admin-posts-avatar-fallback"
