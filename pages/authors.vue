@@ -41,7 +41,7 @@ useHead({
 			<NuxtLink
 				v-for="author in authors"
 				:key="getAuthorId(author)"
-				:to="`/author/${encodeURIComponent(getAuthorId(author))}`"
+				:to="`/?author=${encodeURIComponent(getAuthorId(author))}`"
 				class="author-card"
 			>
 				<div class="author-avatar-large">

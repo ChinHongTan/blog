@@ -46,6 +46,15 @@ onMounted(() => {
 		refreshPosts();
 		refreshAuthors();
 	}
+
+	// Preload author avatars to prevent lag/layout shift during sidebar transitions
+	const records = (authors.value ?? []) as unknown as AuthorCollectionItem[];
+	records.forEach((author) => {
+		if (author.avatar) {
+			const img = new Image();
+			img.src = author.avatar;
+		}
+	});
 });
 
 // Author directory: one entry per author file, keyed only by immutable ID (filename stem).
@@ -174,6 +183,14 @@ const filteredPosts = computed<DisplayPost[]>(() => {
 		filtered = filtered.filter(
 			(post) => post.category === categoryFilter.value,
 		);
+	}
+
+	if (authorFilter.value) {
+		return filtered.sort((a, b) => {
+			if (a.pinned && !b.pinned) return -1;
+			if (!a.pinned && b.pinned) return 1;
+			return 0;
+		});
 	}
 
 	return filtered;
@@ -479,6 +496,7 @@ const selectedAuthorSummary = computed(() => {
 		avatar: authorProfile?.avatar ?? fallbackAvatar(selectedAuthorId, 84),
 		name: authorProfile?.name ?? selectedAuthorId,
 		bio: authorProfile?.bio ?? "",
+		social: authorProfile?.social ?? null,
 		posts: authorPosts.length,
 		tags: authorTags.size,
 		categories: authorCategories.size,
@@ -491,6 +509,7 @@ const sidebarProfileCard = computed(() => {
 			avatar: selectedAuthorSummary.value.avatar,
 			name: selectedAuthorSummary.value.name,
 			motto: selectedAuthorSummary.value.bio || "這位作者暫無個人簡介。",
+			social: selectedAuthorSummary.value.social,
 			posts: selectedAuthorSummary.value.posts,
 			tags: selectedAuthorSummary.value.tags,
 			categories: selectedAuthorSummary.value.categories,
@@ -501,6 +520,7 @@ const sidebarProfileCard = computed(() => {
 		avatar: "/images/uploads/103467998_p0 copy.png",
 		name: "星谷雜貨店",
 		motto: "分享生活點滴的小小天地。",
+		social: null,
 		posts: totalPosts.value,
 		tags: totalTags.value,
 		categories: totalCategories.value,
@@ -710,6 +730,54 @@ onBeforeUnmount(() => {
 									<p class="site-motto">
 										{{ sidebarProfileCard.motto }}
 									</p>
+									<div
+										v-if="sidebarProfileCard.social"
+										class="author-social-links"
+									>
+										<a
+											v-if="
+												sidebarProfileCard.social.github
+											"
+											:href="
+												sidebarProfileCard.social.github
+											"
+											target="_blank"
+											rel="noopener noreferrer"
+											class="social-link"
+											title="GitHub"
+											><Icon name="mdi:github"
+										/></a>
+										<a
+											v-if="
+												sidebarProfileCard.social
+													.twitter
+											"
+											:href="
+												sidebarProfileCard.social
+													.twitter
+											"
+											target="_blank"
+											rel="noopener noreferrer"
+											class="social-link"
+											title="Twitter"
+											><Icon name="mdi:twitter"
+										/></a>
+										<a
+											v-if="
+												sidebarProfileCard.social
+													.website
+											"
+											:href="
+												sidebarProfileCard.social
+													.website
+											"
+											target="_blank"
+											rel="noopener noreferrer"
+											class="social-link"
+											title="Website"
+											><Icon name="mdi:web"
+										/></a>
+									</div>
 								</div>
 								<div class="sidebar-stats">
 									<div class="stat-box">
@@ -1167,12 +1235,18 @@ onBeforeUnmount(() => {
 	will-change: opacity, transform, filter;
 }
 
-.sidebar-identity-enter-active,
+.sidebar-identity-enter-active {
+	transition:
+		opacity 340ms cubic-bezier(0.22, 1, 0.36, 1),
+		transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
+		filter 340ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .sidebar-identity-leave-active {
 	transition:
-		opacity 460ms cubic-bezier(0.22, 1, 0.36, 1),
-		transform 460ms cubic-bezier(0.22, 1, 0.36, 1),
-		filter 460ms cubic-bezier(0.22, 1, 0.36, 1);
+		opacity 220ms cubic-bezier(0.32, 0.72, 0, 1),
+		transform 220ms cubic-bezier(0.32, 0.72, 0, 1),
+		filter 220ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .sidebar-identity-enter-from {
@@ -1212,6 +1286,31 @@ onBeforeUnmount(() => {
 	font-size: 0.9rem;
 	line-height: 1.6;
 	color: var(--color-text-secondary);
+}
+
+.author-social-links {
+	display: flex;
+	justify-content: center;
+	gap: 0.8rem;
+	margin-top: 0.8rem;
+}
+
+.social-link {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 50%;
+	background-color: var(--color-bg-secondary);
+	color: var(--color-text-secondary);
+	transition: all 0.2s ease;
+}
+
+.social-link:hover {
+	background-color: var(--color-primary);
+	color: white;
+	transform: translateY(-2px);
 }
 
 .sidebar-stats {
@@ -1503,6 +1602,7 @@ onBeforeUnmount(() => {
 	box-shadow: var(--shadow-md);
 	backdrop-filter: saturate(1.08) blur(10px);
 	-webkit-backdrop-filter: saturate(1.08) blur(10px);
+	will-change: transform, opacity;
 }
 
 .post-card:hover {

@@ -19,4 +19,5 @@ export type DisplayPost = BlogCollectionItem & {
 	authorAvatar?: string;
 	authorBio?: string;
 	authorDisplayName?: string;
+	pinned?: boolean;
 };
