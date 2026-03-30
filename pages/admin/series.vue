@@ -3,10 +3,6 @@ import type { BlogCollectionItem } from "@nuxt/content";
 import { useAdminAuth } from "~/composables/useAdminAuth";
 import { useAdminProfileMe } from "~/composables/useAdminProfileMe";
 import { getAuthorId } from "~/composables/useAuthorId";
-import {
-	parseFrontmatter,
-	buildFrontmatter,
-} from "~/composables/useEditorFrontmatter";
 import { useToast } from "~/composables/useToast";
 import BaseModal from "~/components/ui/BaseModal.vue";
 
@@ -42,9 +38,31 @@ const customSeriesNames = ref<string[]>([]);
 const isDeleteModalOpen = ref(false);
 const seriesToDelete = ref<string | null>(null);
 
-const { data: allPosts, refresh: refreshPosts } = await useAsyncData<
-	BlogCollectionItem[]
->("admin-all-posts-series", () => queryCollection("blog").all());
+const { data: allPosts } = await useAsyncData<BlogCollectionItem[]>(
+	"admin-all-posts-series",
+	() => queryCollection("blog").all(),
+);
+
+const { data: seriesData, refresh: refreshSeriesData } = await useAsyncData(
+	"admin-series-data",
+	() => queryCollection("series").first(),
+);
+
+const seriesMap = ref<Record<string, string[]>>({});
+const hasUnsavedChanges = ref(false);
+
+watch(
+	seriesData,
+	(data) => {
+		if (data?.series) {
+			seriesMap.value = JSON.parse(JSON.stringify(data.series));
+		} else {
+			seriesMap.value = {};
+		}
+		hasUnsavedChanges.value = false;
+	},
+	{ immediate: true },
+);
 
 const { data: authors } = await useAsyncData("admin-series-authors", () =>
 	queryCollection("authors").all(),
@@ -66,14 +84,21 @@ const currentAuthorId = computed(() =>
 	(profileMe.value?.authorId ?? "").trim().toLowerCase(),
 );
 
-function normalizeSeries(post: { series?: string | string[] }): string | null {
-	if (Array.isArray(post.series)) {
-		const value = post.series[0]?.trim();
-		return value || null;
-	}
-	if (typeof post.series === "string") {
-		const value = post.series.trim();
-		return value || null;
+function getPostStem(
+	post: { stem?: string; id?: string; path?: string } | null | undefined,
+): string {
+	let s = post?.stem || post?.id || post?.path || "";
+	s = s.replace(/\.md$/, "");
+	s = s.replace(/^(?:\/?(?:content\/)?blog\/)+/, "");
+	s = s.replace(/^\//, "");
+	return s;
+}
+
+function normalizeSeries(post: { id?: string; stem?: string }): string | null {
+	const stem = getPostStem(post);
+	if (!stem) return null;
+	for (const [sName, stems] of Object.entries(seriesMap.value)) {
+		if (stems.includes(stem)) return sName;
 	}
 	return null;
 }
@@ -101,10 +126,7 @@ const visiblePosts = computed(() => {
 
 const uniqueSeries = computed(() => {
 	const seriesSet = new Set<string>();
-	visiblePosts.value.forEach((post) => {
-		const series = normalizeSeries(post);
-		if (series) seriesSet.add(series);
-	});
+	Object.keys(seriesMap.value).forEach((k) => seriesSet.add(k));
 	customSeriesNames.value.forEach((name) => {
 		const value = name.trim();
 		if (value) seriesSet.add(value);
@@ -140,10 +162,16 @@ function refreshLocalList() {
 	});
 
 	inSeries.sort((a, b) => {
-		const orderA =
-			typeof a.seriesOrder === "number" ? a.seriesOrder : Infinity;
-		const orderB =
-			typeof b.seriesOrder === "number" ? b.seriesOrder : Infinity;
+		const stemA = getPostStem(a);
+		const stemB = getPostStem(b);
+		const seriesArray = seriesMap.value[selectedSeries.value!] || [];
+
+		let orderA = seriesArray.indexOf(stemA);
+		let orderB = seriesArray.indexOf(stemB);
+
+		if (orderA === -1) orderA = Infinity;
+		if (orderB === -1) orderB = Infinity;
+
 		if (orderA !== orderB) return orderA - orderB;
 		return (
 			new Date(a.date ?? 0).getTime() - new Date(b.date ?? 0).getTime()
@@ -220,90 +248,18 @@ async function confirmDeleteSeries() {
 	isDeleteModalOpen.value = false;
 	seriesToDelete.value = null;
 
-	const affectedPosts = (allPosts.value ?? []).filter(
-		(post) => normalizeSeries(post) === targetSeries,
+	if (seriesMap.value[targetSeries]) {
+		// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+		delete seriesMap.value[targetSeries];
+	}
+
+	customSeriesNames.value = customSeriesNames.value.filter(
+		(name) => name !== targetSeries,
 	);
-
-	if (affectedPosts.length === 0) {
-		customSeriesNames.value = customSeriesNames.value.filter(
-			(name) => name !== targetSeries,
-		);
-		selectedSeries.value = uniqueSeries.value[0] ?? null;
-		refreshLocalList();
-		toast.success(`已刪除系列「${targetSeries}」`);
-		return;
-	}
-
-	isUpdating.value = true;
-	toast.info(`正在刪除系列「${targetSeries}」...`);
-
-	try {
-		let successCount = 0;
-		for (let i = 0; i < affectedPosts.length; i++) {
-			const post = affectedPosts[i];
-			const title = post.title || "(無標題)";
-			updateProgressMessage.value = `正在更新 ${i + 1}/${affectedPosts.length}: ${title}...`;
-
-			const derivedStem = post.id
-				? post.id.replace(/^blog\//, "").replace(/\.md$/, "")
-				: post.stem;
-			const correctPath =
-				post.path && post.path !== "/blog"
-					? post.path
-					: derivedStem
-						? `/${derivedStem}`
-						: "";
-			if (!correctPath) continue;
-
-			const fileData = await $fetch<{ content: string; sha: string }>(
-				`/api/admin/repo/files?path=${encodeURIComponent(correctPath)}`,
-			);
-			if (!fileData?.content) continue;
-
-			const { meta, body } = parseFrontmatter(fileData.content, "post");
-			meta.series = undefined;
-			(meta as Record<string, unknown>).seriesOrder = undefined;
-			const newContent =
-				buildFrontmatter(
-					"post",
-					meta as Parameters<typeof buildFrontmatter>[1],
-				) +
-				"\n\n" +
-				body;
-
-			await $fetch("/api/admin/repo/files", {
-				method: "PUT",
-				body: {
-					path: correctPath,
-					content: newContent,
-					sha: fileData.sha,
-					message: `Remove series ${targetSeries} from ${meta.title || correctPath}`,
-				},
-			});
-			successCount++;
-		}
-
-		customSeriesNames.value = customSeriesNames.value.filter(
-			(name) => name !== targetSeries,
-		);
-		await refreshPosts();
-		selectedSeries.value = uniqueSeries.value[0] ?? null;
-		refreshLocalList();
-
-		if (successCount > 0) {
-			toast.success(
-				`已從 ${successCount} 篇文章移除系列「${targetSeries}」`,
-			);
-		} else {
-			toast.success(`已刪除系列「${targetSeries}」`);
-		}
-	} catch (error: unknown) {
-		console.error("Error removing series:", error);
-		toast.error(getErrorMessage(error, "刪除系列時發生未知錯誤"));
-	} finally {
-		isUpdating.value = false;
-		updateProgressMessage.value = "";
-	}
+	selectedSeries.value = uniqueSeries.value[0] ?? null;
+	hasUnsavedChanges.value = true;
+	refreshLocalList();
+	toast.success(`已刪除系列「${targetSeries}」(請記得儲存變更)`);
 }
 
 const draggedItemIndex = ref<number | null>(null);
@@ -395,110 +351,61 @@ async function onDragEnd(e: DragEvent) {
 	if (draggedItemIndex.value === null) return;
 	draggedItemIndex.value = null;
 	draggedSourceList.value = null;
-	await checkAndSaveOrder();
+
+	syncLocalListToMap();
 }
 
-async function checkAndSaveOrder() {
-	if (isUpdating.value || !selectedSeries.value) return;
+function syncLocalListToMap() {
+	if (!selectedSeries.value) return;
+	const stems = localSeriesPosts.value
+		.map((p) => getPostStem(p))
+		.filter(Boolean);
+	seriesMap.value[selectedSeries.value] = stems;
+	hasUnsavedChanges.value = true;
+}
 
-	const postsToUpdate: Array<{
-		post: LocalPost;
-		nextSeries: string | null;
-		nextOrder?: number;
-		action: "assign_or_reorder" | "remove";
-	}> = [];
-
-	for (let i = 0; i < localSeriesPosts.value.length; i++) {
-		const post = localSeriesPosts.value[i];
-		const requiredOrder = i + 1;
-		const currentSeries = normalizeSeries(post);
-		const orderNeedsUpdate = post.seriesOrder !== requiredOrder;
-		const seriesNeedsUpdate = currentSeries !== selectedSeries.value;
-		if (orderNeedsUpdate || seriesNeedsUpdate) {
-			postsToUpdate.push({
-				post,
-				nextSeries: selectedSeries.value,
-				nextOrder: requiredOrder,
-				action: "assign_or_reorder",
-			});
-		}
-	}
-
-	for (let i = 0; i < localOtherPosts.value.length; i++) {
-		const post = localOtherPosts.value[i];
-		const currentSeries = normalizeSeries(post);
-		if (currentSeries === selectedSeries.value) {
-			postsToUpdate.push({ post, nextSeries: null, action: "remove" });
-		}
-	}
-
-	if (postsToUpdate.length === 0) return;
-
+async function saveAllSeriesData() {
+	if (isUpdating.value) return;
 	isUpdating.value = true;
-	toast.info("開始更新序列...");
+	toast.info("開始儲存序列資料...");
+	updateProgressMessage.value = "正在儲存...";
 
 	try {
-		let successCount = 0;
-		for (let i = 0; i < postsToUpdate.length; i++) {
-			const { post, nextSeries, nextOrder, action } = postsToUpdate[i];
-			const title = post.title || "(無標題)";
-			updateProgressMessage.value = `正在更新 ${i + 1}/${postsToUpdate.length}: ${title}...`;
+		// Fetch current sha first
+		const fileData = await $fetch<{ content: string; sha: string }>(
+			`/api/admin/repo/files?path=content/series.json`,
+		).catch(() => null);
 
-			const derivedStem = post.id
-				? post.id.replace(/^blog\//, "").replace(/\.md$/, "")
-				: post.stem;
-			const correctPath =
-				post.path && post.path !== "/blog"
-					? post.path
-					: derivedStem
-						? `/${derivedStem}`
-						: "";
-			if (!correctPath) continue;
+		const sha = fileData?.sha;
 
-			const fileData = await $fetch<{ content: string; sha: string }>(
-				`/api/admin/repo/files?path=${encodeURIComponent(correctPath)}`,
-			);
-			if (!fileData?.content) continue;
-
-			const { meta, body } = parseFrontmatter(fileData.content, "post");
-			if (action === "assign_or_reorder" && nextSeries) {
-				meta.series = [nextSeries];
-				(meta as Record<string, unknown>).seriesOrder = nextOrder;
-			} else {
-				meta.series = undefined;
-				(meta as Record<string, unknown>).seriesOrder = undefined;
+		// Clean up empty series
+		const cleanSeries: Record<string, string[]> = {};
+		for (const [sName, stems] of Object.entries(seriesMap.value)) {
+			if (stems.length > 0) {
+				cleanSeries[sName] = stems;
 			}
-			const newContent =
-				buildFrontmatter(
-					"post",
-					meta as Parameters<typeof buildFrontmatter>[1],
-				) +
-				"\n\n" +
-				body;
-
-			await $fetch("/api/admin/repo/files", {
-				method: "PUT",
-				body: {
-					path: correctPath,
-					content: newContent,
-					sha: fileData.sha,
-					message:
-						action === "remove"
-							? `Remove ${meta.title || correctPath} from series`
-							: `Update series order for ${meta.title || correctPath}`,
-				},
-			});
-			successCount++;
 		}
 
-		if (successCount > 0) {
-			toast.success(`成功更新 ${successCount} 篇文章`);
-		}
+		const newContent =
+			JSON.stringify({ series: cleanSeries }, null, 2) + "\n";
 
-		await refreshPosts();
-		refreshLocalList();
+		await $fetch("/api/admin/repo/files", {
+			method: "PUT",
+			body: {
+				path: "content/series.json",
+				content: newContent,
+				sha,
+				message: "Update series organization",
+			},
+		});
+
+		toast.success("成功儲存序列資料");
+		hasUnsavedChanges.value = false;
+		await refreshSeriesData();
+		// refreshPosts to ensure UI consistency if needed
+		// await refreshPosts();
 	} catch (error: unknown) {
-		console.error("Error saving series order:", error);
+		console.error("Error saving series data:", error);
 		toast.error(getErrorMessage(error, "儲存時發生未知錯誤"));
 	} finally {
 		isUpdating.value = false;
@@ -538,10 +445,25 @@ function resolvePostPath(post: LocalPost): string {
 				<div class="admin-filter-row">
 					<button
 						type="button"
+						class="ui-btn ui-btn-primary"
+						:disabled="!hasUnsavedChanges || isUpdating"
+						@click="saveAllSeriesData"
+					>
+						{{
+							isUpdating
+								? "儲存中..."
+								: hasUnsavedChanges
+									? "* 儲存變更"
+									: "已儲存"
+						}}
+					</button>
+
+					<button
+						type="button"
 						class="ui-btn admin-mine-filter-btn"
 						:class="{ 'ui-btn-primary': onlyMyPosts }"
-						@click="onlyMyPosts = !onlyMyPosts"
 						:disabled="!currentAuthorId"
+						@click="onlyMyPosts = !onlyMyPosts"
 					>
 						只顯示我的文章
 					</button>

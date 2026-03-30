@@ -278,65 +278,16 @@
 										>系列</span
 									>
 									<div
-										class="admin-property-cell admin-property-tags-wrap admin-series-input-wrap"
-										@click="focusSeriesInput"
+										class="admin-property-cell"
+										style="
+											display: flex;
+											align-items: center;
+											color: #52525b;
+											font-size: 0.9em;
+											padding-left: 0.5rem;
+										"
 									>
-										<span
-											v-if="meta.series[0]"
-											class="admin-meta-chip admin-meta-chip-series"
-										>
-											{{ meta.series[0] }}
-											<button
-												type="button"
-												class="admin-meta-chip-remove"
-												aria-label="移除"
-												@click.stop="removeSeries()"
-											>
-												×
-											</button>
-										</span>
-										<input
-											ref="seriesInputRef"
-											v-model="seriesInputValue"
-											type="text"
-											class="admin-property-tag-input"
-											placeholder="輸入系列名稱（單選）…"
-											@keydown.enter.prevent="addSeries"
-											@focus="onSeriesInputFocus"
-											@blur="onSeriesInputBlur"
-										/>
-										<div
-											v-if="
-												showSeriesSuggestions &&
-												(seriesSuggestions.length > 0 ||
-													canCreateNewSeries)
-											"
-											class="admin-series-suggestions"
-										>
-											<button
-												v-for="s in seriesSuggestions"
-												:key="s"
-												type="button"
-												class="admin-series-suggestion"
-												@mousedown.prevent="
-													selectSeries(s)
-												"
-											>
-												{{ s }}
-											</button>
-											<button
-												v-if="canCreateNewSeries"
-												type="button"
-												class="admin-series-suggestion admin-series-suggestion-new"
-												@mousedown.prevent="addSeries"
-											>
-												{{ seriesInputValue }}
-												<span
-													class="admin-series-new-badge"
-													>新系列</span
-												>
-											</button>
-										</div>
+										管理系列請至左側導航欄「序列」
 									</div>
 								</div>
 								<div
@@ -809,7 +760,6 @@ const authorAvatarFileInput = ref<HTMLInputElement | null>(null);
 const authorBannerFileInput = ref<HTMLInputElement | null>(null);
 const heroDragOver = ref(false);
 const tagInputRef = ref<HTMLInputElement | null>(null);
-const seriesInputRef = ref<HTMLInputElement | null>(null);
 const fileSha = ref<string | undefined>(undefined);
 /** True after initial content load (or no file to load). Ensures Milkdown mounts with correct body. */
 const contentReady = ref(false);
@@ -838,26 +788,6 @@ const canCreateNewTag = computed(() => {
 
 // Series autocomplete state
 const availableSeries = ref<string[]>([]);
-const seriesInputValue = ref("");
-const showSeriesSuggestions = ref(false);
-const seriesSuggestions = computed(() => {
-	const query = seriesInputValue.value.toLowerCase().trim();
-	const currentSeries = meta.series[0] ?? "";
-	if (!query) return availableSeries.value.filter((s) => s !== currentSeries);
-	return availableSeries.value.filter(
-		(s) => s.toLowerCase().includes(query) && s !== currentSeries,
-	);
-});
-const canCreateNewSeries = computed(() => {
-	const query = seriesInputValue.value.trim();
-	if (!query) return false;
-	const lowerQuery = query.toLowerCase();
-	const currentSeries = (meta.series[0] ?? "").toLowerCase();
-	return (
-		!availableSeries.value.some((s) => s.toLowerCase() === lowerQuery) &&
-		currentSeries !== lowerQuery
-	);
-});
 
 async function fetchAvailableSeries() {
 	try {
@@ -876,9 +806,6 @@ async function fetchAvailableSeries() {
 
 function focusTagInput() {
 	tagInputRef.value?.focus();
-}
-function focusSeriesInput() {
-	seriesInputRef.value?.focus();
 }
 function formatEditedAt(iso: string): string {
 	try {
@@ -926,39 +853,6 @@ function removeTag(t: string) {
 	meta.tags = meta.tags.filter((x) => x !== t);
 }
 
-function addSeries() {
-	const v = seriesInputValue.value.trim();
-	if (v) {
-		meta.series = [v];
-		(meta as Record<string, unknown>).seriesOrder = undefined;
-		// Add to available series if it's new
-		if (!availableSeries.value.includes(v)) {
-			availableSeries.value.push(v);
-			availableSeries.value.sort();
-		}
-	}
-	seriesInputValue.value = "";
-	showSeriesSuggestions.value = false;
-}
-function selectSeries(s: string) {
-	meta.series = [s];
-	(meta as Record<string, unknown>).seriesOrder = undefined;
-	seriesInputValue.value = "";
-	showSeriesSuggestions.value = false;
-}
-function onSeriesInputFocus() {
-	showSeriesSuggestions.value = true;
-}
-function onSeriesInputBlur() {
-	// Delay to allow click on suggestion
-	setTimeout(() => {
-		showSeriesSuggestions.value = false;
-	}, 150);
-}
-function removeSeries() {
-	meta.series = [];
-	(meta as Record<string, unknown>).seriesOrder = undefined;
-}
 function syncTitleFromFirstH1() {
 	const md = getBodyContent();
 	const m = md.match(/^#\s+(.+)$/m);

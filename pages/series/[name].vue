@@ -11,25 +11,44 @@ const seriesName = computed(() => {
 });
 
 const { data: allPosts } = useAsyncData<BlogCollectionItem[]>(
-	`series-${seriesName.value}`,
+	`series-posts-${seriesName.value}`,
 	() => queryCollection("blog").order("date", "DESC").all(),
 );
 
+const { data: seriesData } = useAsyncData(
+	`series-data-${seriesName.value}`,
+	() => queryCollection("series").first(),
+);
+
+function getPostStem(
+	post: { stem?: string; id?: string; path?: string } | null | undefined,
+): string {
+	let s = post?.stem || post?.id || post?.path || "";
+	s = s.replace(/\.md$/, "");
+	s = s.replace(/^(?:\/?(?:content\/)?blog\/)+/, "");
+	s = s.replace(/^\//, "");
+	return s;
+}
+
 // Filter posts that belong to this series
 const seriesPosts = computed(() => {
+	const seriesMap = seriesData.value?.series || {};
+	const stemsForSeries = seriesMap[seriesName.value] || [];
+
 	const posts = (allPosts.value ?? []).filter((post) => {
-		const currentSeries = Array.isArray(post.series)
-			? post.series[0]
-			: post.series;
-		return currentSeries === seriesName.value;
+		const stem = getPostStem(post);
+		return stemsForSeries.includes(stem);
 	});
 
 	// Sort by seriesOrder (if available), fallback to chronological order (oldest first)
 	return posts.sort((a, b) => {
-		const orderA =
-			typeof a.seriesOrder === "number" ? a.seriesOrder : Infinity;
-		const orderB =
-			typeof b.seriesOrder === "number" ? b.seriesOrder : Infinity;
+		const stemA = getPostStem(a);
+		const stemB = getPostStem(b);
+		let orderA = stemsForSeries.indexOf(stemA);
+		let orderB = stemsForSeries.indexOf(stemB);
+
+		if (orderA === -1) orderA = Infinity;
+		if (orderB === -1) orderB = Infinity;
 
 		if (orderA !== orderB) {
 			return orderA - orderB;

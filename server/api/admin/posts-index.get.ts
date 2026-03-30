@@ -160,6 +160,25 @@ export default defineEventHandler(async (event) => {
 		const allSeries = new Set<string>();
 		const allTags = new Set<string>();
 
+		let seriesMap: Record<string, string[]> = {};
+		try {
+			const req = await octokit.repos.getContent({
+				owner,
+				repo,
+				path: "content/series.json",
+			});
+			if ("content" in req.data) {
+				const buf = Buffer.from(req.data.content, "base64").toString(
+					"utf-8",
+				);
+				const parsed = JSON.parse(buf);
+				seriesMap = parsed.series || {};
+				Object.keys(seriesMap).forEach((k) => allSeries.add(k));
+			}
+		} catch {
+			/* ignore */
+		}
+
 		function toRow(
 			f: { path?: string; sha?: string | null },
 			fm: Record<string, string | string[]>,
@@ -170,12 +189,10 @@ export default defineEventHandler(async (event) => {
 			const author = typeof fm.author === "string" ? fm.author : "";
 			const profile = author ? authorDir[author] : undefined;
 
-			// Collect series
-			const series = fm.series;
-			if (Array.isArray(series)) {
-				series.forEach((s) => allSeries.add(s));
-			} else if (typeof series === "string" && series) {
-				allSeries.add(series);
+			// Collect series from the parsed seriesMap instead of frontmatter
+			const series: string[] = [];
+			for (const [sName, stems] of Object.entries(seriesMap)) {
+				if (stems.includes(stem)) series.push(sName);
 			}
 
 			// Collect tags
@@ -205,11 +222,7 @@ export default defineEventHandler(async (event) => {
 				path,
 				slug: isDraft ? "" : `/${stem}`,
 				draft: isDraft,
-				series: Array.isArray(series)
-					? series.filter((s) => typeof s === "string" && s.trim())
-					: typeof series === "string" && series.trim()
-						? [series]
-						: [],
+				series: series,
 				tags: Array.isArray(tags)
 					? tags.filter((t) => typeof t === "string" && t.trim())
 					: typeof tags === "string" && tags.trim()

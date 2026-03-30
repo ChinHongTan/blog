@@ -106,6 +106,20 @@ const { data: page } = await useAsyncData(route.path, async () => {
 });
 
 // Determine if this is a blog post (has date and author)
+const { data: seriesData } = await useAsyncData("series-global-data", () =>
+	queryCollection("series").first(),
+);
+
+function getPostStem(
+	post: { stem?: string; id?: string; path?: string } | null | undefined,
+): string {
+	let s = post?.stem || post?.id || post?.path || "";
+	s = s.replace(/\.md$/, "");
+	s = s.replace(/^(?:\/?(?:content\/)?blog\/)+/, "");
+	s = s.replace(/^\//, "");
+	return s;
+}
+
 const isBlogPost = computed(
 	() => page.value && "date" in page.value && "author" in page.value,
 );
@@ -369,21 +383,12 @@ const activeSeriesName = computed(() => {
 	// If navigated from a series page, use that series via query param
 	const querySeries = route.query.series as string | undefined;
 	if (querySeries) return querySeries;
-	// Otherwise, use the first series of the current post
-	if (
-		page.value &&
-		"series" in page.value &&
-		Array.isArray(page.value.series) &&
-		page.value.series.length > 0
-	) {
-		return page.value.series[0] as string;
-	}
-	if (
-		page.value &&
-		"series" in page.value &&
-		typeof page.value.series === "string"
-	) {
-		return page.value.series;
+
+	const stem = getPostStem(page.value);
+	if (stem && seriesData.value?.series) {
+		for (const [sName, stems] of Object.entries(seriesData.value.series)) {
+			if (stems.includes(stem)) return sName;
+		}
 	}
 	return null;
 });
@@ -398,26 +403,29 @@ const { data: seriesAllPosts } = await useAsyncData(
 		const allPosts = await queryCollection("blog")
 			.order("date", "DESC")
 			.all();
+
+		const stemsForSeries =
+			seriesData.value?.series?.[activeSeriesName.value] || [];
+
 		const postsInSeries = allPosts.filter((post) => {
-			const currentSeries = Array.isArray(post.series)
-				? post.series[0]
-				: post.series;
-			return currentSeries === activeSeriesName.value;
+			const stem = getPostStem(post);
+			return stemsForSeries.includes(stem);
 		});
 
 		return postsInSeries.sort((a, b) => {
-			const orderA =
-				typeof a.seriesOrder === "number" ? a.seriesOrder : Infinity;
-			const orderB =
-				typeof b.seriesOrder === "number" ? b.seriesOrder : Infinity;
+			const stemA = getPostStem(a);
+			const stemB = getPostStem(b);
+			let orderA = stemsForSeries.indexOf(stemA);
+			let orderB = stemsForSeries.indexOf(stemB);
 
-			if (orderA !== orderB) {
-				return orderA - orderB;
-			}
+			if (orderA === -1) orderA = Infinity;
+			if (orderB === -1) orderB = Infinity;
 
-			const dateA = new Date(a.date).getTime();
-			const dateB = new Date(b.date).getTime();
-			return dateA - dateB;
+			if (orderA !== orderB) return orderA - orderB;
+
+			const dA = new Date(a.date || 0).getTime();
+			const dB = new Date(b.date || 0).getTime();
+			return dA - dB;
 		});
 	},
 );

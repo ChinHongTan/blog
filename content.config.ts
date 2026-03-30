@@ -71,5 +71,12 @@ export default defineContentConfig({
 				}),
 			}),
 		),
+		series: defineCollection({
+			type: "data",
+			source: "series.json",
+			schema: z.object({
+				series: z.record(z.string(), z.array(z.string())),
+			}),
+		}),
 	},
 });

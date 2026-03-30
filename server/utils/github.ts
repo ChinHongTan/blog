@@ -179,12 +179,12 @@ export function extractFrontmatterAuthor(raw: string): string | null {
 	return v || null;
 }
 
-export function extractFrontmatterObject(content: string): Record<string, any> {
+export function extractFrontmatterObject(content: string): Record<string, unknown> {
 	const match = content.match(/^---\s*\n([\s\S]*?)\n---/);
 	if (!match) return {};
 
 	const yaml = match[1];
-	const obj: Record<string, any> = {};
+	const obj: Record<string, unknown> = {};
 
 	const lines = yaml.split("\n");
 	let currentArrayKey: string | null = null;
@@ -203,7 +203,7 @@ export function extractFrontmatterObject(content: string): Record<string, any> {
 		const kv = line.match(/^\s*(.+?):\s*(.*)$/);
 		if (kv) {
 			const key = kv[1].trim();
-			let value: any = kv[2].trim();
+			let value: unknown = kv[2].trim();
 			currentArrayKey = key; // Keep track of the last key in case it's an array
 
 			if (!value) continue; // Likely an array starting on next line
