@@ -2,10 +2,12 @@
 title: 中樞理論學派（一）CPG
 description: 啊~~~~~殺了我吧
 date: 2026-03-20T10:37
-edited_at: 2026-03-24T00:29:41.149Z
+edited_at: 2026-03-30T01:06:09.179Z
 author: hibiki12141132
 path: /blog/中樞理論學派（一）CPG
 featured_image: /images/uploads/1774056557316-EhtmqMpUcAIrzEc.jpg
+series:
+  - Motor Control
 ---
 
 中樞理論與剛剛的周圍理論是相反的\
