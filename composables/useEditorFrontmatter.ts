@@ -6,6 +6,7 @@ interface PostMeta {
 	author: string;
 	path: string;
 	series: string[];
+	seriesOrder?: number;
 	tags: string[];
 	featured_image: string;
 	pinned?: boolean;
@@ -33,9 +34,12 @@ export function buildPostFrontmatter(meta: PostMeta): string {
 	if (meta.featured_image)
 		lines.push(`featured_image: ${meta.featured_image}`);
 	if (meta.pinned) lines.push("pinned: true");
-	if (meta.series.length)
+	if (meta.seriesOrder !== undefined)
+		lines.push(`seriesOrder: ${meta.seriesOrder}`);
+	if (meta.series && meta.series.length)
 		lines.push(`series:\n  - ${meta.series.join("\n  - ")}`);
-	if (meta.tags.length) lines.push(`tags:\n  - ${meta.tags.join("\n  - ")}`);
+	if (meta.tags && meta.tags.length)
+		lines.push(`tags:\n  - ${meta.tags.join("\n  - ")}`);
 	lines.push("---");
 	return lines.join("\n");
 }
@@ -93,6 +97,13 @@ export function parseFrontmatter(
 				key === "email"
 			)
 				return;
+			if (key === "seriesOrder" && docType === "post") {
+				const num = Number(val);
+				if (!Number.isNaN(num)) {
+					(result as Record<string, unknown>).seriesOrder = num;
+				}
+				return;
+			}
 			(result as Record<string, string>)[key] = val;
 		}
 	});

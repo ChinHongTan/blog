@@ -19,7 +19,11 @@ export default defineContentConfig({
 					featured_image: z.string().optional(),
 					edited_at: z.coerce.date().optional(),
 					tags: z.array(z.string()).optional(),
-					series: z.array(z.string()).optional(),
+					series: z
+						.union([z.string(), z.array(z.string())])
+						.transform((v) => (typeof v === "string" ? v : v[0]))
+						.optional(),
+					seriesOrder: z.number().optional(),
 					path: z.string().optional(),
 				}),
 			}),

@@ -11,7 +11,7 @@ watch(
 	() => route.path,
 	() => {
 		adminQuickAddOpen.value = false;
-	}
+	},
 );
 
 function closeQuickAddIfOutside(e: MouseEvent) {
@@ -36,11 +36,26 @@ onUnmounted(() => {
 	<header class="main-header admin-top-bar">
 		<div class="header-content admin-top-bar-content">
 			<NuxtLink to="/admin" class="admin-top-bar-title">後台</NuxtLink>
-			<div id="admin-editor-nav-actions" class="admin-editor-nav-actions" />
+			<div
+				id="admin-editor-nav-actions"
+				class="admin-editor-nav-actions"
+			/>
 			<div id="admin-editor-toolbar" class="admin-editor-toolbar-slot" />
 			<div v-if="!isEditorPage" class="admin-nav-spacer" />
 			<div class="header-actions">
-				<div v-if="!isEditorPage" ref="adminQuickAddRef" class="admin-quick-add-wrap">
+				<NuxtLink
+					v-if="!isEditorPage"
+					to="/admin/series"
+					class="admin-quick-add-btn admin-series-nav-link"
+				>
+					<Icon name="heroicons:rectangle-group" size="16" />
+					管理系列
+				</NuxtLink>
+				<div
+					v-if="!isEditorPage"
+					ref="adminQuickAddRef"
+					class="admin-quick-add-wrap"
+				>
 					<button
 						type="button"
 						class="admin-quick-add-btn"
@@ -52,8 +67,16 @@ onUnmounted(() => {
 						<Icon name="heroicons:chevron-down" size="16" />
 					</button>
 					<Transition name="dropdown">
-						<div v-if="adminQuickAddOpen" class="admin-quick-add-dropdown" @click.stop>
-							<NuxtLink to="/admin/editor?type=post" class="admin-quick-add-item" @click="adminQuickAddOpen = false">
+						<div
+							v-if="adminQuickAddOpen"
+							class="admin-quick-add-dropdown"
+							@click.stop
+						>
+							<NuxtLink
+								to="/admin/editor?type=post"
+								class="admin-quick-add-item"
+								@click="adminQuickAddOpen = false"
+							>
 								新增文章
 							</NuxtLink>
 						</div>
@@ -63,7 +86,9 @@ onUnmounted(() => {
 				<template v-if="adminUser">
 					<AdminUserPopover />
 				</template>
-				<NuxtLink v-else to="/" class="admin-top-back">&larr; 返回網站</NuxtLink>
+				<NuxtLink v-else to="/" class="admin-top-back"
+					>&larr; 返回網站</NuxtLink
+				>
 			</div>
 		</div>
 	</header>

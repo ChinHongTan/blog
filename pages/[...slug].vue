@@ -378,6 +378,13 @@ const activeSeriesName = computed(() => {
 	) {
 		return page.value.series[0] as string;
 	}
+	if (
+		page.value &&
+		"series" in page.value &&
+		typeof page.value.series === "string"
+	) {
+		return page.value.series;
+	}
 	return null;
 });
 
@@ -391,11 +398,27 @@ const { data: seriesAllPosts } = await useAsyncData(
 		const allPosts = await queryCollection("blog")
 			.order("date", "DESC")
 			.all();
-		return allPosts.filter(
-			(post) =>
-				Array.isArray(post.series) &&
-				post.series.includes(activeSeriesName.value!),
-		);
+		const postsInSeries = allPosts.filter((post) => {
+			const currentSeries = Array.isArray(post.series)
+				? post.series[0]
+				: post.series;
+			return currentSeries === activeSeriesName.value;
+		});
+
+		return postsInSeries.sort((a, b) => {
+			const orderA =
+				typeof a.seriesOrder === "number" ? a.seriesOrder : Infinity;
+			const orderB =
+				typeof b.seriesOrder === "number" ? b.seriesOrder : Infinity;
+
+			if (orderA !== orderB) {
+				return orderA - orderB;
+			}
+
+			const dateA = new Date(a.date).getTime();
+			const dateB = new Date(b.date).getTime();
+			return dateA - dateB;
+		});
 	},
 );
 

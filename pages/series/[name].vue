@@ -12,15 +12,34 @@ const seriesName = computed(() => {
 
 const { data: allPosts } = useAsyncData<BlogCollectionItem[]>(
 	`series-${seriesName.value}`,
-	() => queryCollection("blog").order("date", "DESC").all()
+	() => queryCollection("blog").order("date", "DESC").all(),
 );
 
 // Filter posts that belong to this series
 const seriesPosts = computed(() => {
-	return (allPosts.value ?? []).filter(
-		(post) =>
-			Array.isArray(post.series) && post.series.includes(seriesName.value)
-	);
+	const posts = (allPosts.value ?? []).filter((post) => {
+		const currentSeries = Array.isArray(post.series)
+			? post.series[0]
+			: post.series;
+		return currentSeries === seriesName.value;
+	});
+
+	// Sort by seriesOrder (if available), fallback to chronological order (oldest first)
+	return posts.sort((a, b) => {
+		const orderA =
+			typeof a.seriesOrder === "number" ? a.seriesOrder : Infinity;
+		const orderB =
+			typeof b.seriesOrder === "number" ? b.seriesOrder : Infinity;
+
+		if (orderA !== orderB) {
+			return orderA - orderB;
+		}
+
+		// Fallback to date ascending
+		const dateA = new Date(a.date).getTime();
+		const dateB = new Date(b.date).getTime();
+		return dateA - dateB;
+	});
 });
 
 // Enrich posts with proper paths
@@ -36,14 +55,16 @@ function getPostPath(post: BlogCollectionItem): string {
 
 // Fetch author directory for avatars
 const { data: authors } = useAsyncData("series-authors", () =>
-	queryCollection("authors").all()
+	queryCollection("authors").all(),
 );
 
 type AuthorProfile = { name?: string; avatar?: string; [key: string]: unknown };
 
 const authorDirectory = computed<Record<string, AuthorProfile>>(() => {
 	const dir: Record<string, AuthorProfile> = {};
-	const records = (authors.value ?? []) as unknown as (AuthorProfile & { path?: string })[];
+	const records = (authors.value ?? []) as unknown as (AuthorProfile & {
+		path?: string;
+	})[];
 	records.forEach((entry) => {
 		const id = getAuthorId(entry);
 		if (id) dir[id] = entry;
@@ -77,9 +98,7 @@ useHead({
 				<Icon name="heroicons:bookmark-square" size="32" />
 				系列 — {{ seriesName }}
 			</h1>
-			<p class="page-meta-info">
-				共 {{ seriesPosts.length }} 篇文章
-			</p>
+			<p class="page-meta-info">共 {{ seriesPosts.length }} 篇文章</p>
 		</header>
 
 		<div v-if="seriesPosts.length > 0" class="articles-list">
@@ -91,7 +110,7 @@ useHead({
 			>
 				<!-- Side thumbnail image -->
 				<div v-if="post.featured_image" class="article-image">
-					<img :src="post.featured_image" :alt="post.title">
+					<img :src="post.featured_image" :alt="post.title" />
 				</div>
 				<div v-else class="article-image article-image-placeholder">
 					<Icon name="heroicons:document-text" size="32" />
@@ -104,30 +123,39 @@ useHead({
 						{{ post.description }}
 					</p>
 					<div class="article-meta">
-						<span class="article-number-badge">#{{ index + 1 }}</span>
+						<span class="article-number-badge"
+							>#{{ index + 1 }}</span
+						>
 						<div v-if="post.author" class="article-author">
 							<img
 								:src="getAuthorAvatar(post.author)"
 								:alt="post.author"
 								class="author-tiny-avatar"
-							>
+							/>
 							<span>{{ post.author }}</span>
 						</div>
 						<span class="article-date">
 							<Icon name="heroicons:calendar-days" size="14" />
 							{{
-								new Date(post.date).toLocaleDateString("zh-TW", {
-									year: "numeric",
-									month: "2-digit",
-									day: "2-digit",
-								})
+								new Date(post.date).toLocaleDateString(
+									"zh-TW",
+									{
+										year: "numeric",
+										month: "2-digit",
+										day: "2-digit",
+									},
+								)
 							}}
 						</span>
 						<div
 							v-if="Array.isArray(post.tags) && post.tags.length"
 							class="article-tags"
 						>
-							<span v-for="tag in post.tags.slice(0, 3)" :key="tag" class="tag-chip">
+							<span
+								v-for="tag in post.tags.slice(0, 3)"
+								:key="tag"
+								class="tag-chip"
+							>
 								#{{ tag }}
 							</span>
 						</div>
@@ -251,7 +279,11 @@ useHead({
 	justify-content: center;
 	background: linear-gradient(
 		135deg,
-		color-mix(in srgb, var(--color-primary-light) 20%, var(--color-bg-tertiary)),
+		color-mix(
+			in srgb,
+			var(--color-primary-light) 20%,
+			var(--color-bg-tertiary)
+		),
 		color-mix(in srgb, var(--color-accent) 10%, var(--color-bg-tertiary))
 	);
 }

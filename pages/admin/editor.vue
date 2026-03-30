@@ -281,32 +281,26 @@
 										class="admin-property-cell admin-property-tags-wrap admin-series-input-wrap"
 										@click="focusSeriesInput"
 									>
-										<template
-											v-for="s in meta.series"
-											:key="'s-' + s"
+										<span
+											v-if="meta.series[0]"
+											class="admin-meta-chip admin-meta-chip-series"
 										>
-											<span
-												class="admin-meta-chip admin-meta-chip-series"
+											{{ meta.series[0] }}
+											<button
+												type="button"
+												class="admin-meta-chip-remove"
+												aria-label="移除"
+												@click.stop="removeSeries()"
 											>
-												{{ s }}
-												<button
-													type="button"
-													class="admin-meta-chip-remove"
-													aria-label="移除"
-													@click.stop="
-														removeSeries(s)
-													"
-												>
-													×
-												</button>
-											</span>
-										</template>
+												×
+											</button>
+										</span>
 										<input
 											ref="seriesInputRef"
 											v-model="seriesInputValue"
 											type="text"
 											class="admin-property-tag-input"
-											placeholder="輸入系列名稱…"
+											placeholder="輸入系列名稱（單選）…"
 											@keydown.enter.prevent="addSeries"
 											@focus="onSeriesInputFocus"
 											@blur="onSeriesInputBlur"
@@ -848,19 +842,20 @@ const seriesInputValue = ref("");
 const showSeriesSuggestions = ref(false);
 const seriesSuggestions = computed(() => {
 	const query = seriesInputValue.value.toLowerCase().trim();
-	if (!query)
-		return availableSeries.value.filter((s) => !meta.series.includes(s));
+	const currentSeries = meta.series[0] ?? "";
+	if (!query) return availableSeries.value.filter((s) => s !== currentSeries);
 	return availableSeries.value.filter(
-		(s) => s.toLowerCase().includes(query) && !meta.series.includes(s),
+		(s) => s.toLowerCase().includes(query) && s !== currentSeries,
 	);
 });
 const canCreateNewSeries = computed(() => {
 	const query = seriesInputValue.value.trim();
 	if (!query) return false;
 	const lowerQuery = query.toLowerCase();
+	const currentSeries = (meta.series[0] ?? "").toLowerCase();
 	return (
 		!availableSeries.value.some((s) => s.toLowerCase() === lowerQuery) &&
-		!meta.series.includes(query)
+		currentSeries !== lowerQuery
 	);
 });
 
@@ -933,8 +928,9 @@ function removeTag(t: string) {
 
 function addSeries() {
 	const v = seriesInputValue.value.trim();
-	if (v && !meta.series.includes(v)) {
-		meta.series.push(v);
+	if (v) {
+		meta.series = [v];
+		(meta as Record<string, unknown>).seriesOrder = undefined;
 		// Add to available series if it's new
 		if (!availableSeries.value.includes(v)) {
 			availableSeries.value.push(v);
@@ -945,9 +941,8 @@ function addSeries() {
 	showSeriesSuggestions.value = false;
 }
 function selectSeries(s: string) {
-	if (!meta.series.includes(s)) {
-		meta.series.push(s);
-	}
+	meta.series = [s];
+	(meta as Record<string, unknown>).seriesOrder = undefined;
 	seriesInputValue.value = "";
 	showSeriesSuggestions.value = false;
 }
@@ -960,8 +955,9 @@ function onSeriesInputBlur() {
 		showSeriesSuggestions.value = false;
 	}, 150);
 }
-function removeSeries(s: string) {
-	meta.series = meta.series.filter((x) => x !== s);
+function removeSeries() {
+	meta.series = [];
+	(meta as Record<string, unknown>).seriesOrder = undefined;
 }
 function syncTitleFromFirstH1() {
 	const md = getBodyContent();
@@ -1426,6 +1422,9 @@ function loadFromApi(): Promise<void> {
 					(meta as Record<string, unknown>)[key] = val;
 				}
 			});
+			if (Array.isArray(meta.series) && meta.series.length > 1) {
+				meta.series = [meta.series[0]];
+			}
 			nextTick(() => {
 				cachedMetaJson.value = serializeMeta();
 				lastSavedMetaJson.value = cachedMetaJson.value;
