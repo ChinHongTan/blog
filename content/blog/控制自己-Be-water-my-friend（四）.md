@@ -6,8 +6,6 @@ edited_at: 2026-03-30T01:04:27.769Z
 author: hibiki12141132
 path: /blog/控制自己-Be-water-my-friend（四）
 featured_image: /images/uploads/1773983954366-IMG_20200722_231036.jpg
-series:
-  - Motor Control
 ---
 
 很好各位同學 假如你們看完剛剛三篇一定是對動作控制稍微理解\

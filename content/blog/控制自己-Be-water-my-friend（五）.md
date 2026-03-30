@@ -6,8 +6,6 @@ edited_at: 2026-03-30T01:04:39.149Z
 author: hibiki12141132
 path: /blog/控制自己-Be-water-my-friend（五）
 featured_image: /images/uploads/1773985655349-___.jpg
-series:
-  - Motor Control
 ---
 
 書接上回\

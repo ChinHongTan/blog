@@ -6,8 +6,6 @@ edited_at: 2026-03-30T01:06:09.179Z
 author: hibiki12141132
 path: /blog/中樞理論學派（一）CPG
 featured_image: /images/uploads/1774056557316-EhtmqMpUcAIrzEc.jpg
-series:
-  - Motor Control
 ---
 
 中樞理論與剛剛的周圍理論是相反的\

@@ -6,8 +6,6 @@ edited_at: 2026-03-30T03:47:03.084Z
 author: hibiki12141132
 path: /blog/腦性痲痺-CP
 featured_image: /images/uploads/1774842345403-129630217_p0_master1200.jpg
-series:
-  - 小兒物治
 tags:
   - 小兒PT
 ---

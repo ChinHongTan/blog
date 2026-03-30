@@ -6,8 +6,6 @@ edited_at: 2026-03-30T01:03:47.364Z
 author: hibiki12141132
 path: /blog/控制自己-Be-water-my-friend（二）
 featured_image: /images/uploads/1773981453970-IMG_20200616_135133.jpg
-series:
-  - Motor Control
 ---
 
 上回說了個體本身對動作產生的影響會怎樣

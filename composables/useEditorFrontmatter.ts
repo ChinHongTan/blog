@@ -4,9 +4,7 @@ interface PostMeta {
 	date: string;
 	edited_at: string;
 	author: string;
-	path: string;
-	series: string[];
-	seriesOrder?: number;
+	path: string; number;
 	tags: string[];
 	featured_image: string;
 	pinned?: boolean;
@@ -34,10 +32,6 @@ export function buildPostFrontmatter(meta: PostMeta): string {
 	if (meta.featured_image)
 		lines.push(`featured_image: ${meta.featured_image}`);
 	if (meta.pinned) lines.push("pinned: true");
-	if (meta.seriesOrder !== undefined)
-		lines.push(`seriesOrder: ${meta.seriesOrder}`);
-	if (meta.series && meta.series.length)
-		lines.push(`series:\n  - ${meta.series.join("\n  - ")}`);
 	if (meta.tags && meta.tags.length)
 		lines.push(`tags:\n  - ${meta.tags.join("\n  - ")}`);
 	lines.push("---");

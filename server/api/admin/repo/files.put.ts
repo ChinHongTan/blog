@@ -1,7 +1,6 @@
 import { readBody } from "h3";
 import {
 	extractFrontmatterAuthor,
-	isOnlyFrontmatterChange,
 	getOctokit,
 	getRepoBranch,
 	getRepoOwnerRepo,
@@ -76,19 +75,11 @@ export default defineEventHandler(async (event) => {
 				// file not found is fine for create flow
 			}
 			if (existingAuthor && existingAuthor !== me) {
-				// Check if only allowed properties were changed (series, seriesOrder)
-				const isSeriesOnly = isOnlyFrontmatterChange(
-					content,
-					rawExistingContent,
-					["series", "seriesOrder"],
-				);
-				if (!isSeriesOnly) {
-					throw createError({
-						statusCode: 403,
-						message: "You can only update your own posts",
-					});
-				}
-			}
+                                throw createError({
+                                        statusCode: 403,
+                                        message: "You can only update your own posts",
+                                });
+                        }
 			if (!existingAuthor && !incomingAuthor) {
 				throw createError({
 					statusCode: 400,
