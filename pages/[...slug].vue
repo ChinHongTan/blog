@@ -98,7 +98,11 @@ const { data: page } = await useAsyncData(route.path, async () => {
 		}
 	}
 
-	return null;
+	throw createError({
+		statusCode: 404,
+		statusMessage: "Page Not Found",
+		fatal: true,
+	});
 });
 
 // Determine if this is a blog post (has date and author)
@@ -589,7 +593,7 @@ onMounted(() => {
 							v-if="isBlogPost && page.featured_image"
 							class="featured-hero"
 						>
-							<img :src="page.featured_image" :alt="page.title" >
+							<img :src="page.featured_image" :alt="page.title" />
 							<div class="hero-title-wrap">
 								<h1 class="post-title hero-title">
 									{{ page.title }}
@@ -623,7 +627,7 @@ onMounted(() => {
 									:src="authorAvatar"
 									:alt="authorDisplayName"
 									class="author-avatar"
-								>
+								/>
 								<span class="author-name">{{
 									authorDisplayName
 								}}</span>
@@ -692,11 +696,7 @@ onMounted(() => {
 					</header>
 
 					<div class="post-content">
-						<ContentRenderer :value="page">
-							<div class="nuxt-content">
-								<ContentRendererMarkdown :value="page" />
-							</div>
-						</ContentRenderer>
+						<ContentRenderer :value="page" class="nuxt-content" />
 					</div>
 
 					<!-- Post Footer -->
