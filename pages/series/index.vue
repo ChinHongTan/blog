@@ -6,6 +6,10 @@ const { data: posts } = useAsyncData<BlogCollectionItem[]>("series-posts", () =>
 	queryCollection("blog").order("date", "DESC").all()
 );
 
+const { data: seriesData } = useAsyncData("series-index-data", () =>
+	queryCollection("series").first()
+);
+
 // Fetch author directory for avatars
 const { data: authorsData } = useAsyncData("series-index-authors", () =>
 	queryCollection("authors").all()
@@ -28,48 +32,82 @@ function fallbackAvatar(label: string, size = 32) {
 	return `https://placehold.co/${size}x${size}/38bdf8/ffffff?text=${initial}`;
 }
 
+function getPostStem(
+	post: { stem?: string; id?: string; path?: string } | null | undefined,
+): string {
+	let s = post?.stem || post?.id || post?.path || "";
+	s = s.replace(/\.md$/, "");
+	s = s.replace(/^(?:\/?(?:content\/)?blog\/)+/, "");
+	s = s.replace(/^\//, "");
+	return s;
+}
+
+const postsByStem = computed(() => {
+	const map = new Map<string, BlogCollectionItem>();
+	(posts.value ?? []).forEach((post) => {
+		const stem = getPostStem(post);
+		if (stem) map.set(stem, post);
+	});
+	return map;
+});
+
+function parseDateToTimestamp(input: unknown): number {
+	const ts = new Date(String(input ?? "")).getTime();
+	return Number.isFinite(ts) ? ts : 0;
+}
+
 // Aggregate all unique series with their article counts and metadata
 const seriesList = computed(() => {
-	const seriesMap = new Map<string, {
-		name: string;
-		count: number;
-		latestDate: string;
-		authors: Set<string>;
-		featuredImages: string[];
-		description?: string;
-	}>();
+	const configuredSeries = seriesData.value?.series ?? {};
+	return Object.entries(configuredSeries)
+		.map(([name, stems]) => {
+			const relatedPosts = stems
+				.map((stem) => postsByStem.value.get(stem))
+				.filter((post): post is BlogCollectionItem => !!post);
 
-	(posts.value ?? []).forEach((post) => {
-		if (Array.isArray(post.series)) {
-			post.series.forEach((seriesName: string) => {
-				const existing = seriesMap.get(seriesName);
-				if (existing) {
-					existing.count++;
-					if (post.author) existing.authors.add(post.author);
-					if (post.featured_image && !existing.featuredImages.includes(post.featured_image)) {
-						existing.featuredImages.push(post.featured_image);
-					}
-					if (post.date > existing.latestDate) {
-						existing.latestDate = post.date;
-					}
-				} else {
-					const authors = new Set<string>();
-					if (post.author) authors.add(post.author);
-					seriesMap.set(seriesName, {
-						name: seriesName,
-						count: 1,
-						latestDate: post.date,
-						authors,
-						featuredImages: post.featured_image ? [post.featured_image] : [],
-						description: post.description,
-					});
+			const authors = new Set<string>();
+			const featuredImages: string[] = [];
+			let latestTimestamp = 0;
+			let latestDate = "";
+			let description: string | undefined;
+
+			relatedPosts.forEach((post) => {
+				if (post.author) authors.add(post.author);
+				if (
+					post.featured_image &&
+					!featuredImages.includes(post.featured_image)
+				) {
+					featuredImages.push(post.featured_image);
+				}
+
+				const ts = parseDateToTimestamp(post.date);
+				if (ts > latestTimestamp) {
+					latestTimestamp = ts;
+					latestDate = String(post.date ?? "");
+				}
+
+				if (!description && post.description) {
+					description = post.description;
 				}
 			});
-		}
-	});
 
-	return Array.from(seriesMap.values())
-		.sort((a, b) => b.latestDate.localeCompare(a.latestDate));
+			return {
+				name,
+				count: relatedPosts.length,
+				latestDate,
+				authors,
+				featuredImages,
+				description,
+			};
+		})
+		.filter((series) => series.count > 0)
+		.sort((a, b) => {
+			const timeDiff =
+				parseDateToTimestamp(b.latestDate) -
+				parseDateToTimestamp(a.latestDate);
+			if (timeDiff !== 0) return timeDiff;
+			return a.name.localeCompare(b.name);
+		});
 });
 
 useHead({

@@ -35,6 +35,10 @@ const { data: posts, refresh: refreshPosts } = await useAsyncData<
 	BlogCollectionItem[]
 >("posts", () => queryCollection("blog").order("date", "DESC").all());
 
+const { data: seriesData } = await useAsyncData("series-global-data", () =>
+	queryCollection("series").first(),
+);
+
 const { data: authors, refresh: refreshAuthors } = await useAsyncData(
 	"authors",
 	() => queryCollection("authors").all(),
@@ -73,6 +77,45 @@ function fallbackAvatar(label: string, size = 64) {
 	const safeLabel = label?.trim();
 	const initial = (safeLabel ? safeLabel[0] : "A")?.toUpperCase() ?? "A";
 	return `https://placehold.co/${size}x${size}/38bdf8/ffffff?text=${initial}`;
+}
+
+function getPostStem(
+	post: { stem?: string; id?: string; path?: string } | null | undefined,
+): string {
+	let s = post?.stem || post?.id || post?.path || "";
+	s = s.replace(/\.md$/, "");
+	s = s.replace(/^(?:\/?(?:content\/)?blog\/)+/, "");
+	s = s.replace(/^\//, "");
+	return s;
+}
+
+const seriesStemToNames = computed(() => {
+	const mapping = new Map<string, Set<string>>();
+	const seriesMap = seriesData.value?.series ?? {};
+
+	Object.entries(seriesMap).forEach(([seriesName, stems]) => {
+		stems.forEach((stem) => {
+			const existing = mapping.get(stem);
+			if (existing) {
+				existing.add(seriesName);
+				return;
+			}
+			mapping.set(stem, new Set([seriesName]));
+		});
+	});
+
+	return mapping;
+});
+
+function getSeriesNamesForPost(post: {
+	stem?: string;
+	id?: string;
+	path?: string;
+}) {
+	const stem = getPostStem(post);
+	if (!stem) return [];
+	const mappedNames = seriesStemToNames.value.get(stem);
+	return mappedNames ? Array.from(mappedNames) : [];
 }
 
 function enrichPost(post: BlogCollectionItem, path: string): DisplayPost {
@@ -180,8 +223,9 @@ const filteredPosts = computed<DisplayPost[]>(() => {
 	if (seriesFilter.value) {
 		filtered = filtered.filter(
 			(post) =>
-				Array.isArray(post.series) &&
-				post.series.includes(seriesFilter.value as string),
+				getSeriesNamesForPost(post).includes(
+					seriesFilter.value as string,
+				),
 		);
 	}
 
@@ -460,11 +504,9 @@ const totalTags = computed(() => {
 });
 
 const totalSeries = computed(() => {
-	const series = new Set<string>();
+	const series = new Set<string>(Object.keys(seriesData.value?.series ?? {}));
 	preparedPosts.value.forEach((post) => {
-		if (Array.isArray(post.series)) {
-			post.series.forEach((s) => series.add(s));
-		}
+		getSeriesNamesForPost(post).forEach((s) => series.add(s));
 	});
 	return series.size;
 });
@@ -484,9 +526,7 @@ const selectedAuthorSummary = computed(() => {
 		if (Array.isArray(post.tags)) {
 			post.tags.forEach((tag) => authorTags.add(tag));
 		}
-		if (Array.isArray(post.series)) {
-			post.series.forEach((s) => authorSeries.add(s));
-		}
+		getSeriesNamesForPost(post).forEach((s) => authorSeries.add(s));
 	});
 
 	return {

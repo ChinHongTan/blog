@@ -1,4 +1,21 @@
-import { fileURLToPath } from 'url';
+const remarkDirectiveFallbackPlugin = new URL(
+	"./remark-directive-fallback.mjs",
+	import.meta.url,
+).href;
+const remarkInfoBoxPlugin = new URL("./remark-info-box.mjs", import.meta.url)
+	.href;
+const remarkHeadingIdPlugin = new URL(
+	"./remark-heading-id.mjs",
+	import.meta.url,
+).href;
+const rehypeFigureCaptionPlugin = new URL(
+	"./rehype-figure-caption.mjs",
+	import.meta.url,
+).href;
+const rehypeSpanAttributesPlugin = new URL(
+	"./rehype-span-attributes.mjs",
+	import.meta.url,
+).href;
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -89,14 +106,14 @@ export default defineNuxtConfig({
 				},
 				remarkPlugins: {
 					"remark-directive": {},
-					[fileURLToPath(new URL('./remark-directive-fallback.mjs', import.meta.url))]: {},
-					[fileURLToPath(new URL('./remark-info-box.mjs', import.meta.url))]: {},
-					[fileURLToPath(new URL('./remark-heading-id.mjs', import.meta.url))]: {},
+					[remarkDirectiveFallbackPlugin]: {},
+					[remarkInfoBoxPlugin]: {},
+					[remarkHeadingIdPlugin]: {},
 					"remark-math": {},
 				},
 				rehypePlugins: {
-					[fileURLToPath(new URL('./rehype-figure-caption.mjs', import.meta.url))]: {},
-					[fileURLToPath(new URL('./rehype-span-attributes.mjs', import.meta.url))]: {},
+					[rehypeFigureCaptionPlugin]: {},
+					[rehypeSpanAttributesPlugin]: {},
 					"rehype-mathjax": {},
 				},
 			},
