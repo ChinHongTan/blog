@@ -2,10 +2,12 @@
 title: Motor Control（三）
 description: 來給對PT有興趣的路人們簡單講解一下學渣對這門課的理解
 date: 2026-03-20T04:42
-edited_at: 2026-03-21T12:54:00.846Z
+edited_at: 2026-03-30T01:04:15.976Z
 author: hibiki12141132
 path: /blog/控制自己-Be-water-my-friend（三）
 featured_image: /images/uploads/1773982753027-IMG_20200623_142022.jpg
+series:
+  - Motor Control
 ---
 
 終於來到了最後的環境一類了\
