@@ -113,7 +113,7 @@ onUnmounted(() => {
 	justify-content: space-between;
 	gap: 1rem;
 	font-size: 0.78rem;
-	color: var(--color-text-primary);
+	color: #e5e7eb;
 }
 
 .footer-col {
@@ -137,11 +137,11 @@ onUnmounted(() => {
 
 .footer-copyright {
 	margin: 0;
-	color: var(--color-text-primary);
+	color: #ffffff;
 }
 
 .footer-cc-link {
-	color: var(--color-text-secondary);
+	color: #e5e7eb;
 	text-decoration: none;
 	transition: color 0.2s ease;
 }
@@ -157,7 +157,7 @@ onUnmounted(() => {
 }
 
 .footer-links a {
-	color: var(--color-text-primary);
+	color: #ffffff;
 	text-decoration: none;
 	transition: color var(--transition-base);
 }
@@ -167,7 +167,7 @@ onUnmounted(() => {
 }
 
 .footer-links .separator {
-	color: var(--color-text-secondary);
+	color: #9ca3af;
 	font-size: 0.6rem;
 }
 
@@ -185,7 +185,7 @@ onUnmounted(() => {
 
 .ticker-num {
 	font-weight: 600;
-	color: var(--color-primary);
+	color: #38bdf8;
 	min-width: 1.3em;
 	text-align: right;
 }
@@ -193,6 +193,7 @@ onUnmounted(() => {
 .ticker-unit {
 	opacity: 0.7;
 	margin-right: 0.1rem;
+	color: #e5e7eb;
 }
 
 .vercount-stats {
@@ -209,17 +210,17 @@ onUnmounted(() => {
 
 .vercount-num {
 	font-weight: 600;
-	color: var(--color-text-secondary);
+	color: #ffffff;
 }
 
 .vercount-sep {
-	color: var(--color-text-tertiary);
+	color: #9ca3af;
 	font-size: 0.55rem;
 }
 
 .powered-label {
 	font-size: 0.7rem;
-	color: var(--color-text-secondary);
+	color: #d1d5db;
 }
 
 .service-badges {

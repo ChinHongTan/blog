@@ -220,7 +220,7 @@ watch([tagFilter, yearFilter, authorFilter, seriesFilter, searchQuery], () => {
 });
 
 const paginatedPosts = computed(() => {
-	const start = 0;
+	const start = (currentPage.value - 1) * POSTS_PER_PAGE;
 	const end = currentPage.value * POSTS_PER_PAGE;
 	return filteredPosts.value.slice(start, end);
 });
@@ -452,6 +452,94 @@ const postsGridClass = computed(() => ({
 
 function loadMore() {
 	currentPage.value++;
+}
+
+const totalPages = computed(() => {
+	return Math.ceil(filteredPosts.value.length / POSTS_PER_PAGE);
+});
+
+const paginationItems = computed(() => {
+	const total = totalPages.value;
+	if (total <= 1) return [];
+	
+	const items: (number | string)[] = [];
+	const maxVisiblePages = 7;
+	const halfWindow = Math.floor(maxVisiblePages / 2);
+	
+	// Always add first page
+	items.push(1);
+	
+	let start = Math.max(2, currentPage.value - halfWindow);
+	let end = Math.min(total - 1, currentPage.value + halfWindow);
+	
+	// Adjust window if near start or end
+	if (currentPage.value <= halfWindow + 1) {
+		end = Math.min(total - 1, maxVisiblePages - 1);
+	} else if (currentPage.value >= total - halfWindow) {
+		start = Math.max(2, total - maxVisiblePages + 2);
+	}
+	
+	// Add ellipsis if needed
+	if (start > 2) {
+		items.push('...');
+	}
+	
+	// Add page numbers
+	for (let i = start; i <= end; i++) {
+		items.push(i);
+	}
+	
+	// Add ellipsis and last page if needed
+	if (end < total - 1) {
+		items.push('...');
+	}
+	if (total > 1) {
+		items.push(total);
+	}
+	
+	return items;
+});
+
+async function goToPage(page: number) {
+	if (page >= 1 && page <= totalPages.value && page !== currentPage.value) {
+		const token = ++transitionToken;
+		clearTransitionTimers();
+
+		if (prefersReducedMotion.value) {
+			currentPage.value = page;
+			await nextTick();
+			const section = document.getElementById("posts-list");
+			if (section) {
+				section.scrollIntoView({ behavior: "instant", block: "start" });
+			} else {
+				window.scrollTo({ top: 0, behavior: "instant" });
+			}
+			renderedPosts.value = [...paginatedPosts.value];
+			transitionPhase.value = "idle";
+			return;
+		}
+
+		transitionPhase.value = "exiting";
+		if (!(await waitForTransition(EXIT_DURATION_MS, token))) return;
+
+		currentPage.value = page;
+
+		await nextTick();
+		const section = document.getElementById("posts-list");
+		if (section) {
+			section.scrollIntoView({ behavior: "instant", block: "start" });
+			/* Fallback adjustment if nav height obscures it: done via css scroll-margin-top */
+		} else {
+			window.scrollTo({ top: 0, behavior: "instant" });
+		}
+
+		if (token !== transitionToken) return;
+		renderedPosts.value = [...paginatedPosts.value];
+		transitionPhase.value = "entering";
+		if (!(await waitForTransition(ENTER_DURATION_MS, token))) return;
+
+		transitionPhase.value = "idle";
+	}
 }
 
 const activeFilter = computed(() => {
@@ -1055,15 +1143,49 @@ onBeforeUnmount(() => {
 						</article>
 					</div>
 					<div
-						v-if="hasMorePosts && transitionPhase === 'idle'"
-						class="load-more-wrap"
+						v-if="totalPages > 1 && transitionPhase === 'idle'"
+						class="pagination-wrap"
 					>
 						<button
+							v-if="currentPage > 1"
 							type="button"
-							class="load-more-btn"
-							@click="loadMore"
+							class="pagination-btn pagination-prev"
+							@click="goToPage(currentPage - 1)"
+							aria-label="前一頁"
 						>
-							載入更多文章
+							<Icon name="heroicons:chevron-left" size="16" />
+						</button>
+
+						<button
+							v-for="item in paginationItems"
+							:key="item"
+							type="button"
+							:class="[
+								'pagination-btn',
+								{
+									'pagination-num': typeof item === 'number',
+									'pagination-ellipsis': item === '...',
+									'is-current': item === currentPage,
+									'is-disabled': item === '...',
+								},
+							]"
+							:disabled="item === '...'"
+							@click="
+								typeof item === 'number' ?
+									goToPage(item) : null
+							"
+						>
+							{{ item }}
+						</button>
+
+						<button
+							v-if="currentPage < totalPages"
+							type="button"
+							class="pagination-btn pagination-next"
+							@click="goToPage(currentPage + 1)"
+							aria-label="下一頁"
+						>
+							<Icon name="heroicons:chevron-right" size="16" />
 						</button>
 					</div>
 
@@ -1214,6 +1336,8 @@ onBeforeUnmount(() => {
 .blog-section {
 	background: transparent;
 	padding: 2rem 2rem 0;
+	scroll-margin-top: calc(var(--header-height, 64px) + 0.5rem);
+	min-height: 80vh;
 }
 
 .blog-layout {
@@ -1384,6 +1508,12 @@ onBeforeUnmount(() => {
 	display: flex;
 	flex-direction: column;
 	gap: 0.55rem;
+}
+
+.author-panel .sidebar-box-title {
+	text-align: center;
+	padding-left: 0;
+	border-left: none;
 }
 
 .author-avatar {
@@ -1968,6 +2098,75 @@ onBeforeUnmount(() => {
 	.sidebar-box {
 		transition-duration: 0.01ms !important;
 	}
+}
+
+.pagination-wrap {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 0.5rem;
+	margin-top: 2rem;
+	flex-wrap: wrap;
+}
+
+.pagination-btn {
+	padding: 0.5rem 0.75rem;
+	min-width: 2.5rem;
+	height: 2.5rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.9rem;
+	font-weight: 500;
+	color: var(--color-text-primary);
+	background: var(--color-bg-primary);
+	border: 1px solid var(--color-border-light);
+	border-radius: var(--radius-md);
+	cursor: pointer;
+	transition: all var(--transition-base);
+}
+
+.pagination-btn:hover:not(:disabled) {
+	background: var(--color-bg-blue-tint);
+	border-color: var(--color-primary);
+	color: var(--color-primary-dark);
+}
+
+.pagination-btn:disabled {
+	cursor: not-allowed;
+	opacity: 0.6;
+}
+
+.pagination-btn.is-current {
+	background: var(--color-primary);
+	color: var(--color-white);
+	border-color: var(--color-primary);
+	font-weight: 600;
+}
+
+.pagination-btn.is-current:hover {
+	background: var(--color-primary-dark);
+	border-color: var(--color-primary-dark);
+}
+
+.pagination-ellipsis {
+	padding: 0.5rem 0.25rem;
+	cursor: default;
+	background: transparent;
+	border: none;
+	color: var(--color-text-tertiary);
+	font-weight: 400;
+}
+
+.pagination-ellipsis:hover {
+	background: transparent;
+	border: none;
+	color: var(--color-text-tertiary);
+}
+
+.pagination-prev,
+.pagination-next {
+	padding: 0.5rem;
 }
 
 .load-more-wrap {
