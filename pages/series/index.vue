@@ -246,9 +246,9 @@ useHead({
 	flex-direction: column;
 	background: color-mix(in srgb, var(--color-bg-primary) 60%, transparent);
 	border: 1px solid var(--color-border-light);
-	border-radius: 12px;
+	border-radius: var(--radius-lg);
 	overflow: hidden;
-	transition: all 0.3s ease;
+	transition: all var(--transition-slow);
 	box-shadow: var(--shadow-md);
 	backdrop-filter: saturate(1.08) blur(10px);
 	-webkit-backdrop-filter: saturate(1.08) blur(10px);
@@ -275,7 +275,7 @@ useHead({
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
-	transition: transform 0.3s ease;
+	transition: transform var(--transition-slow);
 }
 
 .series-card:hover .series-image img {
@@ -312,7 +312,7 @@ useHead({
 	background: color-mix(in srgb, var(--color-bg-primary) 80%, transparent);
 	backdrop-filter: blur(8px);
 	border: 1px solid color-mix(in srgb, var(--color-border-light) 60%, transparent);
-	border-radius: 999px;
+	border-radius: var(--radius-pill);
 	font-size: 0.78rem;
 	font-weight: 600;
 	color: var(--color-primary-dark);
@@ -365,7 +365,7 @@ useHead({
 .series-author-avatar {
 	width: 32px;
 	height: 32px;
-	border-radius: 50%;
+	border-radius: var(--radius-full);
 	object-fit: cover;
 	border: 2px solid var(--color-bg-primary);
 	margin-left: -8px;
@@ -413,9 +413,9 @@ useHead({
 	font-weight: 600;
 	color: var(--color-primary-dark);
 	padding: 0.2rem 0.45rem;
-	border-radius: 8px;
+	border-radius: var(--radius-md);
 	white-space: nowrap;
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 }
 
 .series-card:hover .series-readmore {
@@ -423,7 +423,7 @@ useHead({
 }
 
 .series-readmore :deep(svg) {
-	transition: transform 0.2s ease;
+	transition: transform var(--transition-base);
 }
 
 .series-card:hover .series-readmore :deep(svg) {

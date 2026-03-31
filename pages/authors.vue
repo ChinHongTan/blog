@@ -154,13 +154,13 @@ useHead({
 	position: relative;
 	background: var(--panel-bg);
 	border: 1px solid var(--color-border-light);
-	border-radius: 14px;
+	border-radius: var(--radius-xl);
 	padding: 2rem 1.5rem;
 	box-shadow: var(--shadow-sm);
 	backdrop-filter: saturate(1.08) blur(var(--glass-blur));
 	text-decoration: none;
 	color: inherit;
-	transition: all 0.3s ease;
+	transition: all var(--transition-slow);
 }
 
 .author-card:hover {
@@ -174,7 +174,7 @@ useHead({
 	top: 1rem;
 	right: 1rem;
 	color: var(--color-text-tertiary);
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 }
 
 .author-card:hover .author-card-arrow {
@@ -186,7 +186,7 @@ useHead({
 	width: 90px;
 	height: 90px;
 	margin-bottom: 1rem;
-	border-radius: 50%;
+	border-radius: var(--radius-full);
 	overflow: hidden;
 	border: 3px solid var(--color-primary);
 	box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
@@ -210,7 +210,7 @@ useHead({
 		var(--color-primary) 0%,
 		var(--color-accent) 100%
 	);
-	color: white;
+	color: var(--color-white);
 	font-size: 2.2rem;
 	font-weight: 700;
 }
@@ -255,7 +255,7 @@ useHead({
 	background: color-mix(in srgb, var(--color-bg-secondary) 70%, transparent);
 	border: 1px solid var(--color-border-light);
 	padding: 0.2rem 0.6rem;
-	border-radius: 999px;
+	border-radius: var(--radius-pill);
 }
 
 .author-social {
@@ -270,7 +270,7 @@ useHead({
 	justify-content: center;
 	width: 32px;
 	height: 32px;
-	border-radius: 50%;
+	border-radius: var(--radius-full);
 	background: var(--color-bg-tertiary);
 	color: var(--color-text-secondary);
 	cursor: default;

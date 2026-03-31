@@ -113,7 +113,7 @@ onUnmounted(() => {
 	justify-content: space-between;
 	gap: 1rem;
 	font-size: 0.78rem;
-	color: var(--color-text-secondary);
+	color: var(--color-text-primary);
 }
 
 .footer-col {
@@ -137,7 +137,7 @@ onUnmounted(() => {
 
 .footer-copyright {
 	margin: 0;
-	color: var(--color-text-secondary);
+	color: var(--color-text-primary);
 }
 
 .footer-cc-link {
@@ -157,17 +157,17 @@ onUnmounted(() => {
 }
 
 .footer-links a {
-	color: var(--color-text-secondary);
+	color: var(--color-text-primary);
 	text-decoration: none;
-	transition: color 0.2s ease;
+	transition: color var(--transition-base);
 }
 
 .footer-links a:hover {
-	color: var(--color-primary-dark);
+	color: var(--color-primary);
 }
 
 .footer-links .separator {
-	color: var(--color-text-tertiary);
+	color: var(--color-text-secondary);
 	font-size: 0.6rem;
 }
 
@@ -247,19 +247,30 @@ onUnmounted(() => {
 	height: 15px;
 	width: auto;
 	object-fit: contain;
-	display: block;
+	transition: opacity var(--transition-base);
+}
+
+.service-link {
+	position: relative;
+}
+
+.logo-light {
+	opacity: 1;
 }
 
 .logo-dark {
-	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	opacity: 0;
 }
 
 html.dark .logo-light {
-	display: none;
+	opacity: 0;
 }
 
 html.dark .logo-dark {
-	display: block;
+	opacity: 1;
 }
 
 @media (max-width: 768px) {

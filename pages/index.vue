@@ -1169,7 +1169,7 @@ onBeforeUnmount(() => {
 	font-weight: 800;
 	line-height: 1.08;
 	letter-spacing: 0.02em;
-	color: #f7fbff;
+	color: var(--color-white-soft);
 	text-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
@@ -1178,7 +1178,7 @@ onBeforeUnmount(() => {
 	font-size: clamp(1rem, 2vw, 1.35rem);
 	line-height: 1.8;
 	min-height: 2.2em;
-	color: #e6eef9;
+	color: var(--color-white-muted);
 	text-shadow: 0 6px 18px rgba(0, 0, 0, 0.38);
 }
 
@@ -1187,7 +1187,7 @@ onBeforeUnmount(() => {
 	display: inline-block;
 	width: 1px;
 	height: 1.1em;
-	background: #f8fcff;
+	background: var(--color-white-soft);
 	margin-left: 0.25rem;
 	animation: blink 1s step-end infinite;
 	vertical-align: text-bottom;
@@ -1200,7 +1200,7 @@ onBeforeUnmount(() => {
 .scroll-indicator {
 	border: none;
 	background: transparent;
-	color: #e6eef9;
+	color: var(--color-white-muted);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -1236,13 +1236,13 @@ onBeforeUnmount(() => {
 .sidebar-box {
 	background: var(--panel-bg);
 	border: 1px solid var(--color-border-light);
-	border-radius: 14px;
+	border-radius: var(--radius-xl);
 	padding: 1rem;
 	box-shadow: var(--shadow-sm);
 	backdrop-filter: saturate(1.08) blur(var(--glass-blur));
 	transition:
-		box-shadow 0.3s ease,
-		transform 0.3s ease;
+		box-shadow var(--transition-slow),
+		transform var(--transition-slow);
 }
 
 .sidebar-box:hover {
@@ -1301,7 +1301,7 @@ onBeforeUnmount(() => {
 .site-avatar {
 	width: 84px;
 	height: 84px;
-	border-radius: 50%;
+	border-radius: var(--radius-full);
 	object-fit: cover;
 	border: 2px solid var(--color-primary-light);
 	margin-bottom: 0.6rem;
@@ -1338,15 +1338,15 @@ onBeforeUnmount(() => {
 	justify-content: center;
 	width: 2rem;
 	height: 2rem;
-	border-radius: 50%;
+	border-radius: var(--radius-full);
 	background-color: var(--color-bg-secondary);
 	color: var(--color-text-secondary);
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 }
 
 .social-link:hover {
 	background-color: var(--color-primary);
-	color: white;
+	color: var(--color-white);
 	transform: translateY(-2px);
 }
 
@@ -1361,7 +1361,7 @@ onBeforeUnmount(() => {
 	flex-direction: column;
 	align-items: center;
 	gap: 0.1rem;
-	transition: transform 0.2s ease;
+	transition: transform var(--transition-base);
 }
 
 .stat-box:hover {
@@ -1389,10 +1389,10 @@ onBeforeUnmount(() => {
 .author-avatar {
 	width: 30px;
 	height: 30px;
-	border-radius: 50%;
+	border-radius: var(--radius-full);
 	object-fit: cover;
 	border: 1px solid var(--color-border-light);
-	transition: transform 0.2s ease;
+	transition: transform var(--transition-base);
 }
 
 .authors-grid {
@@ -1409,7 +1409,7 @@ onBeforeUnmount(() => {
 	background: transparent;
 	font: inherit;
 	cursor: pointer;
-	border-radius: 8px;
+	border-radius: var(--radius-md);
 	position: relative;
 	transition:
 		opacity 0.2s ease,
@@ -1462,7 +1462,7 @@ onBeforeUnmount(() => {
 	background: #0b1120;
 	color: #f8fafc;
 	padding: 0.35rem 0.65rem;
-	border-radius: 6px;
+	border-radius: var(--radius-sm);
 	font-size: 0.76rem;
 	font-weight: 600;
 	white-space: nowrap;
@@ -1513,7 +1513,7 @@ onBeforeUnmount(() => {
 	font-weight: 600;
 	color: var(--color-primary);
 	text-decoration: none;
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 }
 
 .post-readmore:hover {
@@ -1521,7 +1521,7 @@ onBeforeUnmount(() => {
 }
 
 .post-readmore :deep(svg) {
-	transition: transform 0.2s ease; /* Transition on base state for smooth return */
+	transition: transform var(--transition-base); /* Transition on base state for smooth return */
 }
 
 .post-readmore:hover :deep(svg) {
@@ -1533,13 +1533,13 @@ onBeforeUnmount(() => {
 	text-decoration: none;
 	background: color-mix(in srgb, var(--color-primary) 8%, transparent);
 	padding: 0.1rem 0.5rem;
-	border-radius: 4px;
+	border-radius: var(--radius-xs);
 	border: none;
 	font-size: 0.85rem;
 	color: var(--color-primary);
 	font: inherit;
 	cursor: pointer;
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 	display: inline-block;
 }
 
@@ -1558,7 +1558,7 @@ onBeforeUnmount(() => {
 	padding: 0;
 	font: inherit;
 	cursor: pointer;
-	transition: opacity 0.2s ease;
+	transition: opacity var(--transition-base);
 }
 
 .post-author-link:hover .post-author-name {
@@ -1587,7 +1587,7 @@ onBeforeUnmount(() => {
 	padding: 0.4rem 0.8rem;
 	background: var(--color-bg-blue-tint);
 	border: 1px solid var(--color-primary-light);
-	border-radius: 999px;
+	border-radius: var(--radius-pill);
 	font-size: 0.82rem;
 	color: var(--color-primary-dark);
 	font-weight: 600;
@@ -1602,8 +1602,8 @@ onBeforeUnmount(() => {
 	padding: 0;
 	border: none;
 	background: var(--color-primary);
-	color: white;
-	border-radius: 999px;
+	color: var(--color-white);
+	border-radius: var(--radius-pill);
 	text-decoration: none;
 	cursor: pointer;
 }
@@ -1633,9 +1633,9 @@ onBeforeUnmount(() => {
 	flex-direction: column;
 	background: color-mix(in srgb, var(--color-bg-primary) 60%, transparent);
 	border: 1px solid var(--color-border-light);
-	border-radius: 12px;
+	border-radius: var(--radius-lg);
 	overflow: hidden;
-	transition: all 0.3s ease;
+	transition: all var(--transition-slow);
 	box-shadow: var(--shadow-md);
 	backdrop-filter: saturate(1.08) blur(10px);
 	-webkit-backdrop-filter: saturate(1.08) blur(10px);
@@ -1669,7 +1669,7 @@ onBeforeUnmount(() => {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
-	transition: transform 0.3s ease;
+	transition: transform var(--transition-slow);
 }
 
 .post-card:hover .post-image img {
@@ -1702,7 +1702,7 @@ onBeforeUnmount(() => {
 .post-author-avatar {
 	width: 32px;
 	height: 32px;
-	border-radius: 50%;
+	border-radius: var(--radius-full);
 	object-fit: cover;
 	border: 1px solid var(--color-border-light);
 }
@@ -1789,7 +1789,7 @@ onBeforeUnmount(() => {
 	color: var(--color-text-tertiary);
 	font-size: 0.88rem;
 	padding: 0.18rem 0.46rem;
-	border-radius: 999px;
+	border-radius: var(--radius-pill);
 	background: color-mix(in srgb, var(--color-bg-secondary) 70%, transparent);
 	border: 1px solid var(--color-border-light);
 	cursor: pointer;
@@ -1812,7 +1812,7 @@ onBeforeUnmount(() => {
 	text-decoration: none;
 	color: var(--color-primary-dark);
 	padding: 0.2rem 0.45rem;
-	border-radius: 8px;
+	border-radius: var(--radius-md);
 	white-space: nowrap;
 }
 
@@ -1955,9 +1955,9 @@ onBeforeUnmount(() => {
 	color: var(--color-text-primary);
 	background: var(--color-bg-primary);
 	border: 1px solid var(--color-border-light);
-	border-radius: 8px;
+	border-radius: var(--radius-md);
 	cursor: pointer;
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 }
 .load-more-btn:hover {
 	background: var(--color-bg-blue-tint);

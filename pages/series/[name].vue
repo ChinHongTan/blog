@@ -214,7 +214,7 @@ useHead({
 	color: var(--color-primary-dark);
 	text-decoration: none;
 	margin-bottom: 0.75rem;
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 }
 
 .breadcrumb:hover {
@@ -256,11 +256,11 @@ useHead({
 	align-items: stretch;
 	background: color-mix(in srgb, var(--color-bg-primary) 60%, transparent);
 	border: 1px solid var(--color-border-light);
-	border-radius: 14px;
+	border-radius: var(--radius-xl);
 	overflow: hidden;
 	text-decoration: none;
 	color: inherit;
-	transition: all 0.3s ease;
+	transition: all var(--transition-slow);
 	box-shadow: var(--shadow-sm);
 	backdrop-filter: saturate(1.08) blur(10px);
 	-webkit-backdrop-filter: saturate(1.08) blur(10px);
@@ -285,7 +285,7 @@ useHead({
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
-	transition: transform 0.3s ease;
+	transition: transform var(--transition-slow);
 }
 
 .article-card:hover .article-image img {
@@ -361,7 +361,7 @@ useHead({
 	background: color-mix(in srgb, var(--color-primary) 10%, transparent);
 	border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
 	padding: 0.12rem 0.5rem;
-	border-radius: 999px;
+	border-radius: var(--radius-pill);
 }
 
 .article-author {
@@ -376,7 +376,7 @@ useHead({
 .author-tiny-avatar {
 	width: 20px;
 	height: 20px;
-	border-radius: 50%;
+	border-radius: var(--radius-full);
 	object-fit: cover;
 	border: 1px solid var(--color-border-light);
 }
@@ -400,7 +400,7 @@ useHead({
 	background: color-mix(in srgb, var(--color-bg-secondary) 70%, transparent);
 	border: 1px solid var(--color-border-light);
 	padding: 0.12rem 0.45rem;
-	border-radius: 999px;
+	border-radius: var(--radius-pill);
 }
 
 .article-arrow {
@@ -408,7 +408,7 @@ useHead({
 	align-items: center;
 	padding: 0 1rem;
 	color: var(--color-text-tertiary);
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 }
 
 .article-card:hover .article-arrow {

@@ -2,12 +2,43 @@
 
 /* CSS Variables for Light Theme */
 :root {
-    /* Colors */
-    --color-primary: #38bdf8;
-    --color-primary-dark: #0ea5e9;
-    --color-primary-light: #7dd3fc;
+    /* Colors — Option B: Starlit Cyan (refined palette) */
+    --color-primary: #0ea5e9;
+    --color-primary-dark: #0284c7;
+    --color-primary-light: #38bdf8;
     --color-accent: #fbbf24;
     --color-accent-dark: #f59e0b;
+
+    /* Extended palette for component use */
+    --color-cyan-50: #ecfeff;
+    --color-cyan-100: #cffafe;
+    --color-cyan-200: #a5f3fc;
+    --color-cyan-500: #06b6d4;
+    --color-slate-50: #f8fafc;
+    --color-slate-100: #f1f5f9;
+    --color-slate-200: #e2e8f0;
+    --color-slate-300: #cbd5e1;
+    --color-slate-400: #94a3b8;
+    --color-slate-500: #64748b;
+    --color-slate-600: #475569;
+    --color-slate-700: #334155;
+    --color-slate-800: #1e293b;
+    --color-slate-900: #0f172a;
+
+    /* Fixed colors (don't change with theme - for overlays, hero sections, etc.) */
+    --color-white: #ffffff;
+    --color-white-soft: #f8fafc;
+    --color-white-muted: #e2e8f0;
+    --color-black: #0f172a;
+    --color-black-soft: #1e293b;
+
+    /* Semantic status colors */
+    --color-success: #16a34a;
+    --color-success-light: #22c55e;
+    --color-warning: #eab308;
+    --color-warning-light: #facc15;
+    --color-danger: #dc2626;
+    --color-danger-light: #ef4444;
 
     /* Backgrounds */
     --color-bg-primary: #ffffff;
@@ -31,9 +62,9 @@
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
     --shadow-xl: 0 20px 32px -8px rgb(0 0 0 / 0.2);
 
-    /* Semantic status */
+    /* Semantic status boxes (info, success, warning, error) */
     --color-info-bg: #e0f2fe;
-    --color-info-border: #38bdf8;
+    --color-info-border: #0ea5e9;
     --color-info-text: #0c4a6e;
     --color-success-bg: #d1fae5;
     --color-success-border: #34d399;
@@ -45,12 +76,18 @@
     --color-error-border: #f87171;
     --color-error-text: #991b1b;
 
-    /* Radius and spacing scale */
+    /* Radius scale */
+    --radius-xs: 0.25rem;
     --radius-sm: 0.375rem;
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
     --radius-xl: 0.875rem;
-    --radius-pill: 999px;
+    --radius-2xl: 1rem;
+    --radius-full: 50%;
+    --radius-pill: 9999px;
+
+    /* Spacing scale */
+    --space-0: 0;
     --space-1: 0.25rem;
     --space-2: 0.5rem;
     --space-3: 0.75rem;
@@ -58,6 +95,40 @@
     --space-5: 1.25rem;
     --space-6: 1.5rem;
     --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+
+    /* Typography scale */
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 2rem;
+    --font-size-4xl: 2.5rem;
+
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    --line-height-tight: 1.3;
+    --line-height-normal: 1.6;
+    --line-height-relaxed: 1.75;
+
+    --letter-spacing-tight: -0.01em;
+    --letter-spacing-normal: 0;
+    --letter-spacing-wide: 0.025em;
+
+    /* Transition tokens (standardized to 3 speeds) */
+    --transition-fast: 0.15s ease;
+    --transition-base: 0.2s ease;
+    --transition-slow: 0.3s ease;
+
+    /* Code blocks (for non-Shiki fallback) */
+    --color-code-bg: #1e293b;
+    --color-code-text: #e2e8f0;
 
     /* Layers and overlays */
     --z-header: 100;
@@ -73,12 +144,12 @@
     --focus-ring-color: color-mix(in srgb, var(--color-primary) 68%, white);
     --focus-ring-offset: 2px;
 
-    /* Typography */
+    /* Typography families */
     --font-heading: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', 'Courier New', monospace;
 
-    /* Spacing */
+    /* Layout */
     --header-height: 70px;
     --sidebar-left-width: 280px;
     --sidebar-right-width: 260px;
@@ -114,37 +185,41 @@ html:root {
 
 /* Dark Theme Variables (applied when <html class="dark">) */
 html.dark {
-    /* Colors */
+    /* Colors — Option B: Starlit Cyan (dark mode) */
     --color-primary: #38bdf8;
-    /* keep brand */
     --color-primary-dark: #0ea5e9;
     --color-primary-light: #7dd3fc;
     --color-accent: #fbbf24;
     --color-accent-dark: #f59e0b;
 
+    /* Extended palette (keep same for consistency - use --color-bg-* for theming) */
+    --color-cyan-50: #ecfeff;
+    --color-cyan-100: #cffafe;
+    --color-cyan-200: #a5f3fc;
+    --color-cyan-500: #22d3ee;
+
+    /* Semantic status colors */
+    --color-success: #22c55e;
+    --color-success-light: #4ade80;
+    --color-warning: #facc15;
+    --color-warning-light: #fde047;
+    --color-danger: #ef4444;
+    --color-danger-light: #f87171;
+
     /* Backgrounds */
     --color-bg-primary: #0f172a;
-    /* slate-900 */
     --color-bg-secondary: #111827;
-    /* gray-900 */
     --color-bg-tertiary: #1f2937;
-    /* gray-800 */
     --color-bg-blue-tint: #082f49;
-    /* cyan-950 */
 
     /* Text */
     --color-text-primary: #e5e7eb;
-    /* gray-200 */
     --color-text-secondary: #cbd5e1;
-    /* slate-300 */
     --color-text-tertiary: #94a3b8;
-    /* slate-400 */
 
     /* Borders */
     --color-border-light: #334155;
-    /* slate-700 */
     --color-border-medium: #475569;
-    /* slate-600 */
     --color-border: var(--color-border-light);
 
     /* Shadows (slightly stronger in dark) */
@@ -153,7 +228,7 @@ html.dark {
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
     --shadow-xl: 0 20px 34px -8px rgb(0 0 0 / 0.55);
 
-    /* Semantic status */
+    /* Semantic status boxes */
     --color-info-bg: rgb(14 165 233 / 0.18);
     --color-info-border: #38bdf8;
     --color-info-text: #bae6fd;
@@ -169,7 +244,6 @@ html.dark {
 
     /* Glass UI */
     --panel-bg: rgba(15, 23, 42, 0.6);
-    /* slate-900 @ 0.6 */
 
     /* Layers and overlays */
     --overlay-bg: rgb(2 6 23 / 0.62);
@@ -330,7 +404,7 @@ html.dark .shiki span {
 /* Selection color */
 ::selection {
     background: var(--color-primary);
-    color: white;
+    color: var(--color-white);
 }
 
 /* Focus styles for accessibility */

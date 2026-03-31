@@ -41,17 +41,17 @@ const label = computed(() => theme.value === 'dark' ? '切換為淺色主題' : 
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, #f8fafc 70%, var(--color-bg-tertiary) 30%);
-  border: 1px solid color-mix(in srgb, #cbd5e1 70%, transparent);
-  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-slate-50) 70%, var(--color-bg-tertiary) 30%);
+  border: 1px solid color-mix(in srgb, var(--color-slate-300) 70%, transparent);
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
   box-shadow: inset 0 1px 3px rgb(148 163 184 / 0.25);
 }
 
 .theme-toggle:hover {
   border-color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 20%, #f8fafc 80%);
+  background: color-mix(in srgb, var(--color-primary) 20%, var(--color-slate-50) 80%);
   box-shadow: 0 3px 8px rgb(14 165 233 / 0.18);
 }
 
@@ -66,17 +66,17 @@ const label = computed(() => theme.value === 'dark' ? '切換為淺色主題' : 
 }
 
 .icon {
-  color: color-mix(in srgb, var(--color-text-tertiary) 65%, #64748b 35%);
+  color: color-mix(in srgb, var(--color-text-tertiary) 65%, var(--color-slate-500) 35%);
 }
 
 .knob {
   position: absolute;
   top: 2px;
   left: 2px;
-  background: color-mix(in srgb, #ffffff 90%, var(--color-bg-primary) 10%);
+  background: color-mix(in srgb, var(--color-bg-primary) 90%, var(--color-slate-50) 10%);
   border: 1px solid rgba(148, 163, 184, 0.55);
-  border-radius: 9999px;
-  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  border-radius: var(--radius-pill);
+  transition: transform var(--transition-base), background-color var(--transition-base), border-color var(--transition-base);
   box-shadow: 0 2px 6px rgb(148 163 184 / 0.35);
 }
 
@@ -107,13 +107,13 @@ const label = computed(() => theme.value === 'dark' ? '切換為淺色主題' : 
 
 /* Active (dark) state -> make track and knob blue */
 .theme-toggle[aria-checked="true"] {
-  background: color-mix(in oklab, var(--color-primary) 40%, #e0f2fe 60%);
-  border-color: color-mix(in srgb, var(--color-primary) 80%, #7dd3fc 20%);
+  background: color-mix(in oklab, var(--color-primary) 40%, var(--color-cyan-100) 60%);
+  border-color: color-mix(in srgb, var(--color-primary) 80%, var(--color-primary-light) 20%);
 }
 
 .theme-toggle[aria-checked="true"] .knob {
-  border-color: color-mix(in srgb, var(--color-primary) 80%, #38bdf8 20%);
-  background: color-mix(in srgb, #ffffff 75%, var(--color-primary) 25%);
+  border-color: color-mix(in srgb, var(--color-primary) 80%, var(--color-primary-light) 20%);
+  background: color-mix(in srgb, var(--color-bg-primary) 75%, var(--color-primary) 25%);
   box-shadow: 0 4px 10px rgb(14 165 233 / 0.35);
 }
 
@@ -126,23 +126,23 @@ const label = computed(() => theme.value === 'dark' ? '切換為淺色主題' : 
 }
 
 :global(.dark) .theme-toggle {
-  background: color-mix(in srgb, #0f172a 70%, #1e293b 30%);
-  border-color: color-mix(in srgb, #1e293b 70%, #475569 30%);
+  background: color-mix(in srgb, var(--color-slate-900) 70%, var(--color-slate-800) 30%);
+  border-color: color-mix(in srgb, var(--color-slate-800) 70%, var(--color-slate-600) 30%);
   box-shadow: inset 0 1px 2px rgb(15 23 42 / 0.6);
 }
 
 :global(.dark) .theme-toggle:hover {
-  background: color-mix(in srgb, var(--color-primary) 25%, #1e293b 75%);
-  border-color: color-mix(in srgb, var(--color-primary) 65%, #0f172a 35%);
+  background: color-mix(in srgb, var(--color-primary) 25%, var(--color-slate-800) 75%);
+  border-color: color-mix(in srgb, var(--color-primary) 65%, var(--color-slate-900) 35%);
 }
 
 :global(.dark) .theme-toggle .knob {
-  background: color-mix(in srgb, #f8fafc 85%, #e2e8f0 15%);
-  border-color: color-mix(in srgb, #94a3b8 80%, transparent);
+  background: color-mix(in srgb, var(--color-slate-50) 85%, var(--color-slate-200) 15%);
+  border-color: color-mix(in srgb, var(--color-slate-400) 80%, transparent);
   box-shadow: 0 2px 6px rgb(15 23 42 / 0.55);
 }
 
 :global(.dark) .theme-toggle .icon {
-  color: color-mix(in srgb, #94a3b8 65%, #cbd5e1 35%);
+  color: color-mix(in srgb, var(--color-slate-400) 65%, var(--color-slate-300) 35%);
 }
 </style>

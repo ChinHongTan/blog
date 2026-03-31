@@ -1866,12 +1866,12 @@ onUnmounted(() => {
 	width: 1.5rem;
 	height: 1.5rem;
 	flex-shrink: 0;
-	border-radius: 50%;
+	border-radius: var(--radius-full);
 }
 .admin-status-dot {
 	width: 0.5rem;
 	height: 0.5rem;
-	border-radius: 50%;
+	border-radius: var(--radius-full);
 	background: currentColor;
 }
 .admin-status-spinner {
@@ -1891,12 +1891,12 @@ onUnmounted(() => {
 	color: var(--color-text-secondary);
 }
 .admin-status-dot-wrap.status-saved {
-	background: color-mix(in srgb, #16a34a 22%, transparent);
-	color: #16a34a;
+	background: color-mix(in srgb, var(--color-success) 22%, transparent);
+	color: var(--color-success);
 }
 .admin-status-dot-wrap.status-synced {
-	background: color-mix(in srgb, #2563eb 22%, transparent);
-	color: #2563eb;
+	background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+	color: var(--color-primary);
 }
 
 /* 本機較新版本恢復列 */
@@ -2078,7 +2078,7 @@ onUnmounted(() => {
 .admin-property-thumb {
 	width: 40px;
 	height: 40px;
-	border-radius: 0.25rem;
+	border-radius: var(--radius-xs);
 	overflow: hidden;
 	background: var(--color-bg-tertiary);
 }
@@ -2115,7 +2115,7 @@ onUnmounted(() => {
 /* Hero image: below table, above editor (blog-style). Same size for filled and empty. */
 .admin-hero-slot {
 	position: relative;
-	border-radius: 14px;
+	border-radius: var(--radius-xl);
 	overflow: hidden;
 	margin-bottom: 1rem;
 	margin-left: auto;
@@ -2206,7 +2206,7 @@ onUnmounted(() => {
 	-webkit-backdrop-filter: blur(8px) saturate(1.1);
 	border: 1px solid
 		color-mix(in srgb, var(--color-border-light) 68%, transparent);
-	border-radius: 10px;
+	border-radius: var(--radius-lg);
 	box-shadow: var(--shadow-sm);
 }
 
@@ -2219,7 +2219,7 @@ onUnmounted(() => {
 	font-size: 0.75rem;
 	background: var(--color-bg-tertiary);
 	color: var(--color-text-secondary);
-	border-radius: 999px;
+	border-radius: var(--radius-pill);
 }
 .admin-meta-chip-series {
 	background: color-mix(in srgb, var(--color-primary) 18%, transparent);
@@ -2268,7 +2268,7 @@ onUnmounted(() => {
 	z-index: 180;
 	background: var(--color-bg-primary);
 	border: 1px solid var(--color-border-light);
-	border-radius: 0.375rem;
+	border-radius: var(--radius-sm);
 	box-shadow: var(--shadow-md);
 	max-height: 200px;
 	overflow-y: auto;
@@ -2299,7 +2299,7 @@ onUnmounted(() => {
 	font-weight: 600;
 	padding: 0.125rem 0.375rem;
 	background: color-mix(in srgb, var(--color-primary) 18%, transparent);
-	border-radius: 0.25rem;
+	border-radius: var(--radius-xs);
 	color: var(--color-primary);
 }
 
@@ -2345,7 +2345,7 @@ onUnmounted(() => {
 .admin-input-group {
 	padding: 0.375rem 0.5rem;
 	border: 1px solid var(--color-border-light);
-	border-radius: 0.25rem;
+	border-radius: var(--radius-xs);
 	font-size: 0.875rem;
 	background: var(--color-bg-primary);
 	color: var(--color-text-primary);
@@ -2362,7 +2362,7 @@ onUnmounted(() => {
 }
 .admin-input-group .admin-input:first-child {
 	border-left: 1px solid var(--color-border-light);
-	border-radius: 0.25rem 0 0 0.25rem;
+	border-radius: var(--radius-xs) 0 0 var(--radius-xs);
 }
 .admin-editor-toolbar {
 	display: flex;
@@ -2382,7 +2382,7 @@ onUnmounted(() => {
 	border: 1px solid var(--color-border-light);
 	background: var(--color-bg-primary);
 	color: var(--color-text-primary);
-	border-radius: 0.375rem;
+	border-radius: var(--radius-sm);
 	cursor: pointer;
 	transition:
 		background 0.15s,
@@ -2406,7 +2406,7 @@ onUnmounted(() => {
 	padding: 0.5rem 1rem;
 	font-size: 0.875rem;
 	font-weight: 500;
-	border-radius: 0.375rem;
+	border-radius: var(--radius-sm);
 	cursor: pointer;
 	border: 1px solid var(--color-border-light);
 	background: var(--color-bg-primary);
@@ -2440,8 +2440,8 @@ onUnmounted(() => {
 	cursor: not-allowed;
 }
 .admin-btn-danger {
-	background: #dc2626;
-	border-color: #dc2626;
+	background: var(--color-danger);
+	border-color: var(--color-danger);
 	color: #fff;
 }
 .admin-btn-danger:hover:not(:disabled) {
@@ -2637,12 +2637,12 @@ html.dark .admin-wysiwyg-site :deep(.milkdown-markdown-reveal) {
 	color: var(--color-text-secondary);
 	background: var(--color-bg-secondary);
 	padding: 1rem 1.5rem;
-	border-radius: 0 8px 8px 0;
+	border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
 .admin-wysiwyg-site :deep(.milkdown img) {
 	max-width: 100%;
 	height: auto;
-	border-radius: 12px;
+	border-radius: var(--radius-lg);
 	margin: 1.5rem 0;
 	box-shadow: var(--shadow-md);
 }
@@ -2664,7 +2664,7 @@ html.dark .admin-wysiwyg-site :deep(.milkdown-markdown-reveal) {
 .admin-wysiwyg-site :deep(.milkdown pre) {
 	background: var(--color-bg-tertiary);
 	padding: 1rem;
-	border-radius: 8px;
+	border-radius: var(--radius-md);
 	overflow: auto;
 	margin: 1rem 0;
 }
@@ -2673,7 +2673,7 @@ html.dark .admin-wysiwyg-site :deep(.milkdown-markdown-reveal) {
 	font-size: 0.9em;
 	background: var(--color-bg-tertiary);
 	padding: 0.15rem 0.35rem;
-	border-radius: 4px;
+	border-radius: var(--radius-xs);
 }
 .admin-wysiwyg-site :deep(.milkdown hr) {
 	border: none;
@@ -2737,7 +2737,7 @@ html.dark .admin-wysiwyg-site :deep(.milkdown-markdown-reveal) {
 	margin: 1.25rem 0 1.5rem;
 	font-size: 0.95rem;
 	box-shadow: var(--shadow-sm);
-	border-radius: 8px;
+	border-radius: var(--radius-md);
 	overflow: hidden;
 	border: 1px solid var(--color-border-light);
 }

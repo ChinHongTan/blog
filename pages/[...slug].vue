@@ -749,7 +749,7 @@ onMounted(() => {
 
 				<!-- Sidebar Column (TOC) -->
 				<Transition name="toc-transition">
-					<div v-show="hasToc && showToc" class="sidebar-column">
+					<div v-if="hasToc && showToc" class="sidebar-column">
 						<div class="sidebar-sticky">
 							<RightSidebar
 								:toc="page.body?.toc"
@@ -900,7 +900,7 @@ onMounted(() => {
 	width: 260px;
 	background: var(--panel-bg);
 	border: 1px solid var(--color-border-light);
-	border-radius: 12px;
+	border-radius: var(--radius-lg);
 	padding: 0.85rem;
 	box-shadow: var(--shadow-sm);
 	backdrop-filter: saturate(1.08) blur(var(--glass-blur));
@@ -926,7 +926,7 @@ onMounted(() => {
 	font-weight: 700;
 	color: var(--color-text-primary);
 	text-decoration: none;
-	transition: color 0.2s;
+	transition: color var(--transition-base);
 	min-width: 0;
 }
 
@@ -951,7 +951,7 @@ onMounted(() => {
 	background: color-mix(in srgb, var(--color-bg-secondary) 70%, transparent);
 	border: 1px solid var(--color-border-light);
 	padding: 0.12rem 0.45rem;
-	border-radius: 999px;
+	border-radius: var(--radius-pill);
 	white-space: nowrap;
 	flex-shrink: 0;
 }
@@ -967,12 +967,12 @@ onMounted(() => {
 	align-items: flex-start;
 	gap: 0.5rem;
 	padding: 0.45rem 0.55rem;
-	border-radius: 8px;
+	border-radius: var(--radius-md);
 	text-decoration: none;
 	color: var(--color-text-secondary);
 	font-size: 0.84rem;
 	line-height: 1.4;
-	transition: all 0.15s ease;
+	transition: all var(--transition-fast);
 }
 
 .series-sidebar-item:hover {
@@ -991,7 +991,7 @@ onMounted(() => {
 .series-item-number {
 	width: 20px;
 	height: 20px;
-	border-radius: 5px;
+	border-radius: var(--radius-sm);
 	background: color-mix(in srgb, var(--color-primary) 8%, transparent);
 	display: flex;
 	align-items: center;
@@ -1005,7 +1005,7 @@ onMounted(() => {
 
 .series-sidebar-item.is-current .series-item-number {
 	background: var(--color-primary);
-	color: white;
+	color: var(--color-white);
 }
 
 .series-item-title {
@@ -1037,8 +1037,8 @@ onMounted(() => {
 	font-weight: 600;
 	color: var(--color-primary-dark);
 	text-decoration: none;
-	transition: all 0.2s ease;
-	border-radius: 0 0 8px 8px;
+	transition: all var(--transition-base);
+	border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
 .series-sidebar-view-all:hover {
@@ -1170,7 +1170,7 @@ onMounted(() => {
 
 .featured-hero {
 	position: relative;
-	border-radius: 14px;
+	border-radius: var(--radius-xl);
 	overflow: hidden;
 	margin-bottom: 1.1rem;
 	box-shadow: var(--shadow-md);
@@ -1202,7 +1202,7 @@ onMounted(() => {
 	-webkit-backdrop-filter: blur(8px) saturate(1.1);
 	border: 1px solid
 		color-mix(in srgb, var(--color-border-light) 68%, transparent);
-	border-radius: 10px;
+	border-radius: var(--radius-lg);
 	box-shadow: var(--shadow-sm);
 }
 
@@ -1243,7 +1243,7 @@ onMounted(() => {
 .author-avatar {
 	width: 40px;
 	height: 40px;
-	border-radius: 50%;
+	border-radius: var(--radius-full);
 	object-fit: cover;
 	aspect-ratio: 1 / 1;
 	flex-shrink: 0;
@@ -1301,7 +1301,7 @@ onMounted(() => {
 	padding: 0.35rem 0.75rem;
 	background: var(--color-bg-blue-tint);
 	color: var(--color-primary-dark);
-	border-radius: 16px;
+	border-radius: var(--radius-2xl);
 	font-size: 0.85rem;
 	font-weight: 500;
 }
@@ -1383,7 +1383,7 @@ onMounted(() => {
 	text-decoration: underline;
 	text-decoration-color: var(--color-primary-light);
 	text-underline-offset: 3px;
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 	overflow-wrap: anywhere;
 	word-break: break-word;
 }
@@ -1411,13 +1411,13 @@ onMounted(() => {
 	color: var(--color-text-secondary);
 	background: var(--color-bg-secondary);
 	padding: 1rem 1.5rem;
-	border-radius: 0 8px 8px 0;
+	border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
 
 .post-content :deep(img) {
 	max-width: 100%;
 	height: auto;
-	border-radius: 12px;
+	border-radius: var(--radius-lg);
 	margin: 1.5rem 0;
 	box-shadow: var(--shadow-md);
 	cursor: zoom-in;
@@ -1462,7 +1462,7 @@ onMounted(() => {
 	margin: 1.25rem 0 1.5rem;
 	font-size: 0.95rem;
 	box-shadow: var(--shadow-sm);
-	border-radius: 8px;
+	border-radius: var(--radius-md);
 	overflow: hidden;
 	border: 1px solid var(--color-border-light);
 }
@@ -1519,7 +1519,7 @@ html.dark .post-content :deep(thead) {
 .widget-button {
 	width: 44px;
 	height: 44px;
-	border-radius: 12px;
+	border-radius: var(--radius-lg);
 	background: color-mix(in srgb, var(--color-bg-primary) 80%, transparent);
 	backdrop-filter: blur(8px);
 	border: 1px solid var(--color-border-light);
@@ -1529,7 +1529,7 @@ html.dark .post-content :deep(thead) {
 	justify-content: center;
 	cursor: pointer;
 	box-shadow: var(--shadow-md);
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 	position: relative;
 }
 
@@ -1556,12 +1556,12 @@ html.dark .post-content :deep(thead) {
 	background: var(--color-bg-tertiary);
 	color: var(--color-text-primary);
 	padding: 0.3rem 0.6rem;
-	border-radius: 6px;
+	border-radius: var(--radius-sm);
 	font-size: 0.8rem;
 	white-space: nowrap;
 	opacity: 0;
 	visibility: hidden;
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 	pointer-events: none;
 	box-shadow: var(--shadow-sm);
 }
@@ -1578,13 +1578,13 @@ html.dark .post-content :deep(thead) {
 	width: 48px;
 	height: 48px;
 	padding: 0;
-	border-radius: 50%;
+	border-radius: var(--radius-full);
 	background: color-mix(in srgb, var(--color-bg-primary) 80%, transparent);
 	backdrop-filter: blur(8px);
 	border: 1px solid var(--color-border-light);
 	box-shadow: var(--shadow-md);
 	cursor: pointer;
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 	font: inherit;
 	color: inherit;
 	display: flex;
@@ -1625,7 +1625,7 @@ html.dark .post-content :deep(thead) {
 	font-size: 0.8rem;
 	font-weight: 700;
 	color: var(--color-text-secondary);
-	transition: opacity 0.2s ease;
+	transition: opacity var(--transition-base);
 	opacity: 1;
 }
 
@@ -1633,7 +1633,7 @@ html.dark .post-content :deep(thead) {
 	color: var(--color-primary);
 	font-size: 1.2rem;
 	position: absolute;
-	transition: opacity 0.2s ease;
+	transition: opacity var(--transition-base);
 	opacity: 0;
 }
 
@@ -1698,7 +1698,7 @@ html.dark .post-content :deep(thead) {
 	overflow: hidden;
 	max-width: 100%;
 	margin: 1.5rem 0;
-	border-radius: 12px;
+	border-radius: var(--radius-lg);
 	box-shadow: var(--shadow-md);
 }
 
@@ -1722,15 +1722,15 @@ html.dark .post-content :deep(thead) {
 
 .post-content :deep(pre) {
 	margin: 1.5rem 0;
-	border-radius: 8px;
+	border-radius: var(--radius-md);
 	box-shadow: var(--shadow-md);
 	padding: 1.5rem;
 	overflow-x: auto;
 }
 
 .post-content :deep(pre:not(.shiki)) {
-	background: #24292e;
-	color: #e1e4e8;
+	background: var(--color-code-bg);
+	color: var(--color-code-text);
 }
 
 .post-content :deep(code) {
@@ -1777,7 +1777,7 @@ html.dark .post-content :deep(thead) {
 	color: var(--color-primary-dark);
 	font-weight: 500;
 	text-decoration: none;
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 }
 
 .back-link a:hover {
@@ -1790,7 +1790,7 @@ html.dark .post-content :deep(thead) {
 	text-align: center;
 	padding: 4rem 2rem;
 	background: var(--color-bg-primary);
-	border-radius: 12px;
+	border-radius: var(--radius-lg);
 	border: 1px solid var(--color-border-light);
 }
 
@@ -1815,11 +1815,11 @@ html.dark .post-content :deep(thead) {
 	gap: 0.5rem;
 	padding: 0.75rem 1.5rem;
 	background: var(--color-primary);
-	color: white;
-	border-radius: 8px;
+	color: var(--color-white);
+	border-radius: var(--radius-md);
 	text-decoration: none;
 	font-weight: 500;
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 }
 
 .back-button:hover {
@@ -1832,7 +1832,7 @@ html.dark .post-content :deep(thead) {
 @media (max-width: 768px) {
 	.blog-post {
 		padding: 1.5rem 1rem;
-		border-radius: 8px;
+		border-radius: var(--radius-md);
 	}
 
 	.post-header {
@@ -1847,7 +1847,7 @@ html.dark .post-content :deep(thead) {
 	}
 
 	.featured-hero {
-		border-radius: 10px;
+		border-radius: var(--radius-lg);
 		margin-bottom: 0.9rem;
 	}
 
@@ -1943,7 +1943,7 @@ html.dark .post-content :deep(thead) {
 
 	.post-content :deep(img) {
 		margin: 1.25rem 0;
-		border-radius: 6px;
+		border-radius: var(--radius-sm);
 	}
 
 	.post-content :deep(pre) {
@@ -2013,7 +2013,7 @@ html.dark .post-content :deep(thead) {
 	padding: 0.6rem 1rem;
 	background: var(--color-bg-primary);
 	border: 1px solid var(--color-border-light);
-	border-radius: 999px;
+	border-radius: var(--radius-pill);
 	box-shadow: var(--shadow-lg);
 	font-size: 0.85rem;
 	color: var(--color-text-secondary);
@@ -2023,13 +2023,13 @@ html.dark .post-content :deep(thead) {
 .resume-btn {
 	border: none;
 	background: var(--color-primary);
-	color: white;
+	color: var(--color-white);
 	padding: 0.25rem 0.75rem;
-	border-radius: 999px;
+	border-radius: var(--radius-pill);
 	font-size: 0.8rem;
 	font-weight: 600;
 	cursor: pointer;
-	transition: background 0.2s ease;
+	transition: background var(--transition-base);
 }
 
 .resume-btn:hover {
@@ -2044,8 +2044,8 @@ html.dark .post-content :deep(thead) {
 	padding: 0.15rem;
 	display: flex;
 	align-items: center;
-	border-radius: 50%;
-	transition: color 0.2s ease;
+	border-radius: var(--radius-full);
+	transition: color var(--transition-base);
 }
 
 .resume-dismiss:hover {
@@ -2054,7 +2054,7 @@ html.dark .post-content :deep(thead) {
 
 .resume-bar-enter-active,
 .resume-bar-leave-active {
-	transition: all 0.3s ease;
+	transition: all var(--transition-slow);
 }
 
 .resume-bar-enter-from,

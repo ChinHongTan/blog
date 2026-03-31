@@ -60,7 +60,7 @@ onMounted(load);
   font-weight: 500;
   color: #fff;
   background: var(--color-primary);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
   text-decoration: none;
 }
 .admin-list-add-btn:hover {
@@ -84,7 +84,7 @@ onMounted(load);
   padding: 0.5rem 0.75rem;
   color: var(--color-text-primary);
   text-decoration: none;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
   font-size: 0.9375rem;
 }
 .admin-list-link:hover {

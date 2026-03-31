@@ -140,7 +140,7 @@ onUnmounted(() => {
 	background: transparent;
 	color: var(--color-text-secondary);
 	cursor: pointer;
-	transition: background 0.15s, color 0.15s;
+	transition: background var(--transition-fast), color var(--transition-fast);
 }
 .admin-editor-toolbar-slot .admin-toolbar-btn:hover {
 	background: var(--color-bg-tertiary);
@@ -203,7 +203,7 @@ onUnmounted(() => {
 	font-size: 0.875rem;
 	color: var(--color-text-primary);
 	text-decoration: none;
-	transition: background 0.15s;
+	transition: background var(--transition-fast);
 }
 .admin-quick-add-item:hover {
 	background: var(--color-bg-tertiary);
@@ -238,7 +238,7 @@ onUnmounted(() => {
 }
 .dropdown-enter-active,
 .dropdown-leave-active {
-	transition: opacity 0.15s ease, transform 0.15s ease;
+	transition: opacity var(--transition-fast), transform var(--transition-fast);
 }
 .dropdown-enter-from,
 .dropdown-leave-to {
@@ -331,7 +331,7 @@ onUnmounted(() => {
 	font-weight: 700;
 	color: var(--color-text-primary);
 	text-decoration: none;
-	transition: color 0.3s ease;
+	transition: color var(--transition-slow);
 }
 
 .logo-image {
@@ -340,7 +340,7 @@ onUnmounted(() => {
 	border-radius: 50%;
 	object-fit: cover;
 	border: 2px solid var(--color-primary-light);
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 }
 
 .logo:hover {
@@ -365,7 +365,7 @@ onUnmounted(() => {
 	font-weight: 500;
 	color: var(--color-text-secondary);
 	text-decoration: none;
-	transition: color 0.3s ease;
+	transition: color var(--transition-slow);
 	padding: 0.5rem 0;
 }
 
@@ -423,7 +423,7 @@ onUnmounted(() => {
 	background: transparent;
 	color: var(--color-text-primary);
 	cursor: pointer;
-	transition: color 0.2s ease;
+	transition: color var(--transition-base);
 	flex-shrink: 0;
 }
 
@@ -441,7 +441,7 @@ onUnmounted(() => {
 	outline: none;
 	width: 0;
 	opacity: 0;
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 	margin-left: 0;
 }
 
@@ -459,7 +459,7 @@ onUnmounted(() => {
 	cursor: pointer;
 	padding: 0.5rem;
 	border-radius: var(--radius-sm);
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 }
 
 .mobile-menu-button:hover {
@@ -506,7 +506,7 @@ onUnmounted(() => {
 	font-size: 1rem;
 	font-weight: 500;
 	border-bottom: 1px solid var(--color-border-light);
-	transition: all 0.2s ease;
+	transition: all var(--transition-base);
 }
 
 .mobile-nav-link:hover {
@@ -535,12 +535,12 @@ onUnmounted(() => {
 
 .mobile-menu-enter-active,
 .mobile-menu-leave-active {
-	transition: opacity 0.3s ease;
+	transition: opacity var(--transition-slow);
 }
 
 .mobile-menu-enter-active .mobile-menu,
 .mobile-menu-leave-active .mobile-menu {
-	transition: transform 0.3s ease;
+	transition: transform var(--transition-slow);
 }
 
 .mobile-menu-enter-from,

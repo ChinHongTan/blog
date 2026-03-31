@@ -697,7 +697,7 @@ onActivated(() => {
 	color: var(--color-text-secondary);
 	background: transparent;
 	border: 1px solid var(--color-border-light);
-	border-radius: 0.375rem;
+	border-radius: var(--radius-sm);
 	cursor: pointer;
 	transition:
 		color 0.15s,
@@ -719,7 +719,7 @@ onActivated(() => {
 	font-weight: 500;
 	color: #fff;
 	background: var(--color-primary);
-	border-radius: 0.375rem;
+	border-radius: var(--radius-sm);
 	text-decoration: none;
 }
 .admin-list-add-btn:hover {
@@ -767,7 +767,7 @@ onActivated(() => {
 }
 .admin-posts-tr {
 	border-bottom: 1px solid var(--color-border-light);
-	transition: background 0.15s ease;
+	transition: background var(--transition-fast);
 }
 .admin-posts-tr:last-child {
 	border-bottom: none;
@@ -817,7 +817,7 @@ onActivated(() => {
 .admin-posts-avatar {
 	width: 32px;
 	height: 32px;
-	border-radius: 50%;
+	border-radius: var(--radius-full);
 	object-fit: cover;
 	display: block;
 }
@@ -849,7 +849,7 @@ onActivated(() => {
 	color: var(--color-text-secondary);
 	background: transparent;
 	border: 1px solid var(--color-border-light);
-	border-radius: 0.375rem;
+	border-radius: var(--radius-sm);
 	text-decoration: none;
 	transition:
 		color 0.15s,
@@ -876,20 +876,20 @@ onActivated(() => {
 	font-size: 0.6875rem;
 	font-weight: 600;
 	padding: 0.2rem 0.5rem;
-	border-radius: 0.25rem;
+	border-radius: var(--radius-xs);
 	white-space: nowrap;
 }
 .admin-posts-badge-local {
-	background: color-mix(in srgb, #eab308 28%, transparent);
+	background: color-mix(in srgb, var(--color-warning) 28%, transparent);
 	color: #a16207;
 }
 .admin-posts-badge-draft {
-	background: color-mix(in srgb, #64748b 24%, transparent);
-	color: #475569;
+	background: color-mix(in srgb, var(--color-slate-500) 24%, transparent);
+	color: var(--color-slate-600);
 }
 .admin-posts-badge-published {
-	background: color-mix(in srgb, #2563eb 22%, transparent);
-	color: #2563eb;
+	background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+	color: var(--color-primary);
 }
 .admin-posts-series-list {
 	display: flex;
@@ -900,7 +900,7 @@ onActivated(() => {
 	display: inline-flex;
 	align-items: center;
 	padding: 0.12rem 0.5rem;
-	border-radius: 999px;
+	border-radius: var(--radius-pill);
 	font-size: 0.72rem;
 	font-weight: 600;
 	color: var(--color-primary);
@@ -939,14 +939,14 @@ onActivated(() => {
 	gap: 0.5rem;
 	padding: 0.75rem 1rem;
 	background: var(--color-bg-primary);
-	border-radius: 0.5rem;
+	border-radius: var(--radius-md);
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .admin-draft-card-local {
-	border: 1px solid #eab308;
+	border: 1px solid var(--color-warning);
 }
 .admin-draft-card-github {
-	border: 1px solid #64748b;
+	border: 1px solid var(--color-slate-500);
 }
 .admin-draft-card-link {
 	flex: 1;
@@ -964,19 +964,19 @@ onActivated(() => {
 	margin-bottom: 0.35rem;
 }
 .admin-draft-card-badge-local {
-	background: color-mix(in srgb, #eab308 25%, transparent);
+	background: color-mix(in srgb, var(--color-warning) 25%, transparent);
 	color: #a16207;
 }
 .admin-draft-card-badge-github {
-	background: color-mix(in srgb, #64748b 24%, transparent);
-	color: #475569;
+	background: color-mix(in srgb, var(--color-slate-500) 24%, transparent);
+	color: var(--color-slate-600);
 }
 .admin-draft-card-badge-unsynced {
-	background: color-mix(in srgb, #2563eb 22%, transparent);
-	color: #2563eb;
+	background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+	color: var(--color-primary);
 }
 .admin-draft-card-badge-has-local {
-	background: color-mix(in srgb, #eab308 22%, transparent);
+	background: color-mix(in srgb, var(--color-warning) 22%, transparent);
 	color: #a16207;
 }
 .admin-draft-card-title {
@@ -1006,12 +1006,12 @@ onActivated(() => {
 	border: none;
 	background: transparent;
 	color: var(--color-text-tertiary);
-	border-radius: 0.25rem;
+	border-radius: var(--radius-xs);
 	cursor: pointer;
 }
 .admin-draft-card-trash:hover {
 	background: var(--color-bg-tertiary);
-	color: #dc2626;
+	color: var(--color-danger);
 }
 
 /* 捨棄草稿確認 */
@@ -1022,7 +1022,7 @@ onActivated(() => {
 	margin: 0 0 1.5rem;
 	padding: 0.75rem 1rem;
 	background: var(--color-bg-tertiary);
-	border-radius: 0.5rem;
+	border-radius: var(--radius-md);
 	border: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
 	text-align: left;
 }
@@ -1075,7 +1075,7 @@ onActivated(() => {
 	background: var(--color-primary);
 	color: #fff;
 	padding: 0.5rem 1rem;
-	border-radius: 0.375rem;
+	border-radius: var(--radius-sm);
 	font-weight: 500;
 	cursor: pointer;
 	border: none;

@@ -384,7 +384,7 @@ onMounted(load);
 	position: relative;
 	width: 100%;
 	height: 160px;
-	border-radius: 12px;
+	border-radius: var(--radius-lg);
 	overflow: hidden;
 	cursor: pointer;
 }
@@ -425,7 +425,7 @@ onMounted(load);
 	font-size: 0.875rem;
 	font-weight: 500;
 	opacity: 0;
-	transition: opacity 0.2s;
+	transition: opacity var(--transition-base);
 }
 
 .admin-profile-banner-wrap:hover .admin-profile-banner-overlay {
@@ -446,7 +446,7 @@ onMounted(load);
 	position: relative;
 	width: 96px;
 	height: 96px;
-	border-radius: 50%;
+	border-radius: var(--radius-full);
 	overflow: hidden;
 	border: 4px solid var(--color-bg-primary);
 	box-shadow: var(--shadow-md);
@@ -473,7 +473,7 @@ onMounted(load);
 	font-size: 0.75rem;
 	font-weight: 500;
 	opacity: 0;
-	transition: opacity 0.2s;
+	transition: opacity var(--transition-base);
 }
 
 .admin-profile-avatar-wrap:hover .admin-profile-avatar-overlay {
@@ -489,7 +489,7 @@ onMounted(load);
 	color: var(--color-text-primary);
 	background: var(--color-bg-primary);
 	border: 1px solid var(--color-border-light);
-	border-radius: 8px;
+	border-radius: var(--radius-md);
 }
 
 .admin-profile-name-input:focus {
@@ -520,8 +520,8 @@ onMounted(load);
 	margin-bottom: -2px;
 	cursor: pointer;
 	transition:
-		color 0.2s,
-		border-color 0.2s;
+		color var(--transition-base),
+		border-color var(--transition-base);
 }
 
 .admin-profile-tab:hover {
@@ -559,7 +559,7 @@ onMounted(load);
 	padding: 0.5rem 0.75rem;
 	font-size: 0.9375rem;
 	border: 1px solid var(--color-border-light);
-	border-radius: 8px;
+	border-radius: var(--radius-md);
 	background: var(--color-bg-primary);
 	color: var(--color-text-primary);
 }
@@ -588,7 +588,7 @@ onMounted(load);
 .admin-profile-editor-wrap {
 	min-height: 320px;
 	border: 1px solid var(--color-border-light);
-	border-radius: 8px;
+	border-radius: var(--radius-md);
 	overflow: hidden;
 	background: var(--color-bg-primary);
 }
@@ -631,7 +631,7 @@ html.dark .admin-profile-editor-wrap :deep(.milkdown-markdown-reveal) {
 	padding: 0.5rem 1.25rem;
 	font-size: 0.9375rem;
 	font-weight: 500;
-	border-radius: 8px;
+	border-radius: var(--radius-md);
 	cursor: pointer;
 	border: 1px solid var(--color-border-light);
 	background: var(--color-bg-primary);
