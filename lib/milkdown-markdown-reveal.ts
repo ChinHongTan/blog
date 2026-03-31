@@ -6,6 +6,7 @@
 import type { EditorView } from "@milkdown/prose/view";
 import type { Serializer } from "@milkdown/transformer";
 import type { Fragment, Schema } from "@milkdown/prose/model";
+import type { EditorState } from "@milkdown/prose/state";
 import { SerializerReady, schemaCtx, serializerCtx } from "@milkdown/kit/core";
 import { Plugin, PluginKey } from "@milkdown/kit/prose/state";
 import { Decoration, DecorationSet } from "@milkdown/kit/prose/view";
@@ -24,9 +25,8 @@ function isInsideTable($from: { depth: number; node: (d: number) => { type: { na
 }
 
 function getBlockRange(
-  view: EditorView
+  state: EditorState
 ): { from: number; to: number } | null {
-  const { state } = view;
   const { selection } = state;
   const $from = selection.$from;
   if (isInsideTable($from)) return null;
@@ -66,6 +66,9 @@ export const markdownRevealPlugin = $proseAsync(
     const serializer = ctx.get(serializerCtx);
 
     let editorViewRef: EditorView | null = null;
+    const revealEl = document.createElement("div");
+    revealEl.className = "milkdown-markdown-reveal";
+    revealEl.setAttribute("contenteditable", "false");
 
     return new Plugin({
       key: REVEAL_PLUGIN_KEY,
@@ -75,37 +78,53 @@ export const markdownRevealPlugin = $proseAsync(
           update() {},
           destroy() {
             editorViewRef = null;
+            revealEl.remove();
           },
         };
       },
-      props: {
-        decorations: (state) => {
+      state: {
+        init() {
+          return DecorationSet.empty;
+        },
+        apply(tr, set, oldState, newState) {
+          const mappedSet = set.map(tr.mapping, tr.doc);
+
           if (!editorViewRef || !schema || !serializer) {
-            return null;
+            return DecorationSet.empty;
           }
-          if (document.activeElement !== editorViewRef.dom) {
-            return null;
+
+          if (editorViewRef.composing) {
+            return mappedSet;
           }
-          const range = getBlockRange(editorViewRef);
-          if (!range) return null;
-          const { from } = range;
+
+          const range = getBlockRange(newState);
+          if (!range) return DecorationSet.empty;
+
+          const { from, to } = range;
           const markdown = serializeBlockRange(
             schema,
             serializer,
-            state,
-            range.from,
-            range.to
+            newState,
+            from,
+            to
           );
-          if (!markdown.trim()) return null;
+          if (!markdown.trim()) return DecorationSet.empty;
 
-          const el = document.createElement("div");
-          el.className = "milkdown-markdown-reveal";
-          el.setAttribute("contenteditable", "false");
-          el.textContent = markdown;
+          if (revealEl.textContent !== markdown) {
+            revealEl.textContent = markdown;
+          }
 
-          return DecorationSet.create(state.doc, [
-            Decoration.widget(from, el, { side: -1 }),
+          return DecorationSet.create(newState.doc, [
+            Decoration.widget(from, revealEl, { side: -1, ignoreSelection: true, key: "reveal" }),
           ]);
+        },
+      },
+      props: {
+        decorations: (state) => {
+          if (editorViewRef && document.activeElement !== editorViewRef.dom) {
+            return null;
+          }
+          return REVEAL_PLUGIN_KEY.getState(state);
         },
       },
     });

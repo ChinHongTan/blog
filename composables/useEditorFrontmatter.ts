@@ -4,7 +4,8 @@ interface PostMeta {
 	date: string;
 	edited_at: string;
 	author: string;
-	path: string; number;
+	path: string;
+	series?: string[];
 	tags: string[];
 	featured_image: string;
 	pinned?: boolean;
