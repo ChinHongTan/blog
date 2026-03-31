@@ -48,7 +48,6 @@ import {
   applySpanClassCommand,
   removeSpanClassCommand,
 } from "~/lib/milkdown-span-class";
-import { markdownRevealPlugin } from "~/lib/milkdown-markdown-reveal";
 
 const { uploadImage } = useUploadImage();
 
@@ -179,7 +178,6 @@ const { loading } = useEditor((root: HTMLElement) => {
   });
   crepe.addFeature(infoBoxFeature);
   crepe.addFeature(spanClassFeature);
-  crepe.editor.use(markdownRevealPlugin);
   builderInstance = crepe;
   return crepe;
 });
