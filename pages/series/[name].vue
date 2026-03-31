@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { BlogCollectionItem } from "@nuxt/content";
 import { getAuthorId } from "~/composables/useAuthorId";
+import { getPostStem } from "~/utils/content-routing";
+import { buildFallbackAvatar } from "~/utils/avatar";
+import { resolvePostPath } from "~/utils/post-path";
 
 const route = useRoute();
 
@@ -19,16 +22,6 @@ const { data: seriesData } = useAsyncData(
 	`series-data-${seriesName.value}`,
 	() => queryCollection("series").first(),
 );
-
-function getPostStem(
-	post: { stem?: string; id?: string; path?: string } | null | undefined,
-): string {
-	let s = post?.stem || post?.id || post?.path || "";
-	s = s.replace(/\.md$/, "");
-	s = s.replace(/^(?:\/?(?:content\/)?blog\/)+/, "");
-	s = s.replace(/^\//, "");
-	return s;
-}
 
 // Filter posts that belong to this series
 const seriesPosts = computed(() => {
@@ -63,13 +56,7 @@ const seriesPosts = computed(() => {
 
 // Enrich posts with proper paths
 function getPostPath(post: BlogCollectionItem): string {
-	if (post.path && post.path !== "/blog") return post.path;
-	if (post.stem) return `/${post.stem}`;
-	if (post.id) {
-		const derivedStem = post.id.replace(/^blog\//, "").replace(/\.md$/, "");
-		return `/${derivedStem}`;
-	}
-	return post.path ?? "/blog";
+	return resolvePostPath(post, "/blog");
 }
 
 // Fetch author directory for avatars
@@ -91,14 +78,9 @@ const authorDirectory = computed<Record<string, AuthorProfile>>(() => {
 	return dir;
 });
 
-function fallbackAvatar(label: string, size = 32) {
-	const initial = (label?.trim()?.[0] ?? "A").toUpperCase();
-	return `https://placehold.co/${size}x${size}/38bdf8/ffffff?text=${initial}`;
-}
-
 function getAuthorAvatar(authorId: string): string {
 	const entry = authorDirectory.value[authorId];
-	return entry?.avatar ?? fallbackAvatar(entry?.name ?? authorId);
+	return entry?.avatar ?? buildFallbackAvatar(entry?.name ?? authorId);
 }
 
 useHead({
@@ -151,7 +133,7 @@ useHead({
 								:alt="post.author"
 								class="author-tiny-avatar"
 							/>
-							<span>{{ post.author }}</span>
+							<span class="article-author-name">{{ post.author }}</span>
 						</div>
 						<span class="article-date">
 							<Icon name="heroicons:calendar-days" size="14" />
@@ -371,6 +353,14 @@ useHead({
 	font-size: 0.85rem;
 	color: var(--color-text-secondary);
 	font-weight: 500;
+}
+
+.article-author-name {
+	transition: color var(--transition-base);
+}
+
+.article-card:hover .article-author-name {
+	color: var(--color-primary);
 }
 
 .author-tiny-avatar {

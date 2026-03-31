@@ -3,6 +3,9 @@ import type { BlogCollectionItem } from "@nuxt/content";
 import type { AuthorCollectionItem, DisplayPost } from "~/types/content";
 import { useTheme } from "#imports";
 import { getAuthorId } from "~/composables/useAuthorId";
+import { getPostStem } from "~/utils/content-routing";
+import { buildFallbackAvatar } from "~/utils/avatar";
+import { resolvePostPath } from "~/utils/post-path";
 
 const { theme } = useTheme();
 
@@ -73,22 +76,6 @@ const authorDirectory = computed<Record<string, AuthorCollectionItem>>(() => {
 	return directory;
 });
 
-function fallbackAvatar(label: string, size = 64) {
-	const safeLabel = label?.trim();
-	const initial = (safeLabel ? safeLabel[0] : "A")?.toUpperCase() ?? "A";
-	return `https://placehold.co/${size}x${size}/38bdf8/ffffff?text=${initial}`;
-}
-
-function getPostStem(
-	post: { stem?: string; id?: string; path?: string } | null | undefined,
-): string {
-	let s = post?.stem || post?.id || post?.path || "";
-	s = s.replace(/\.md$/, "");
-	s = s.replace(/^(?:\/?(?:content\/)?blog\/)+/, "");
-	s = s.replace(/^\//, "");
-	return s;
-}
-
 const seriesStemToNames = computed(() => {
 	const mapping = new Map<string, Set<string>>();
 	const seriesMap = seriesData.value?.series ?? {};
@@ -127,7 +114,7 @@ function enrichPost(post: BlogCollectionItem, path: string): DisplayPost {
 		path,
 		authorAvatar:
 			profile?.avatar ??
-			(post.author ? fallbackAvatar(post.author, 56) : undefined),
+			(post.author ? buildFallbackAvatar(post.author, 56) : undefined),
 		authorBio: profile?.bio,
 		authorDisplayName: profile?.name ?? post.author,
 	};
@@ -136,22 +123,7 @@ function enrichPost(post: BlogCollectionItem, path: string): DisplayPost {
 const preparedPosts = computed<DisplayPost[]>(() => {
 	const rawPosts = posts.value ?? [];
 	return rawPosts.map((post) => {
-		if (post.path && post.path !== "/blog") {
-			return enrichPost(post, post.path);
-		}
-
-		if (post.stem) {
-			return enrichPost(post, `/${post.stem}`);
-		}
-
-		if (post.id) {
-			const derivedStem = post.id
-				.replace(/^blog\//, "")
-				.replace(/\.md$/, "");
-			return enrichPost(post, `/${derivedStem}`);
-		}
-
-		return enrichPost(post, post.path ?? "/blog");
+		return enrichPost(post, resolvePostPath(post, "/blog"));
 	});
 });
 
@@ -447,6 +419,10 @@ function handleTagFilterClick(tag: string) {
 	void runRouteFilterTransition({ tag });
 }
 
+function handleSeriesFilterClick(series: string) {
+	void runRouteFilterTransition({ series });
+}
+
 function handlePostAuthorFilterClick(authorId: string) {
 	void runRouteFilterTransition({ author: authorId });
 }
@@ -530,7 +506,9 @@ const selectedAuthorSummary = computed(() => {
 	});
 
 	return {
-		avatar: authorProfile?.avatar ?? fallbackAvatar(selectedAuthorId, 84),
+		avatar:
+			authorProfile?.avatar ??
+			buildFallbackAvatar(selectedAuthorId, 84),
 		name: authorProfile?.name ?? selectedAuthorId,
 		bio: authorProfile?.bio ?? "",
 		social: authorProfile?.social ?? null,
@@ -587,7 +565,9 @@ const sidebarAuthors = computed(() => {
 			id,
 			name: authorDirectory.value[id]?.name ?? id,
 			count,
-			avatar: authorDirectory.value[id]?.avatar ?? fallbackAvatar(id, 44),
+			avatar:
+				authorDirectory.value[id]?.avatar ??
+				buildFallbackAvatar(id, 44),
 		}))
 		.sort((a, b) => b.count - a.count);
 });
@@ -940,7 +920,7 @@ onBeforeUnmount(() => {
 											<img
 												:src="
 													post.authorAvatar ||
-													fallbackAvatar(
+													buildFallbackAvatar(
 														post.author,
 														32,
 													)
@@ -971,10 +951,11 @@ onBeforeUnmount(() => {
 													}}</span
 												>
 											</button>
+											<span class="meta-divider-dot">•</span>
 											<span class="meta-item post-date">
 												<Icon
-													name="heroicons:calendar-days"
-													size="15"
+													name="heroicons:calendar-days-20-solid"
+													size="16"
 													class="meta-icon"
 												/>
 												{{
@@ -995,8 +976,8 @@ onBeforeUnmount(() => {
 												class="meta-item post-date post-edited-at"
 											>
 												<Icon
-													name="heroicons:pencil-square"
-													size="15"
+													name="heroicons:pencil-square-20-solid"
+													size="16"
 													class="meta-icon"
 												/>
 												{{
@@ -1013,15 +994,34 @@ onBeforeUnmount(() => {
 												}}
 											</span>
 											<div
+												v-if="getSeriesNamesForPost(post).length"
+												class="meta-item series-group"
+											>
+												<Icon
+													name="heroicons:bookmark-20-solid"
+													size="16"
+													class="meta-icon"
+												/>
+												<button
+													v-for="seriesName in getSeriesNamesForPost(post)"
+													:key="`${post.id}-${seriesName}`"
+													type="button"
+													class="post-series-link"
+													@click="handleSeriesFilterClick(seriesName)"
+												>
+													{{ seriesName }}
+												</button>
+											</div>
+											<div
 												v-if="
 													Array.isArray(post.tags) &&
 													post.tags.length
 												"
-												class="tags-group"
+												class="meta-item tags-group"
 											>
 												<Icon
-													name="heroicons:tag"
-													size="15"
+													name="heroicons:tag-20-solid"
+													size="16"
 													class="meta-icon"
 												/>
 												<button
@@ -1046,7 +1046,7 @@ onBeforeUnmount(() => {
 									>
 										<span>閱讀更多</span>
 										<Icon
-											name="heroicons:chevron-right"
+											name="heroicons:chevron-right-20-solid"
 											size="16"
 										/>
 									</NuxtLink>
@@ -1511,17 +1511,19 @@ onBeforeUnmount(() => {
 	gap: 0.25rem;
 	font-size: 0.9rem;
 	font-weight: 600;
-	color: var(--color-primary);
+	color: var(--color-text-secondary);
 	text-decoration: none;
-	transition: all var(--transition-base);
+	transition: color var(--transition-base);
 }
 
 .post-readmore:hover {
-	color: var(--color-primary-dark);
+	color: var(--color-primary);
 }
 
 .post-readmore :deep(svg) {
-	transition: transform var(--transition-base); /* Transition on base state for smooth return */
+	transition:
+		transform var(--transition-base),
+		color var(--transition-base);
 }
 
 .post-readmore:hover :deep(svg) {
@@ -1531,23 +1533,20 @@ onBeforeUnmount(() => {
 /* Tag Links */
 .post-tag-link {
 	text-decoration: none;
-	background: color-mix(in srgb, var(--color-primary) 8%, transparent);
-	padding: 0.1rem 0.5rem;
-	border-radius: var(--radius-xs);
+	background: transparent;
+	padding: 0;
+	border-radius: 0;
 	border: none;
 	font-size: 0.85rem;
-	color: var(--color-primary);
+	color: var(--color-text-tertiary);
 	font: inherit;
 	cursor: pointer;
-	transition: all var(--transition-base);
+	transition: color var(--transition-base);
 	display: inline-block;
 }
 
 .post-tag-link:hover {
-	background: color-mix(in srgb, var(--color-primary) 15%, transparent);
-	color: var(--color-primary-dark);
-	/* Removed transform: translateY(-2px); as requested */
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	color: var(--color-primary);
 }
 
 /* Author Link */
@@ -1563,8 +1562,6 @@ onBeforeUnmount(() => {
 
 .post-author-link:hover .post-author-name {
 	color: var(--color-primary);
-	text-decoration: underline;
-	text-underline-offset: 4px;
 }
 
 .section-heading {
@@ -1633,9 +1630,12 @@ onBeforeUnmount(() => {
 	flex-direction: column;
 	background: color-mix(in srgb, var(--color-bg-primary) 60%, transparent);
 	border: 1px solid var(--color-border-light);
-	border-radius: var(--radius-lg);
+	border-radius: var(--radius-xl);
 	overflow: hidden;
-	transition: all var(--transition-slow);
+	transition:
+		transform var(--transition-slow),
+		border-color var(--transition-slow),
+		box-shadow var(--transition-slow);
 	box-shadow: var(--shadow-md);
 	backdrop-filter: saturate(1.08) blur(10px);
 	-webkit-backdrop-filter: saturate(1.08) blur(10px);
@@ -1711,6 +1711,7 @@ onBeforeUnmount(() => {
 	font-weight: 600;
 	color: var(--color-text-primary);
 	font-size: 0.9rem;
+	transition: color var(--transition-base);
 }
 
 .post-meta-row {
@@ -1732,7 +1733,7 @@ onBeforeUnmount(() => {
 
 .post-meta-text {
 	display: flex;
-	flex-wrap: nowrap;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: 0.55rem;
 	font-size: 0.9rem;
@@ -1743,10 +1744,16 @@ onBeforeUnmount(() => {
 
 .meta-item,
 .post-author-link,
+.series-group,
 .tags-group {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.25rem;
+}
+
+.meta-divider-dot {
+	color: var(--color-text-tertiary);
+	line-height: 1;
 }
 
 .post-date {
@@ -1754,7 +1761,7 @@ onBeforeUnmount(() => {
 }
 
 .meta-icon {
-	color: var(--color-text-tertiary);
+	color: color-mix(in srgb, var(--color-text-secondary) 88%, transparent);
 }
 
 .post-author-link {
@@ -1768,19 +1775,37 @@ onBeforeUnmount(() => {
 }
 
 .tags-group {
-	flex-wrap: nowrap;
+	flex-wrap: wrap;
 	flex: 1;
 	max-width: 100%;
-	overflow-x: auto;
+	overflow: visible;
 	padding-bottom: 0.1rem;
 }
 
+.series-group,
 .tags-group {
-	scrollbar-width: none;
+	column-gap: 0.4rem;
+	row-gap: 0.2rem;
 }
 
-.tags-group::-webkit-scrollbar {
-	display: none;
+.post-series-link {
+	border: none;
+	background: transparent;
+	padding: 0;
+	font: inherit;
+	cursor: pointer;
+	color: var(--color-text-tertiary);
+	transition: color var(--transition-base);
+}
+
+.post-series-link:hover {
+	color: var(--color-primary);
+}
+
+.post-series-link:not(:last-child)::after,
+.post-tag-link:not(:last-child)::after {
+	content: " /";
+	color: var(--color-text-tertiary);
 }
 
 .post-tag-link {
@@ -1788,16 +1813,16 @@ onBeforeUnmount(() => {
 	text-decoration: none;
 	color: var(--color-text-tertiary);
 	font-size: 0.88rem;
-	padding: 0.18rem 0.46rem;
-	border-radius: var(--radius-pill);
-	background: color-mix(in srgb, var(--color-bg-secondary) 70%, transparent);
-	border: 1px solid var(--color-border-light);
+	padding: 0;
+	border-radius: 0;
+	background: transparent;
+	border: none;
 	cursor: pointer;
+	transition: color var(--transition-base);
 }
 
 .post-tag-link:hover {
-	color: var(--color-primary-dark);
-	border-color: var(--color-primary-light);
+	color: var(--color-primary);
 }
 
 .post-readmore {
@@ -1810,14 +1835,16 @@ onBeforeUnmount(() => {
 	font-size: 0.94rem;
 	font-weight: 600;
 	text-decoration: none;
-	color: var(--color-primary-dark);
-	padding: 0.2rem 0.45rem;
-	border-radius: var(--radius-md);
+	color: var(--color-text-secondary);
+	padding: 0;
+	border-radius: 0;
 	white-space: nowrap;
+	transition: color var(--transition-base);
 }
 
 .post-readmore:hover {
-	background: color-mix(in srgb, var(--color-primary-light) 14%, transparent);
+	background: transparent;
+	color: var(--color-primary);
 }
 
 .no-results {

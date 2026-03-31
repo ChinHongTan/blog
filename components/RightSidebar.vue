@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getAuthorId } from "~/composables/useAuthorId";
+import { buildFallbackAvatar } from "~/utils/avatar";
 
 import type { AuthorCollectionItem } from "~/types/content";
 
@@ -17,12 +18,6 @@ const localSearchQuery = computed({
   get: () => props.searchQuery || '',
   set: (value) => emit('update:search-query', value)
 });
-
-function fallbackAvatar(label: string, size = 48) {
-  const safeLabel = label?.trim();
-  const initial = (safeLabel ? safeLabel[0] : 'A')?.toUpperCase() ?? 'A';
-  return `https://placehold.co/${size}x${size}/38bdf8/ffffff?text=${initial}`;
-}
 
 const { data: authorEntries } = await useAsyncData('sidebar-authors', () =>
   queryCollection('authors').all()
@@ -228,7 +223,7 @@ const authors = computed(() => {
       id,
       name: authorDirectory.value[id]?.name ?? id,
       count,
-      avatar: authorDirectory.value[id]?.avatar ?? fallbackAvatar(id, 40),
+      avatar: authorDirectory.value[id]?.avatar ?? buildFallbackAvatar(id, 40),
     }))
     .sort((a, b) => b.count - a.count);
 });

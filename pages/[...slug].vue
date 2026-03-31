@@ -1,30 +1,12 @@
 <script setup lang="ts">
 import mediumZoom from "medium-zoom";
+import { getPostStem, normalizePath, safeDecode } from "~/utils/content-routing";
+import { useReadingProgress } from "~/composables/useReadingProgress";
+import { useSeriesSidebar } from "~/composables/useSeriesSidebar";
+import { buildFallbackAvatar } from "~/utils/avatar";
+import { estimateReadingMinutes } from "~/utils/reading-time";
 
 const route = useRoute();
-
-const safeDecode = (value: string): string => {
-	let decoded = value;
-	for (let i = 0; i < 2; i += 1) {
-		try {
-			const next = decodeURIComponent(decoded);
-			if (next === decoded) break;
-			decoded = next;
-		} catch {
-			break;
-		}
-	}
-	return decoded;
-};
-
-const normalizePath = (value: string): string => {
-	if (!value) return "/";
-	const withLeadingSlash = value.startsWith("/") ? value : `/${value}`;
-	if (withLeadingSlash.length > 1 && withLeadingSlash.endsWith("/")) {
-		return withLeadingSlash.slice(0, -1);
-	}
-	return withLeadingSlash;
-};
 
 // Try to fetch from blog collection first, then pages collection
 const { data: page } = await useAsyncData(route.path, async () => {
@@ -110,16 +92,6 @@ const { data: seriesData } = await useAsyncData("series-global-data", () =>
 	queryCollection("series").first(),
 );
 
-function getPostStem(
-	post: { stem?: string; id?: string; path?: string } | null | undefined,
-): string {
-	let s = post?.stem || post?.id || post?.path || "";
-	s = s.replace(/\.md$/, "");
-	s = s.replace(/^(?:\/?(?:content\/)?blog\/)+/, "");
-	s = s.replace(/^\//, "");
-	return s;
-}
-
 const isBlogPost = computed(
 	() => page.value && "date" in page.value && "author" in page.value,
 );
@@ -184,8 +156,10 @@ const authorAvatar = computed(() => {
 		(authorProfile?.value as { name?: string })?.name ??
 		page.value?.author ??
 		"A";
-	const firstLetter = (typeof label === "string" ? label[0] : "A") || "A";
-	return `https://placehold.co/40x40/38bdf8/ffffff?text=${firstLetter}`;
+	return buildFallbackAvatar(
+		typeof label === "string" ? label : "A",
+		40,
+	);
 });
 
 const authorDisplayName = computed(
@@ -195,65 +169,8 @@ const authorDisplayName = computed(
 		"Anonymous",
 );
 
-// Calculate reading time (assuming average reading speed of 200 words per minute)
 const readingTime = computed(() => {
-	if (!page.value?.body) return 1;
-
-	// Extract text content from minimark format
-	// Minimark structure: ['tagName', attributes, ...content]
-	const extractText = (node: unknown): string => {
-		if (!node) return "";
-
-		// If it's a string, return it directly
-		if (typeof node === "string") {
-			return node;
-		}
-
-		// If it's an array (minimark element: [tag, attrs, ...children])
-		if (Array.isArray(node)) {
-			// Skip the first two elements (tag name and attributes) and process the rest
-			return node
-				.slice(2)
-				.map((item) => extractText(item))
-				.join(" ");
-		}
-
-		// If it's an object with type 'minimark' and value array
-		if (
-			typeof node === "object" &&
-			node !== null &&
-			"type" in node &&
-			"value" in node
-		) {
-			const obj = node as { type: string; value: unknown };
-			if (obj.type === "minimark" && Array.isArray(obj.value)) {
-				return obj.value.map((item) => extractText(item)).join(" ");
-			}
-		}
-
-		return "";
-	};
-
-	const bodyText = extractText(page.value.body);
-
-	// For CJK (Chinese, Japanese, Korean) text, count characters instead of words
-	// For mixed content, count both CJK characters and non-CJK words
-	const cjkRegex =
-		/[\u4E00-\u9FFF\u3400-\u4DBF\u3040-\u309F\u30A0-\u30FF\uAC00-\uD7AF]/g;
-	const cjkCharacters = (bodyText.match(cjkRegex) || []).length;
-
-	// Remove CJK characters and count remaining words
-	const nonCjkText = bodyText.replace(cjkRegex, " ");
-	const nonCjkWords = nonCjkText
-		.trim()
-		.split(/\s+/)
-		.filter((w) => w.length > 0).length;
-
-	// Average reading speed: 200 words/min for English, 400-500 characters/min for Chinese
-	// We'll use 400 characters/min for Chinese
-	const readingMinutes = Math.ceil(cjkCharacters / 400 + nonCjkWords / 200);
-
-	return Math.max(1, readingMinutes); // At least 1 minute
+	return estimateReadingMinutes(page.value?.body);
 });
 
 const hasToc = computed(() => {
@@ -320,171 +237,29 @@ onMounted(async () => {
 	});
 });
 
-// Reading progress persistence
-const READING_KEY_PREFIX = "reading-progress:";
-const showResumeBar = ref(false);
-const savedScrollPercent = ref(0);
-let savedScrollY = 0;
-let saveTimer: ReturnType<typeof setTimeout> | null = null;
-
-function saveReadingProgress() {
-	if (!isBlogPost.value || !page.value?.path) return;
-	const pct = scrollPercentage.value;
-	if (pct < 5 || pct > 95) return;
-	localStorage.setItem(
-		READING_KEY_PREFIX + page.value.path,
-		JSON.stringify({ scrollY: window.scrollY, percent: Math.round(pct) }),
-	);
-}
-
-function debouncedSave() {
-	if (saveTimer) clearTimeout(saveTimer);
-	saveTimer = setTimeout(saveReadingProgress, 2000);
-}
-
-function resumeReading() {
-	window.scrollTo({ top: savedScrollY, behavior: "smooth" });
-	showResumeBar.value = false;
-}
-
-function dismissResume() {
-	showResumeBar.value = false;
-	if (page.value?.path) {
-		localStorage.removeItem(READING_KEY_PREFIX + page.value.path);
-	}
-}
-
-onMounted(() => {
-	if (!isBlogPost.value || !page.value?.path) return;
-	const raw = localStorage.getItem(READING_KEY_PREFIX + page.value.path);
-	if (raw) {
-		try {
-			const data = JSON.parse(raw);
-			if (data.percent > 5 && data.scrollY > 200) {
-				savedScrollY = data.scrollY;
-				savedScrollPercent.value = data.percent;
-				showResumeBar.value = true;
-			}
-		} catch {
-			/* ignore */
-		}
-	}
-	window.addEventListener("scroll", debouncedSave, { passive: true });
+const {
+	showResumeBar,
+	savedScrollPercent,
+	resumeReading,
+	dismissResume,
+} = useReadingProgress({
+	isEnabled: isBlogPost,
+	pagePath: computed(() => page.value?.path),
+	scrollPercentage,
 });
 
-onBeforeUnmount(() => {
-	window.removeEventListener("scroll", debouncedSave);
-	if (saveTimer) clearTimeout(saveTimer);
-	saveReadingProgress();
-});
-
-// Series sidebar logic
-const activeSeriesName = computed(() => {
-	// If navigated from a series page, use that series via query param
-	const querySeries = route.query.series as string | undefined;
-	if (querySeries) return querySeries;
-
-	const stem = getPostStem(page.value);
-	if (stem && seriesData.value?.series) {
-		for (const [sName, stems] of Object.entries(seriesData.value.series)) {
-			if (stems.includes(stem)) return sName;
-		}
-	}
-	return null;
-});
-
-const hasSeries = computed(() => !!activeSeriesName.value);
-
-// Fetch all posts in the active series
-const { data: seriesAllPosts } = await useAsyncData(
-	`series-sidebar-${activeSeriesName.value || "none"}`,
-	async () => {
-		if (!activeSeriesName.value) return [];
-		const allPosts = await queryCollection("blog")
-			.order("date", "DESC")
-			.all();
-
-		const stemsForSeries =
-			seriesData.value?.series?.[activeSeriesName.value] || [];
-
-		const postsInSeries = allPosts.filter((post) => {
-			const stem = getPostStem(post);
-			return stemsForSeries.includes(stem);
-		});
-
-		return postsInSeries.sort((a, b) => {
-			const stemA = getPostStem(a);
-			const stemB = getPostStem(b);
-			let orderA = stemsForSeries.indexOf(stemA);
-			let orderB = stemsForSeries.indexOf(stemB);
-
-			if (orderA === -1) orderA = Infinity;
-			if (orderB === -1) orderB = Infinity;
-
-			if (orderA !== orderB) return orderA - orderB;
-
-			const dA = new Date(a.date || 0).getTime();
-			const dB = new Date(b.date || 0).getTime();
-			return dA - dB;
-		});
-	},
-);
-
-// Get the post path helper
-function getSeriesPostPath(post: {
-	path?: string;
-	stem?: string;
-	id?: string;
-}): string {
-	if (post.path && post.path !== "/blog") return post.path;
-	if (post.stem) return `/${post.stem}`;
-	if (post.id) {
-		const derivedStem = post.id.replace(/^blog\//, "").replace(/\.md$/, "");
-		return `/${derivedStem}`;
-	}
-	return post.path ?? "/blog";
-}
-
-// Find current article index within the series
-const currentSeriesIndex = computed(() => {
-	if (!seriesAllPosts.value) return -1;
-	const currentPath = normalizePath(safeDecode(route.path));
-	return seriesAllPosts.value.findIndex((post) => {
-		const postPath = getSeriesPostPath(post);
-		return normalizePath(postPath) === currentPath;
-	});
-});
-
-// Windowed pagination: show 5 articles around the current one
-const WINDOW_SIZE = 5;
-const seriesWindow = computed(() => {
-	const posts = seriesAllPosts.value ?? [];
-	if (posts.length <= WINDOW_SIZE * 2 + 1) {
-		// Show all if total is small
-		return { posts, startIndex: 0 };
-	}
-	const idx = currentSeriesIndex.value;
-	if (idx < 0)
-		return { posts: posts.slice(0, WINDOW_SIZE * 2 + 1), startIndex: 0 };
-
-	let start = Math.max(0, idx - WINDOW_SIZE);
-	let end = Math.min(posts.length, idx + WINDOW_SIZE + 1);
-
-	// Adjust if near edges
-	if (start === 0) end = Math.min(posts.length, WINDOW_SIZE * 2 + 1);
-	if (end === posts.length)
-		start = Math.max(0, posts.length - (WINDOW_SIZE * 2 + 1));
-
-	return { posts: posts.slice(start, end), startIndex: start };
-});
-
-const showSeriesSidebar = ref(true);
-
-onMounted(() => {
-	// Hide series sidebar on small screens
-	if (typeof window !== "undefined" && window.innerWidth < 1400) {
-		showSeriesSidebar.value = false;
-	}
+const {
+	activeSeriesName,
+	hasSeries,
+	seriesAllPosts,
+	seriesWindow,
+	showSeriesSidebar,
+	getSeriesPostPath,
+} = await useSeriesSidebar({
+	page,
+	seriesData,
+	routePath: computed(() => route.path),
+	routeSeriesQuery: computed(() => route.query.series as string | undefined),
 });
 </script>
 
@@ -1012,6 +787,7 @@ onMounted(() => {
 	flex: 1;
 	min-width: 0;
 	display: -webkit-box;
+	line-clamp: 2;
 	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
 	overflow: hidden;

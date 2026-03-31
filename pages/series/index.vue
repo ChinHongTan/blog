@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { BlogCollectionItem } from "@nuxt/content";
 import { getAuthorId } from "~/composables/useAuthorId";
+import { getPostStem } from "~/utils/content-routing";
+import { buildFallbackAvatar } from "~/utils/avatar";
 
 const { data: posts } = useAsyncData<BlogCollectionItem[]>("series-posts", () =>
 	queryCollection("blog").order("date", "DESC").all()
@@ -26,21 +28,6 @@ const authorDirectory = computed<Record<string, AuthorProfile>>(() => {
 	});
 	return dir;
 });
-
-function fallbackAvatar(label: string, size = 32) {
-	const initial = (label?.trim()?.[0] ?? "A").toUpperCase();
-	return `https://placehold.co/${size}x${size}/38bdf8/ffffff?text=${initial}`;
-}
-
-function getPostStem(
-	post: { stem?: string; id?: string; path?: string } | null | undefined,
-): string {
-	let s = post?.stem || post?.id || post?.path || "";
-	s = s.replace(/\.md$/, "");
-	s = s.replace(/^(?:\/?(?:content\/)?blog\/)+/, "");
-	s = s.replace(/^\//, "");
-	return s;
-}
 
 const postsByStem = computed(() => {
 	const map = new Map<string, BlogCollectionItem>();
@@ -162,7 +149,7 @@ useHead({
 								<img
 									v-for="authorId in Array.from(series.authors).slice(0, 3)"
 									:key="authorId"
-									:src="authorDirectory[authorId]?.avatar ?? fallbackAvatar(authorDirectory[authorId]?.name ?? authorId)"
+									:src="authorDirectory[authorId]?.avatar ?? buildFallbackAvatar(authorDirectory[authorId]?.name ?? authorId)"
 									:alt="authorDirectory[authorId]?.name ?? authorId"
 									class="series-author-avatar"
 								>
@@ -390,6 +377,11 @@ useHead({
 	font-weight: 600;
 	color: var(--color-text-primary);
 	font-size: 0.9rem;
+	transition: color var(--transition-base);
+}
+
+.series-card:hover .series-author-names {
+	color: var(--color-primary);
 }
 
 .series-date {
@@ -415,15 +407,18 @@ useHead({
 	padding: 0.2rem 0.45rem;
 	border-radius: var(--radius-md);
 	white-space: nowrap;
-	transition: all var(--transition-base);
+	transition: color var(--transition-base);
 }
 
 .series-card:hover .series-readmore {
-	background: color-mix(in srgb, var(--color-primary-light) 14%, transparent);
+	background: transparent;
+	color: var(--color-primary);
 }
 
 .series-readmore :deep(svg) {
-	transition: transform var(--transition-base);
+	transition:
+		transform var(--transition-base),
+		color var(--transition-base);
 }
 
 .series-card:hover .series-readmore :deep(svg) {

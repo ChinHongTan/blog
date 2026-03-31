@@ -4,6 +4,7 @@ import { useAdminAuth } from "~/composables/useAdminAuth";
 import { useAdminProfileMe } from "~/composables/useAdminProfileMe";
 import { getAuthorId } from "~/composables/useAuthorId";
 import { useToast } from "~/composables/useToast";
+import { resolvePostPath as resolveCanonicalPostPath } from "~/utils/post-path";
 import BaseModal from "~/components/ui/BaseModal.vue";
 
 definePageMeta({ layout: "admin" });
@@ -414,12 +415,7 @@ async function saveAllSeriesData() {
 }
 
 function resolvePostPath(post: LocalPost): string {
-	if (post.path && post.path !== "/blog") return post.path;
-	if (post.id) {
-		const derivedStem = post.id.replace(/^blog\//, "").replace(/\.md$/, "");
-		return `/${derivedStem}`;
-	}
-	return post.stem ? `/${post.stem}` : "";
+	return resolveCanonicalPostPath(post, "");
 }
 </script>
 
