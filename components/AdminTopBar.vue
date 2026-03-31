@@ -45,6 +45,14 @@ onUnmounted(() => {
 			<div class="header-actions">
 				<NuxtLink
 					v-if="!isEditorPage"
+					to="/admin/guide"
+					class="admin-quick-add-btn admin-series-nav-link"
+				>
+					<Icon name="heroicons:book-open" size="16" />
+					撰寫指南
+				</NuxtLink>
+				<NuxtLink
+					v-if="!isEditorPage"
 					to="/admin/series"
 					class="admin-quick-add-btn admin-series-nav-link"
 				>
