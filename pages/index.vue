@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { BlogCollectionItem } from "@nuxt/content";
-import type { AuthorCollectionItem, DisplayPost } from "~/types/content";
+import type { AuthorCollectionItem, DisplayPost, FeedItem } from "~/types/content";
+import { useSeriesCollapsing } from "~/composables/useSeriesCollapsing";
 import { useTheme } from "#imports";
 import { getAuthorId } from "~/composables/useAuthorId";
 import { getPostStem } from "~/utils/content-routing";
@@ -212,6 +213,13 @@ const filteredPosts = computed<DisplayPost[]>(() => {
 	return filtered;
 });
 
+const { feedItems } = useSeriesCollapsing(
+	filteredPosts,
+	seriesData,
+	seriesFilter,
+	authorDirectory,
+);
+
 const POSTS_PER_PAGE = 12;
 const currentPage = ref(1);
 
@@ -219,14 +227,14 @@ watch([tagFilter, yearFilter, authorFilter, seriesFilter, searchQuery], () => {
 	currentPage.value = 1;
 });
 
-const paginatedPosts = computed(() => {
+const paginatedItems = computed(() => {
 	const start = (currentPage.value - 1) * POSTS_PER_PAGE;
 	const end = currentPage.value * POSTS_PER_PAGE;
-	return filteredPosts.value.slice(start, end);
+	return feedItems.value.slice(start, end);
 });
 
 const hasMorePosts = computed(
-	() => currentPage.value * POSTS_PER_PAGE < filteredPosts.value.length,
+	() => currentPage.value * POSTS_PER_PAGE < feedItems.value.length,
 );
 
 type TransitionPhase = "idle" | "exiting" | "entering";
@@ -242,7 +250,7 @@ const ENTER_DURATION_MS = 340;
 const STAGGER_MS = 56;
 
 const transitionPhase = ref<TransitionPhase>("idle");
-const renderedPosts = ref<DisplayPost[]>([]);
+const renderedPosts = ref<FeedItem[]>([]);
 const pressedAuthorId = ref<string | null>(null);
 const pendingAuthorSelection = ref<string | undefined>(undefined);
 const prefersReducedMotion = ref(false);
@@ -322,7 +330,7 @@ async function runPostsOnlyTransition(nextAuthorSelection?: string) {
 	pendingAuthorSelection.value = nextAuthorSelection;
 
 	if (prefersReducedMotion.value) {
-		renderedPosts.value = [...paginatedPosts.value];
+		renderedPosts.value = [...paginatedItems.value];
 		transitionPhase.value = "idle";
 		pendingAuthorSelection.value = undefined;
 		return;
@@ -331,7 +339,7 @@ async function runPostsOnlyTransition(nextAuthorSelection?: string) {
 	transitionPhase.value = "exiting";
 	if (!(await waitForTransition(EXIT_DURATION_MS, token))) return;
 
-	renderedPosts.value = [...paginatedPosts.value];
+	renderedPosts.value = [...paginatedItems.value];
 	transitionPhase.value = "entering";
 	if (!(await waitForTransition(ENTER_DURATION_MS, token))) return;
 
@@ -363,7 +371,7 @@ async function runRouteFilterTransition(patch: FilterPatch) {
 		if (typeof window !== "undefined") {
 			window.scrollTo({ top: scrollTop, behavior: "auto" });
 		}
-		renderedPosts.value = [...paginatedPosts.value];
+		renderedPosts.value = [...paginatedItems.value];
 		transitionPhase.value = "idle";
 		pendingAuthorSelection.value = undefined;
 		return;
@@ -381,7 +389,7 @@ async function runRouteFilterTransition(patch: FilterPatch) {
 	}
 
 	if (token !== transitionToken) return;
-	renderedPosts.value = [...paginatedPosts.value];
+	renderedPosts.value = [...paginatedItems.value];
 	transitionPhase.value = "entering";
 	if (!(await waitForTransition(ENTER_DURATION_MS, token))) return;
 
@@ -455,7 +463,7 @@ function loadMore() {
 }
 
 const totalPages = computed(() => {
-	return Math.ceil(filteredPosts.value.length / POSTS_PER_PAGE);
+	return Math.ceil(feedItems.value.length / POSTS_PER_PAGE);
 });
 
 const paginationItems = computed(() => {
@@ -514,7 +522,7 @@ async function goToPage(page: number) {
 			} else {
 				window.scrollTo({ top: 0, behavior: "instant" });
 			}
-			renderedPosts.value = [...paginatedPosts.value];
+			renderedPosts.value = [...paginatedItems.value];
 			transitionPhase.value = "idle";
 			return;
 		}
@@ -534,7 +542,7 @@ async function goToPage(page: number) {
 		}
 
 		if (token !== transitionToken) return;
-		renderedPosts.value = [...paginatedPosts.value];
+		renderedPosts.value = [...paginatedItems.value];
 		transitionPhase.value = "entering";
 		if (!(await waitForTransition(ENTER_DURATION_MS, token))) return;
 
@@ -689,7 +697,7 @@ const scrollToPosts = () => {
 };
 
 watch(
-	paginatedPosts,
+	paginatedItems,
 	(value) => {
 		if (transitionPhase.value === "idle") {
 			renderedPosts.value = [...value];
@@ -972,175 +980,187 @@ onBeforeUnmount(() => {
 						v-if="renderedPosts.length > 0"
 						:class="['posts-grid', postsGridClass]"
 					>
-						<article
-							v-for="(post, index) in renderedPosts"
-							:key="post.id"
-							class="post-card"
-							:style="postCardStyle(index)"
+						<template
+							v-for="(item, index) in renderedPosts"
+							:key="item.kind === 'series-card' ? `series-${item.seriesName}` : item.id"
 						>
-							<NuxtLink :to="post.path" class="post-main-link">
-								<div
-									v-if="post.featured_image"
-									class="post-image"
-								>
-									<img
-										:src="post.featured_image"
-										:alt="post.title"
+							<SeriesCard
+								v-if="item.kind === 'series-card'"
+								:item="item"
+								class="post-card"
+								:style="postCardStyle(index)"
+								@filter:author="handlePostAuthorFilterClick"
+								@filter:series="handleSeriesFilterClick"
+							/>
+							<article
+								v-else
+								class="post-card"
+								:style="postCardStyle(index)"
+							>
+								<NuxtLink :to="item.path" class="post-main-link">
+									<div
+										v-if="item.featured_image"
+										class="post-image"
 									>
-								</div>
-							</NuxtLink>
-							<div class="post-content">
-								<NuxtLink
-									:to="post.path"
-									class="post-main-link title-link"
-								>
-									<h3 class="post-title">{{ post.title }}</h3>
+										<img
+											:src="item.featured_image"
+											:alt="item.title"
+										>
+									</div>
 								</NuxtLink>
-								<p
-									v-if="post.description"
-									class="post-description"
-								>
-									{{ post.description }}
-								</p>
-								<div class="post-meta-row">
-									<div class="post-meta-main">
-										<template v-if="post.author">
-											<img
-												:src="
-													post.authorAvatar ||
-													buildFallbackAvatar(
-														post.author,
-														32,
-													)
-												"
-												:alt="
-													post.authorDisplayName ||
-													post.author
-												"
-												class="post-author-avatar"
-											>
-										</template>
-										<div class="post-meta-text">
-											<button
-												v-if="post.author"
-												type="button"
-												class="post-author-link"
-												@click="
-													handlePostAuthorFilterClick(
-														post.author,
-													)
-												"
-											>
-												<span
-													class="post-author-name"
-													>{{
-														post.authorDisplayName ||
-														post.author
-													}}</span
+								<div class="post-content">
+									<NuxtLink
+										:to="item.path"
+										class="post-main-link title-link"
+									>
+										<h3 class="post-title">{{ item.title }}</h3>
+									</NuxtLink>
+									<p
+										v-if="item.description"
+										class="post-description"
+									>
+										{{ item.description }}
+									</p>
+									<div class="post-meta-row">
+										<div class="post-meta-main">
+											<template v-if="item.author">
+												<img
+													:src="
+														item.authorAvatar ||
+														buildFallbackAvatar(
+															item.author,
+															32,
+														)
+													"
+													:alt="
+														item.authorDisplayName ||
+														item.author
+													"
+													class="post-author-avatar"
 												>
-											</button>
-											<span class="meta-divider-dot">•</span>
-											<span class="meta-item post-date">
-												<Icon
-													name="heroicons:calendar-days-20-solid"
-													size="16"
-													class="meta-icon"
-												/>
-												{{
-													new Date(
-														post.date,
-													).toLocaleDateString(
-														"zh-TW",
-														{
-															year: "numeric",
-															month: "2-digit",
-															day: "2-digit",
-														},
-													)
-												}}
-											</span>
-											<span
-												v-if="post.edited_at"
-												class="meta-item post-date post-edited-at"
-											>
-												<Icon
-													name="heroicons:pencil-square-20-solid"
-													size="16"
-													class="meta-icon"
-												/>
-												{{
-													new Date(
-														post.edited_at,
-													).toLocaleDateString(
-														"zh-TW",
-														{
-															year: "numeric",
-															month: "2-digit",
-															day: "2-digit",
-														},
-													)
-												}}
-											</span>
-											<div
-												v-if="getSeriesNamesForPost(post).length"
-												class="meta-item series-group"
-											>
-												<Icon
-													name="heroicons:bookmark-20-solid"
-													size="16"
-													class="meta-icon"
-												/>
+											</template>
+											<div class="post-meta-text">
 												<button
-													v-for="seriesName in getSeriesNamesForPost(post)"
-													:key="`${post.id}-${seriesName}`"
+													v-if="item.author"
 													type="button"
-													class="post-series-link"
-													@click="handleSeriesFilterClick(seriesName)"
-												>
-													{{ seriesName }}
-												</button>
-											</div>
-											<div
-												v-if="
-													Array.isArray(post.tags) &&
-													post.tags.length
-												"
-												class="meta-item tags-group"
-											>
-												<Icon
-													name="heroicons:tag-20-solid"
-													size="16"
-													class="meta-icon"
-												/>
-												<button
-													v-for="tag in post.tags"
-													:key="`${post.id}-${tag}`"
-													type="button"
-													class="post-tag-link"
+													class="post-author-link"
 													@click="
-														handleTagFilterClick(
-															tag,
+														handlePostAuthorFilterClick(
+															item.author,
 														)
 													"
 												>
-													#{{ tag }}
+													<span
+														class="post-author-name"
+														>{{
+															item.authorDisplayName ||
+															item.author
+														}}</span
+													>
 												</button>
+												<span class="meta-divider-dot">•</span>
+												<span class="meta-item post-date">
+													<Icon
+														name="heroicons:calendar-days-20-solid"
+														size="16"
+														class="meta-icon"
+													/>
+													{{
+														new Date(
+															item.date,
+														).toLocaleDateString(
+															"zh-TW",
+															{
+																year: "numeric",
+																month: "2-digit",
+																day: "2-digit",
+															},
+														)
+													}}
+												</span>
+												<span
+													v-if="item.edited_at"
+													class="meta-item post-date post-edited-at"
+												>
+													<Icon
+														name="heroicons:pencil-square-20-solid"
+														size="16"
+														class="meta-icon"
+													/>
+													{{
+														new Date(
+															item.edited_at,
+														).toLocaleDateString(
+															"zh-TW",
+															{
+																year: "numeric",
+																month: "2-digit",
+																day: "2-digit",
+															},
+														)
+													}}
+												</span>
+												<div
+													v-if="getSeriesNamesForPost(item).length"
+													class="meta-item series-group"
+												>
+													<Icon
+														name="heroicons:bookmark-20-solid"
+														size="16"
+														class="meta-icon"
+													/>
+													<button
+														v-for="seriesName in getSeriesNamesForPost(item)"
+														:key="`${item.id}-${seriesName}`"
+														type="button"
+														class="post-series-link"
+														@click="handleSeriesFilterClick(seriesName)"
+													>
+														{{ seriesName }}
+													</button>
+												</div>
+												<div
+													v-if="
+														Array.isArray(item.tags) &&
+														item.tags.length
+													"
+													class="meta-item tags-group"
+												>
+													<Icon
+														name="heroicons:tag-20-solid"
+														size="16"
+														class="meta-icon"
+													/>
+													<button
+														v-for="tag in item.tags"
+														:key="`${item.id}-${tag}`"
+														type="button"
+														class="post-tag-link"
+														@click="
+															handleTagFilterClick(
+																tag,
+															)
+														"
+													>
+														#{{ tag }}
+													</button>
+												</div>
 											</div>
 										</div>
+										<NuxtLink
+											:to="item.path"
+											class="post-readmore"
+										>
+											<span>閱讀更多</span>
+											<Icon
+												name="heroicons:chevron-right-20-solid"
+												size="16"
+											/>
+										</NuxtLink>
 									</div>
-									<NuxtLink
-										:to="post.path"
-										class="post-readmore"
-									>
-										<span>閱讀更多</span>
-										<Icon
-											name="heroicons:chevron-right-20-solid"
-											size="16"
-										/>
-									</NuxtLink>
 								</div>
-							</div>
-						</article>
+							</article>
+						</template>
 					</div>
 					<div
 						v-if="totalPages > 1 && transitionPhase === 'idle'"

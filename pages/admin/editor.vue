@@ -2607,7 +2607,7 @@ onUnmounted(() => {
 .admin-wysiwyg-site :deep(.milkdown ul),
 .admin-wysiwyg-site :deep(.milkdown ol) {
 	margin-bottom: 1.5rem;
-	padding-left: 2rem;
+	padding-left: 1rem;
 }
 .admin-wysiwyg-site :deep(.milkdown li) {
 	margin-bottom: 0.5rem;

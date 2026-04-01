@@ -21,3 +21,18 @@ export type DisplayPost = BlogCollectionItem & {
 	authorDisplayName?: string;
 	pinned?: boolean;
 };
+
+export type SeriesCardItem = {
+	kind: "series-card";
+	seriesName: string;
+	postCount: number;
+	totalPostCount: number;
+	latestDate: Date;
+	latestPost: DisplayPost;
+	authors: Array<{ id: string; name: string; avatar: string }>;
+	posts: DisplayPost[];
+};
+
+export type FeedItem =
+	| (DisplayPost & { kind: "post" })
+	| SeriesCardItem;
