@@ -40,6 +40,14 @@ export async function useSeriesSidebar(options: UseSeriesSidebarOptions) {
 
 	const hasSeries = computed(() => !!activeSeriesName.value);
 
+	const showSeriesSidebar = ref(true);
+
+	onMounted(() => {
+		if (typeof window !== "undefined" && window.innerWidth < 1400) {
+			showSeriesSidebar.value = false;
+		}
+	});
+
 	const { data: seriesAllPosts } = await useAsyncData(
 		`series-sidebar-${activeSeriesName.value || "none"}`,
 		async () => {
@@ -106,14 +114,6 @@ export async function useSeriesSidebar(options: UseSeriesSidebarOptions) {
 		}
 
 		return { posts: posts.slice(start, end), startIndex: start };
-	});
-
-	const showSeriesSidebar = ref(true);
-
-	onMounted(() => {
-		if (typeof window !== "undefined" && window.innerWidth < 1400) {
-			showSeriesSidebar.value = false;
-		}
 	});
 
 	return {

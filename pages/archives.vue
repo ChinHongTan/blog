@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { BlogCollectionItem } from "@nuxt/content";
-import type { AuthorCollectionItem, DisplayPost, FeedItem } from "~/types/content";
-import { useSeriesCollapsing } from "~/composables/useSeriesCollapsing";
+import type { AuthorCollectionItem, DisplayPost } from "~/types/content";
 import { useTheme } from "#imports";
 import { getAuthorId } from "~/composables/useAuthorId";
 import { getPostStem } from "~/utils/content-routing";
@@ -213,30 +212,6 @@ const filteredPosts = computed<DisplayPost[]>(() => {
 	return filtered;
 });
 
-const { feedItems } = useSeriesCollapsing(
-	filteredPosts,
-	seriesData,
-	seriesFilter,
-	authorDirectory,
-);
-
-const POSTS_PER_PAGE = 12;
-const currentPage = ref(1);
-
-watch([tagFilter, yearFilter, authorFilter, seriesFilter, searchQuery], () => {
-	currentPage.value = 1;
-});
-
-const paginatedItems = computed(() => {
-	const start = (currentPage.value - 1) * POSTS_PER_PAGE;
-	const end = currentPage.value * POSTS_PER_PAGE;
-	return feedItems.value.slice(start, end);
-});
-
-const hasMorePosts = computed(
-	() => currentPage.value * POSTS_PER_PAGE < feedItems.value.length,
-);
-
 type TransitionPhase = "idle" | "exiting" | "entering";
 type FilterPatch = {
 	tag?: string;
@@ -246,11 +221,11 @@ type FilterPatch = {
 };
 
 const EXIT_DURATION_MS = 220;
-const ENTER_DURATION_MS = 340;
+const ENTER_DURATION_MS = 1150;
 const STAGGER_MS = 56;
 
 const transitionPhase = ref<TransitionPhase>("idle");
-const renderedPosts = ref<FeedItem[]>([]);
+const renderedPosts = ref<DisplayPost[]>([]);
 const pressedAuthorId = ref<string | null>(null);
 const pendingAuthorSelection = ref<string | undefined>(undefined);
 const prefersReducedMotion = ref(false);
@@ -330,7 +305,7 @@ async function runPostsOnlyTransition(nextAuthorSelection?: string) {
 	pendingAuthorSelection.value = nextAuthorSelection;
 
 	if (prefersReducedMotion.value) {
-		renderedPosts.value = [...paginatedItems.value];
+		renderedPosts.value = [...filteredPosts.value];
 		transitionPhase.value = "idle";
 		pendingAuthorSelection.value = undefined;
 		return;
@@ -339,7 +314,7 @@ async function runPostsOnlyTransition(nextAuthorSelection?: string) {
 	transitionPhase.value = "exiting";
 	if (!(await waitForTransition(EXIT_DURATION_MS, token))) return;
 
-	renderedPosts.value = [...paginatedItems.value];
+	renderedPosts.value = [...filteredPosts.value];
 	transitionPhase.value = "entering";
 	if (!(await waitForTransition(ENTER_DURATION_MS, token))) return;
 
@@ -371,7 +346,7 @@ async function runRouteFilterTransition(patch: FilterPatch) {
 		if (typeof window !== "undefined") {
 			window.scrollTo({ top: scrollTop, behavior: "auto" });
 		}
-		renderedPosts.value = [...paginatedItems.value];
+		renderedPosts.value = [...filteredPosts.value];
 		transitionPhase.value = "idle";
 		pendingAuthorSelection.value = undefined;
 		return;
@@ -389,7 +364,7 @@ async function runRouteFilterTransition(patch: FilterPatch) {
 	}
 
 	if (token !== transitionToken) return;
-	renderedPosts.value = [...paginatedItems.value];
+	renderedPosts.value = [...filteredPosts.value];
 	transitionPhase.value = "entering";
 	if (!(await waitForTransition(ENTER_DURATION_MS, token))) return;
 
@@ -449,7 +424,7 @@ function postCardStyle(index: number) {
 		return undefined;
 	}
 	return {
-		"--card-delay": `${Math.min(index, 6) * STAGGER_MS}ms`,
+		"--card-delay": `${Math.min(index, 14) * STAGGER_MS}ms`,
 	};
 }
 
@@ -457,98 +432,6 @@ const postsGridClass = computed(() => ({
 	"is-exiting": transitionPhase.value === "exiting",
 	"is-entering": transitionPhase.value === "entering",
 }));
-
-function loadMore() {
-	currentPage.value++;
-}
-
-const totalPages = computed(() => {
-	return Math.ceil(feedItems.value.length / POSTS_PER_PAGE);
-});
-
-const paginationItems = computed(() => {
-	const total = totalPages.value;
-	if (total <= 1) return [];
-	
-	const items: (number | string)[] = [];
-	const maxVisiblePages = 7;
-	const halfWindow = Math.floor(maxVisiblePages / 2);
-	
-	// Always add first page
-	items.push(1);
-	
-	let start = Math.max(2, currentPage.value - halfWindow);
-	let end = Math.min(total - 1, currentPage.value + halfWindow);
-	
-	// Adjust window if near start or end
-	if (currentPage.value <= halfWindow + 1) {
-		end = Math.min(total - 1, maxVisiblePages - 1);
-	} else if (currentPage.value >= total - halfWindow) {
-		start = Math.max(2, total - maxVisiblePages + 2);
-	}
-	
-	// Add ellipsis if needed
-	if (start > 2) {
-		items.push('...');
-	}
-	
-	// Add page numbers
-	for (let i = start; i <= end; i++) {
-		items.push(i);
-	}
-	
-	// Add ellipsis and last page if needed
-	if (end < total - 1) {
-		items.push('...');
-	}
-	if (total > 1) {
-		items.push(total);
-	}
-	
-	return items;
-});
-
-async function goToPage(page: number) {
-	if (page >= 1 && page <= totalPages.value && page !== currentPage.value) {
-		const token = ++transitionToken;
-		clearTransitionTimers();
-
-		if (prefersReducedMotion.value) {
-			currentPage.value = page;
-			await nextTick();
-			const section = document.getElementById("posts-list");
-			if (section) {
-				section.scrollIntoView({ behavior: "instant", block: "start" });
-			} else {
-				window.scrollTo({ top: 0, behavior: "instant" });
-			}
-			renderedPosts.value = [...paginatedItems.value];
-			transitionPhase.value = "idle";
-			return;
-		}
-
-		transitionPhase.value = "exiting";
-		if (!(await waitForTransition(EXIT_DURATION_MS, token))) return;
-
-		currentPage.value = page;
-
-		await nextTick();
-		const section = document.getElementById("posts-list");
-		if (section) {
-			section.scrollIntoView({ behavior: "instant", block: "start" });
-			/* Fallback adjustment if nav height obscures it: done via css scroll-margin-top */
-		} else {
-			window.scrollTo({ top: 0, behavior: "instant" });
-		}
-
-		if (token !== transitionToken) return;
-		renderedPosts.value = [...paginatedItems.value];
-		transitionPhase.value = "entering";
-		if (!(await waitForTransition(ENTER_DURATION_MS, token))) return;
-
-		transitionPhase.value = "idle";
-	}
-}
 
 const activeFilter = computed(() => {
 	if (tagFilter.value) return `標籤：${tagFilter.value}`;
@@ -581,6 +464,56 @@ const totalSeries = computed(() => {
 		getSeriesNamesForPost(post).forEach((s) => series.add(s));
 	});
 	return series.size;
+});
+
+interface TimelineDate {
+	dateLabel: string;
+	posts: { post: DisplayPost; globalIndex: number }[];
+}
+
+interface TimelineYear {
+	year: string;
+	count: number;
+	dates: TimelineDate[];
+}
+
+const groupedTimeline = computed<TimelineYear[]>(() => {
+	const yearsObj: Record<string, Record<string, { post: any; globalIndex: number }[]>> = {};
+	let globalIndex = 0;
+
+	renderedPosts.value.forEach((post) => {
+		const dateObj = new Date(post.date);
+		const yearStr = dateObj.getFullYear().toString();
+		const monthObj = dateObj.getMonth() + 1;
+		const dayObj = dateObj.getDate();
+		const dateLabel = `${monthObj.toString().padStart(2, "0")}-${dayObj.toString().padStart(2, "0")}`;
+
+		if (!yearsObj[yearStr]) {
+			yearsObj[yearStr] = {};
+		}
+		if (!yearsObj[yearStr][dateLabel]) {
+			yearsObj[yearStr][dateLabel] = [];
+		}
+		yearsObj[yearStr][dateLabel].push({ post, globalIndex: globalIndex++ });
+	});
+
+	return Object.entries(yearsObj)
+		.sort((a, b) => parseInt(b[0]) - parseInt(a[0]))
+		.map(([year, datesObj]) => {
+			const sortedDates = Object.entries(datesObj)
+				.sort((a, b) => b[0].localeCompare(a[0]))
+				.map(([dateLabel, posts]) => ({
+					dateLabel,
+					posts,
+				}));
+
+			const count = sortedDates.reduce(
+				(acc, curr) => acc + curr.posts.length,
+				0,
+			);
+
+			return { year, count, dates: sortedDates };
+		});
 });
 
 const selectedAuthorSummary = computed(() => {
@@ -697,7 +630,7 @@ const scrollToPosts = () => {
 };
 
 watch(
-	paginatedItems,
+	filteredPosts,
 	(value) => {
 		if (transitionPhase.value === "idle") {
 			renderedPosts.value = [...value];
@@ -978,239 +911,91 @@ onBeforeUnmount(() => {
 
 					<div
 						v-if="renderedPosts.length > 0"
-						:class="['posts-grid', postsGridClass]"
+						:class="['timeline-list', postsGridClass]"
 					>
-						<template
-							v-for="(item, index) in renderedPosts"
-							:key="item.kind === 'series-card' ? `series-${item.seriesName}` : item.id"
+						<div
+							v-for="yearGroup in groupedTimeline"
+							:key="yearGroup.year"
+							class="timeline-year-group"
 						>
-							<SeriesCard
-								v-if="item.kind === 'series-card'"
-								:item="item"
-								class="post-card"
-								:style="postCardStyle(index)"
-								@filter:author="handlePostAuthorFilterClick"
-								@filter:series="handleSeriesFilterClick"
-							/>
-							<article
-								v-else
-								class="post-card"
-								:style="postCardStyle(index)"
-							>
-								<NuxtLink :to="item.path" class="post-main-link">
-									<div
-										v-if="item.featured_image"
-										class="post-image"
-									>
-										<img
-											:src="item.featured_image"
-											:alt="item.title"
-										>
+							<div class="timeline-year-header">
+								<h2 class="timeline-year">{{ yearGroup.year }}</h2>
+								<span class="timeline-count">{{ yearGroup.count }}</span>
+							</div>
+
+							<div class="timeline-dates-container">
+								<div
+									v-for="(dateGroup, dateIndex) in yearGroup.dates"
+									:key="dateGroup.dateLabel"
+									:class="['timeline-date-group', { 'is-last': dateIndex === yearGroup.dates.length - 1 }]"
+								>
+									<div class="timeline-date-label">
+										<div class="timeline-node" />
+										<span class="timeline-date-text">{{ dateGroup.dateLabel }}</span>
 									</div>
-								</NuxtLink>
-								<div class="post-content">
-									<NuxtLink
-										:to="item.path"
-										class="post-main-link title-link"
-									>
-										<h3 class="post-title">{{ item.title }}</h3>
-									</NuxtLink>
-									<p
-										v-if="item.description"
-										class="post-description"
-									>
-										{{ item.description }}
-									</p>
-									<div class="post-meta-row">
-										<div class="post-meta-main">
-											<template v-if="item.author">
-												<img
-													:src="
-														item.authorAvatar ||
-														buildFallbackAvatar(
-															item.author,
-															32,
-														)
-													"
-													:alt="
-														item.authorDisplayName ||
-														item.author
-													"
-													class="post-author-avatar"
-												>
-											</template>
-											<div class="post-meta-text">
-												<button
-													v-if="item.author"
-													type="button"
-													class="post-author-link"
-													@click="
-														handlePostAuthorFilterClick(
-															item.author,
-														)
-													"
-												>
-													<span
-														class="post-author-name"
-														>{{
-															item.authorDisplayName ||
-															item.author
-														}}</span
-													>
-												</button>
-												<span class="meta-divider-dot">•</span>
-												<span class="meta-item post-date">
-													<Icon
-														name="heroicons:calendar-days-20-solid"
-														size="16"
-														class="meta-icon"
-													/>
-													{{
-														new Date(
-															item.date,
-														).toLocaleDateString(
-															"zh-TW",
-															{
-																year: "numeric",
-																month: "2-digit",
-																day: "2-digit",
-															},
-														)
-													}}
-												</span>
-												<span
-													v-if="item.edited_at"
-													class="meta-item post-date post-edited-at"
-												>
-													<Icon
-														name="heroicons:pencil-square-20-solid"
-														size="16"
-														class="meta-icon"
-													/>
-													{{
-														new Date(
-															item.edited_at,
-														).toLocaleDateString(
-															"zh-TW",
-															{
-																year: "numeric",
-																month: "2-digit",
-																day: "2-digit",
-															},
-														)
-													}}
-												</span>
-												<div
-													v-if="getSeriesNamesForPost(item).length"
-													class="meta-item series-group"
-												>
-													<Icon
-														name="heroicons:bookmark-20-solid"
-														size="16"
-														class="meta-icon"
-													/>
+
+									<div class="timeline-posts">
+										<article
+											v-for="itemObj in dateGroup.posts"
+											:key="itemObj.post.id"
+											class="timeline-post-item"
+											:style="postCardStyle(itemObj.globalIndex)"
+										>
+											<div class="timeline-post-node" />
+											<div class="timeline-post-main">
+												<NuxtLink :to="itemObj.post.path" class="archive-title-link">
+													<h3 class="archive-title">{{ itemObj.post.title }}</h3>
+												</NuxtLink>
+												
+												<div class="archive-item-tags">
 													<button
-														v-for="seriesName in getSeriesNamesForPost(item)"
-														:key="`${item.id}-${seriesName}`"
+														v-if="itemObj.post.author"
 														type="button"
-														class="post-series-link"
-														@click="handleSeriesFilterClick(seriesName)"
+														class="archive-author-btn"
+														@click="handlePostAuthorFilterClick(itemObj.post.author)"
 													>
-														{{ seriesName }}
+														<Icon name="heroicons:user-16-solid" size="14" />
+														{{ itemObj.post.authorDisplayName || itemObj.post.author }}
 													</button>
-												</div>
-												<div
-													v-if="
-														Array.isArray(item.tags) &&
-														item.tags.length
-													"
-													class="meta-item tags-group"
-												>
-													<Icon
-														name="heroicons:tag-20-solid"
-														size="16"
-														class="meta-icon"
-													/>
-													<button
-														v-for="tag in item.tags"
-														:key="`${item.id}-${tag}`"
-														type="button"
-														class="post-tag-link"
-														@click="
-															handleTagFilterClick(
-																tag,
-															)
-														"
+													<div
+														v-if="getSeriesNamesForPost(itemObj.post).length"
+														class="archive-series-group"
 													>
-														#{{ tag }}
-													</button>
+														<button
+															v-for="seriesName in getSeriesNamesForPost(itemObj.post)"
+															:key="`${itemObj.post.id}-${seriesName}`"
+															type="button"
+															class="archive-series-link"
+															@click="handleSeriesFilterClick(seriesName)"
+														>
+															<Icon name="heroicons:bookmark-20-solid" size="14" />
+															{{ seriesName }}
+														</button>
+													</div>
+													<div
+														v-if="Array.isArray(itemObj.post.tags) && itemObj.post.tags.length"
+														class="archive-tags-group"
+													>
+														<button
+															v-for="tag in itemObj.post.tags"
+															:key="`${itemObj.post.id}-${tag}`"
+															type="button"
+															class="archive-tag-link"
+															@click="handleTagFilterClick(tag)"
+														>
+															#{{ tag }}
+														</button>
+													</div>
 												</div>
 											</div>
-										</div>
-										<NuxtLink
-											:to="item.path"
-											class="post-readmore"
-										>
-											<span>閱讀更多</span>
-											<Icon
-												name="heroicons:chevron-right-20-solid"
-												size="16"
-											/>
-										</NuxtLink>
+										</article>
 									</div>
 								</div>
-							</article>
-						</template>
+							</div>
+						</div>
 					</div>
 					<div
-						v-if="totalPages > 1 && transitionPhase === 'idle'"
-						class="pagination-wrap"
-					>
-						<button
-							v-if="currentPage > 1"
-							type="button"
-							class="pagination-btn pagination-prev"
-							@click="goToPage(currentPage - 1)"
-							aria-label="前一頁"
-						>
-							<Icon name="heroicons:chevron-left" size="16" />
-						</button>
-
-						<button
-							v-for="item in paginationItems"
-							:key="item"
-							type="button"
-							:class="[
-								'pagination-btn',
-								{
-									'pagination-num': typeof item === 'number',
-									'pagination-ellipsis': item === '...',
-									'is-current': item === currentPage,
-									'is-disabled': item === '...',
-								},
-							]"
-							:disabled="item === '...'"
-							@click="
-								typeof item === 'number' ?
-									goToPage(item) : null
-							"
-						>
-							{{ item }}
-						</button>
-
-						<button
-							v-if="currentPage < totalPages"
-							type="button"
-							class="pagination-btn pagination-next"
-							@click="goToPage(currentPage + 1)"
-							aria-label="下一頁"
-						>
-							<Icon name="heroicons:chevron-right" size="16" />
-						</button>
-					</div>
-
-					<div
-						v-else-if="filteredPosts.length === 0"
+						v-if="filteredPosts.length === 0"
 						class="no-results"
 					>
 						<Icon
@@ -1755,251 +1540,210 @@ onBeforeUnmount(() => {
 	cursor: pointer;
 }
 
-.posts-grid {
-	display: grid;
-	gap: 1.65rem;
+.timeline-list {
+display: flex;
+flex-direction: column;
+gap: 2.5rem;
 }
 
-.posts-grid.is-exiting .post-card {
-	opacity: 0;
-	transform: translateY(6px) scale(0.98);
-	transition:
-		opacity 220ms cubic-bezier(0.32, 0.72, 0, 1),
-		transform 220ms cubic-bezier(0.32, 0.72, 0, 1);
+.timeline-list.is-exiting .timeline-post-item {
+opacity: 0;
+transform: translateY(6px) scale(0.98);
+transition:
+opacity 220ms cubic-bezier(0.32, 0.72, 0, 1),
+transform 220ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-.posts-grid.is-entering .post-card {
-	opacity: 0;
-	transform: translateY(15px) scale(0.992);
-	animation: post-card-rise 430ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-	animation-delay: var(--card-delay, 0ms);
+.timeline-list.is-entering .timeline-post-item {
+opacity: 0;
+transform: translateY(15px) scale(0.992);
+animation: post-card-rise 430ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+animation-delay: var(--card-delay, 0ms);
 }
 
-.post-card {
-	display: flex;
-	flex-direction: column;
-	background: color-mix(in srgb, var(--color-bg-primary) 60%, transparent);
-	border: 1px solid var(--color-border-light);
-	border-radius: var(--radius-xl);
-	overflow: hidden;
-	transition:
-		transform var(--transition-slow),
-		border-color var(--transition-slow),
-		box-shadow var(--transition-slow);
-	box-shadow: var(--shadow-md);
-	backdrop-filter: saturate(1.08) blur(10px);
-	-webkit-backdrop-filter: saturate(1.08) blur(10px);
-	will-change: transform, opacity;
+.timeline-year-group {
+display: flex;
+flex-direction: column;
+gap: 1.25rem;
 }
 
-.post-card:hover {
-	transform: translateY(-4px);
-	box-shadow: var(--shadow-lg);
-	border-color: var(--color-primary-light);
+.timeline-year-header {
+display: flex;
+align-items: center;
+gap: 0.75rem;
 }
 
-.post-main-link {
-	text-decoration: none;
-	color: inherit;
-	display: block;
+.timeline-year {
+font-size: 1.85rem;
+font-weight: 700;
+color: var(--color-text-primary);
+margin: 0;
+letter-spacing: 0.02em;
 }
 
-.title-link {
-	width: fit-content;
+.timeline-count {
+background: var(--color-bg-secondary);
+color: var(--color-text-secondary);
+font-size: 0.85rem;
+font-weight: 600;
+padding: 0.15rem 0.6rem;
+border-radius: var(--radius-pill);
+border: 1px solid var(--color-border-light);
 }
 
-.post-image {
-	width: 100%;
-	height: 140px;
-	overflow: hidden;
-	background: var(--color-bg-tertiary);
+.timeline-dates-container {
+display: flex;
+flex-direction: column;
+padding-left: 0.75rem;
 }
 
-.post-image img {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	transition: transform var(--transition-slow);
+.timeline-date-group {
+display: flex;
+flex-direction: column;
+position: relative;
+padding-bottom: 2rem;
 }
 
-.post-card:hover .post-image img {
-	transform: scale(1.05);
+.timeline-date-group:last-child {
+padding-bottom: 2.5rem;
 }
 
-.post-content {
-	padding: 1.15rem;
-	display: flex;
-	flex-direction: column;
-	flex: 1;
-	gap: 0.65rem;
+/* The vertical dashed/solid line */
+.timeline-date-group::before {
+content: '';
+position: absolute;
+left: 0.35rem; /* Center aligned with the 0.8rem node */
+top: 1.5rem;   /* Start below the node */
+bottom: -0.2rem; /* Extend to connect to next node */
+width: 2px;
+background: var(--color-border-medium);
+opacity: 0.4;
 }
 
-.post-title {
-	font-size: 1.28rem;
-	font-weight: 600;
-	color: var(--color-text-primary);
-	line-height: 1.4;
-	margin: 0;
-	transition: color var(--transition-base);
+.timeline-date-label {
+display: flex;
+align-items: center;
+gap: 1rem;
+margin-bottom: 1rem;
+position: relative;
+z-index: 1;
 }
 
-.title-link:hover .post-title {
-	color: var(--color-primary);
+.timeline-node {
+width: 0.8rem;
+height: 0.8rem;
+border-radius: 50%;
+background: transparent;
+border: 2px solid var(--color-text-secondary);
+position: relative;
+left: -0.05rem; /* Fine tune alignment with line */
 }
 
-.post-description {
-	font-size: 0.95rem;
-	color: var(--color-text-secondary);
-	line-height: 1.6;
-	margin: 0;
+.timeline-date-text {
+font-size: 0.85rem;
+font-weight: 600;
+color: var(--color-text-secondary);
+font-family: monospace;
 }
 
-.post-author-avatar {
-	width: 32px;
-	height: 32px;
-	border-radius: var(--radius-full);
-	object-fit: cover;
-	border: 1px solid var(--color-border-light);
+.timeline-posts {
+display: flex;
+flex-direction: column;
+gap: 1.15rem;
+padding-left: 2rem; /* Indent posts from the line */
 }
 
-.post-author-name {
-	font-weight: 600;
-	color: var(--color-text-primary);
-	font-size: 0.9rem;
-	transition: color var(--transition-base);
+.timeline-post-item {
+display: flex;
+flex-direction: column;
+position: relative;
 }
 
-.post-meta-row {
-	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-	flex-wrap: nowrap;
-	gap: 0.5rem;
-	margin-top: 0.25rem;
+.timeline-post-node {
+position: absolute;
+left: calc(-2rem + 0.35rem + 1px - 0.2rem);
+top: 0.65rem; /* align roughly with the middle of the first line of text */
+width: 0.4rem;
+height: 0.4rem;
+border-radius: 50%;
+background: var(--color-border-medium);
+z-index: 1;
 }
 
-.post-meta-main {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	flex: 1;
-	min-width: 0;
+.timeline-post-main {
+display: flex;
+flex-direction: column;
+gap: 0.4rem;
 }
 
-.post-meta-text {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 0.55rem;
-	font-size: 0.9rem;
-	color: var(--color-text-tertiary);
-	min-width: 0;
-	flex: 1;
+.archive-title-link {
+text-decoration: none;
+color: inherit;
+display: inline-block;
 }
 
-.meta-item,
-.post-author-link,
-.series-group,
-.tags-group {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.25rem;
+.archive-title {
+font-size: 1.15rem;
+font-weight: 500;
+margin: 0;
+color: var(--color-text-primary);
+line-height: 1.4;
+transition: color var(--transition-base);
 }
 
-.meta-divider-dot {
-	color: var(--color-text-tertiary);
-	line-height: 1;
+.archive-title-link:hover .archive-title {
+color: var(--color-primary);
 }
 
-.post-date {
-	color: var(--color-text-secondary);
+.archive-author-btn {
+background: none;
+border: none;
+padding: 0;
+display: inline-flex;
+align-items: center;
+gap: 0.25rem;
+font-size: 0.85rem;
+color: var(--color-text-tertiary);
+cursor: pointer;
+transition: color var(--transition-base);
 }
 
-.meta-icon {
-	color: color-mix(in srgb, var(--color-text-secondary) 88%, transparent);
+.archive-author-btn:hover {
+color: var(--color-primary);
 }
 
-.post-author-link {
-	text-decoration: none;
-	color: var(--color-text-secondary);
-	font-weight: 600;
+.archive-item-tags {
+display: flex;
+flex-wrap: wrap;
+gap: 0.8rem;
+align-items: center;
+margin-top: 0.15rem;
 }
 
-.post-author-link:hover {
-	color: var(--color-primary-dark);
+.archive-series-group,
+.archive-tags-group {
+display: flex;
+flex-wrap: wrap;
+gap: 0.5rem;
 }
 
-.tags-group {
-	flex-wrap: wrap;
-	flex: 1;
-	max-width: 100%;
-	overflow: visible;
-	padding-bottom: 0.1rem;
+.archive-series-link,
+.archive-tag-link {
+background: none;
+padding: 0;
+border: none;
+font-size: 0.8rem;
+color: var(--color-text-tertiary);
+cursor: pointer;
+display: inline-flex;
+align-items: center;
+gap: 0.25rem;
+transition: color var(--transition-base);
 }
 
-.series-group,
-.tags-group {
-	column-gap: 0.4rem;
-	row-gap: 0.2rem;
-}
-
-.post-series-link {
-	border: none;
-	background: transparent;
-	padding: 0;
-	font: inherit;
-	cursor: pointer;
-	color: var(--color-text-tertiary);
-	transition: color var(--transition-base);
-}
-
-.post-series-link:hover {
-	color: var(--color-primary);
-}
-
-.post-series-link:not(:last-child)::after,
-.post-tag-link:not(:last-child)::after {
-	content: " /";
-	color: var(--color-text-tertiary);
-}
-
-.post-tag-link {
-	flex: 0 0 auto;
-	text-decoration: none;
-	color: var(--color-text-tertiary);
-	font-size: 0.88rem;
-	padding: 0;
-	border-radius: 0;
-	background: transparent;
-	border: none;
-	cursor: pointer;
-	transition: color var(--transition-base);
-}
-
-.post-tag-link:hover {
-	color: var(--color-primary);
-}
-
-.post-readmore {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.2rem;
-	width: fit-content;
-	margin-top: 0;
-	align-self: flex-end;
-	font-size: 0.94rem;
-	font-weight: 600;
-	text-decoration: none;
-	color: var(--color-text-secondary);
-	padding: 0;
-	border-radius: 0;
-	white-space: nowrap;
-	transition: color var(--transition-base);
-}
-
-.post-readmore:hover {
-	background: transparent;
-	color: var(--color-primary);
+.archive-series-link:hover,
+.archive-tag-link:hover {
+color: var(--color-primary);
 }
 
 .no-results {
@@ -2124,95 +1868,5 @@ onBeforeUnmount(() => {
 		transition-duration: 0.01ms !important;
 	}
 }
-
-.pagination-wrap {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	gap: 0.5rem;
-	margin-top: 2rem;
-	flex-wrap: wrap;
-}
-
-.pagination-btn {
-	padding: 0.5rem 0.75rem;
-	min-width: 2.5rem;
-	height: 2.5rem;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 0.9rem;
-	font-weight: 500;
-	color: var(--color-text-primary);
-	background: var(--color-bg-primary);
-	border: 1px solid var(--color-border-light);
-	border-radius: var(--radius-md);
-	cursor: pointer;
-	transition: all var(--transition-base);
-}
-
-.pagination-btn:hover:not(:disabled) {
-	background: var(--color-bg-blue-tint);
-	border-color: var(--color-primary);
-	color: var(--color-primary-dark);
-}
-
-.pagination-btn:disabled {
-	cursor: not-allowed;
-	opacity: 0.6;
-}
-
-.pagination-btn.is-current {
-	background: var(--color-primary);
-	color: var(--color-white);
-	border-color: var(--color-primary);
-	font-weight: 600;
-}
-
-.pagination-btn.is-current:hover {
-	background: var(--color-primary-dark);
-	border-color: var(--color-primary-dark);
-}
-
-.pagination-ellipsis {
-	padding: 0.5rem 0.25rem;
-	cursor: default;
-	background: transparent;
-	border: none;
-	color: var(--color-text-tertiary);
-	font-weight: 400;
-}
-
-.pagination-ellipsis:hover {
-	background: transparent;
-	border: none;
-	color: var(--color-text-tertiary);
-}
-
-.pagination-prev,
-.pagination-next {
-	padding: 0.5rem;
-}
-
-.load-more-wrap {
-	display: flex;
-	justify-content: center;
-	margin-top: 2rem;
-}
-.load-more-btn {
-	padding: 0.75rem 2rem;
-	font-size: 0.95rem;
-	font-weight: 500;
-	color: var(--color-text-primary);
-	background: var(--color-bg-primary);
-	border: 1px solid var(--color-border-light);
-	border-radius: var(--radius-md);
-	cursor: pointer;
-	transition: all var(--transition-base);
-}
-.load-more-btn:hover {
-	background: var(--color-bg-blue-tint);
-	border-color: var(--color-primary);
-	color: var(--color-primary-dark);
-}
 </style>
+

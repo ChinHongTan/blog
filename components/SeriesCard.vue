@@ -109,35 +109,50 @@ const isExpanded = ref(false);
 
 			<!-- Expandable post list -->
 			<div class="series-feed-expand">
-				<button type="button" class="series-feed-expand-btn" @click.prevent="isExpanded = !isExpanded">
-					<Icon
-						name="heroicons:chevron-right-20-solid"
-						size="16"
-						class="expand-icon"
+				<ol class="series-feed-post-list visible-posts">
+					<li
+						v-for="(post, index) in item.posts.slice(0, 3)"
+						:key="post.id"
+						class="series-feed-post-item"
+					>
+						<span class="series-feed-post-item-no">{{ index + 1 }}.</span>
+						<NuxtLink :to="resolvePostPath(post)">
+							{{ post.title }}
+						</NuxtLink>
+					</li>
+				</ol>
+
+				<template v-if="item.posts.length > 3">
+					<div
+						class="series-feed-post-list-wrapper"
 						:class="{ 'is-open': isExpanded }"
-					/>
-					展開文章列表
-				</button>
-				<div
-					class="series-feed-post-list-wrapper"
-					:class="{ 'is-open': isExpanded }"
-					:aria-expanded="isExpanded"
-				>
-					<div class="series-feed-post-list-inner">
-						<ol class="series-feed-post-list">
-							<li
-								v-for="(post, index) in item.posts"
-								:key="post.id"
-								class="series-feed-post-item"
-							>
-								<span class="series-feed-post-item-no">{{ index + 1 }}.</span>
-								<NuxtLink :to="resolvePostPath(post)">
-									{{ post.title }}
-								</NuxtLink>
-							</li>
-						</ol>
+						:aria-expanded="isExpanded"
+					>
+						<div class="series-feed-post-list-inner">
+							<ol class="series-feed-post-list hidden-posts">
+								<li
+									v-for="(post, index) in item.posts.slice(3)"
+									:key="post.id"
+									class="series-feed-post-item"
+								>
+									<span class="series-feed-post-item-no">{{ index + 4 }}.</span>
+									<NuxtLink :to="resolvePostPath(post)">
+										{{ post.title }}
+									</NuxtLink>
+								</li>
+							</ol>
+						</div>
 					</div>
-				</div>
+					<button type="button" class="series-feed-expand-btn" @click.prevent="isExpanded = !isExpanded">
+						<Icon
+							name="heroicons:chevron-right-20-solid"
+							size="16"
+							class="expand-icon"
+							:class="{ 'is-open': isExpanded }"
+						/>
+						{{ isExpanded ? "收起文章" : `展開其餘 ${item.posts.length - 3} 篇文章...` }}
+					</button>
+				</template>
 			</div>
 
 			<!-- View series link -->
@@ -239,8 +254,8 @@ const isExpanded = ref(false);
 	transition: color var(--transition-base);
 }
 
-.series-feed-card:hover .series-feed-title {
-	color: var(--color-primary-dark);
+.series-feed-title-link:hover .series-feed-title {
+	color: var(--color-primary);
 }
 
 .series-feed-latest {
@@ -350,6 +365,7 @@ const isExpanded = ref(false);
 	display: flex;
 	align-items: center;
 	gap: 0.3rem;
+	margin-top: 0.5rem;
 	user-select: none;
 	transition: color var(--transition-base);
 }
@@ -388,12 +404,17 @@ const isExpanded = ref(false);
 }
 
 .series-feed-post-list {
-	padding: 0.5rem 0 0 1.4rem;
+	padding: 0 0 0 1.4rem;
 	margin: 0;
 	display: flex;
 	flex-direction: column;
 	gap: 0.25rem;
 	list-style: none; /* Remove default numbering so we can style our own */
+}
+
+.series-feed-post-list.visible-posts {
+	padding-top: 0.5rem;
+	margin-bottom: 0.25rem;
 }
 
 .series-feed-post-item {
@@ -448,7 +469,7 @@ const isExpanded = ref(false);
 	transition: transform var(--transition-base);
 }
 
-.series-feed-card:hover .series-feed-readmore :deep(svg) {
+.series-feed-readmore:hover :deep(svg) {
 	transform: translateX(4px);
 }
 

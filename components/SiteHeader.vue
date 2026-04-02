@@ -96,6 +96,10 @@ watch(isMobileMenuOpen, (open) => {
 						<Icon name="heroicons:bookmark-square" size="20" />
 						<span>系列</span>
 					</NuxtLink>
+					<NuxtLink to="/archives">
+						<Icon name="heroicons:archive-box" size="20" />
+						<span>歸檔</span>
+					</NuxtLink>
 					<NuxtLink to="/about">
 						<Icon name="heroicons:information-circle" size="20" />
 						<span>關於</span>
@@ -155,6 +159,10 @@ watch(isMobileMenuOpen, (open) => {
 					<NuxtLink to="/series" class="mobile-nav-link">
 						<Icon name="heroicons:bookmark-square" size="20" />
 						系列
+					</NuxtLink>
+					<NuxtLink to="/archives" class="mobile-nav-link">
+						<Icon name="heroicons:archive-box" size="20" />
+						歸檔
 					</NuxtLink>
 					<NuxtLink to="/about" class="mobile-nav-link">
 						<Icon name="heroicons:information-circle" size="20" />
