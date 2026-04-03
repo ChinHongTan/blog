@@ -435,8 +435,7 @@ body, .main-header, .app-wrapper, .site-footer,
 }
 
 .ui-info-box strong {
-    display: block;
-    margin-bottom: var(--space-2);
+    display: inline;
     font-size: 1.1rem;
     font-weight: 600;
 }

@@ -111,7 +111,7 @@ useHead({
 			>
 				<!-- Side thumbnail image -->
 				<div v-if="post.featured_image" class="article-image">
-					<img :src="post.featured_image" :alt="post.title" />
+					<img :src="post.featured_image" :alt="post.title" >
 				</div>
 				<div v-else class="article-image article-image-placeholder">
 					<Icon name="heroicons:document-text" size="32" />
@@ -132,7 +132,7 @@ useHead({
 								:src="getAuthorAvatar(post.author)"
 								:alt="post.author"
 								class="author-tiny-avatar"
-							/>
+							>
 							<span class="article-author-name">{{ post.author }}</span>
 						</div>
 						<span class="article-date">

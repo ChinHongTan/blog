@@ -482,7 +482,7 @@ function resolvePostPath(post: LocalPost): string {
 							class="admin-series-create-input"
 							placeholder="新增系列名稱"
 							@keydown.enter.prevent="createSeries"
-						/>
+						>
 						<button
 							type="button"
 							class="ui-btn ui-btn-primary admin-series-create-btn"

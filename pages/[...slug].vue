@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import mediumZoom from "medium-zoom";
-import { getPostStem, normalizePath, safeDecode } from "~/utils/content-routing";
+import { normalizePath, safeDecode } from "~/utils/content-routing";
 import { useReadingProgress } from "~/composables/useReadingProgress";
 import { useSeriesSidebar } from "~/composables/useSeriesSidebar";
 import { buildFallbackAvatar } from "~/utils/avatar";
@@ -399,7 +399,7 @@ const {
 							v-if="isBlogPost && page.featured_image"
 							class="featured-hero"
 						>
-							<img :src="page.featured_image" :alt="page.title" />
+							<img :src="page.featured_image" :alt="page.title" >
 							<div class="hero-title-wrap">
 								<h1 class="post-title hero-title">
 									{{ page.title }}
@@ -433,7 +433,7 @@ const {
 									:src="authorAvatar"
 									:alt="authorDisplayName"
 									class="author-avatar"
-								/>
+								>
 								<span class="author-name">{{
 									authorDisplayName
 								}}</span>

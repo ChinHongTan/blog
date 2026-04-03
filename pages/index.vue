@@ -233,10 +233,6 @@ const paginatedItems = computed(() => {
 	return feedItems.value.slice(start, end);
 });
 
-const hasMorePosts = computed(
-	() => currentPage.value * POSTS_PER_PAGE < feedItems.value.length,
-);
-
 type TransitionPhase = "idle" | "exiting" | "entering";
 type FilterPatch = {
 	tag?: string;
@@ -457,10 +453,6 @@ const postsGridClass = computed(() => ({
 	"is-exiting": transitionPhase.value === "exiting",
 	"is-entering": transitionPhase.value === "entering",
 }));
-
-function loadMore() {
-	currentPage.value++;
-}
 
 const totalPages = computed(() => {
 	return Math.ceil(feedItems.value.length / POSTS_PER_PAGE);
@@ -1170,8 +1162,8 @@ onBeforeUnmount(() => {
 							v-if="currentPage > 1"
 							type="button"
 							class="pagination-btn pagination-prev"
-							@click="goToPage(currentPage - 1)"
 							aria-label="前一頁"
+							@click="goToPage(currentPage - 1)"
 						>
 							<Icon name="heroicons:chevron-left" size="16" />
 						</button>
@@ -1202,8 +1194,8 @@ onBeforeUnmount(() => {
 							v-if="currentPage < totalPages"
 							type="button"
 							class="pagination-btn pagination-next"
-							@click="goToPage(currentPage + 1)"
 							aria-label="下一頁"
+							@click="goToPage(currentPage + 1)"
 						>
 							<Icon name="heroicons:chevron-right" size="16" />
 						</button>
