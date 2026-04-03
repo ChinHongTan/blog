@@ -358,12 +358,29 @@ watch(
             builderInstance?.editor.action((ctx) => {
               const view = ctx.get(editorViewCtx);
               const spanClassType = spanClassSchema.type(ctx);
-              const marks = view.state.storedMarks || view.state.selection.$from.marks();
-              result = marks
-                .filter((m) => m.type === spanClassType)
-                .map((m) => m.attrs?.class as string)
-                .filter(Boolean)
-                .flatMap((c) => c.split(/\s+/));
+              const { empty, from, to } = view.state.selection;
+              
+              if (empty) {
+                const marks = view.state.storedMarks || view.state.selection.$from.marks();
+                result = marks
+                  .filter((m) => m.type === spanClassType)
+                  .map((m) => m.attrs?.class as string)
+                  .filter(Boolean)
+                  .flatMap((c) => c.split(/\s+/));
+              } else {
+                const classes = new Set<string>();
+                view.state.doc.nodesBetween(from, to, (node) => {
+                  node.marks
+                    .filter((m) => m.type === spanClassType)
+                    .forEach((m) => {
+                      const classStr = m.attrs?.class as string;
+                      if (classStr) {
+                        classStr.split(/\s+/).forEach((c) => classes.add(c));
+                      }
+                    });
+                });
+                result = Array.from(classes);
+              }
             });
           } catch {
             result = [];
@@ -536,16 +553,37 @@ defineExpose({
     ),
   getActiveTextColors: () => {
     let result: string[] = [];
-    builderInstance?.editor.action((ctx) => {
-      const view = ctx.get(editorViewCtx);
-      const spanClassType = spanClassSchema.type(ctx);
-      const marks = view.state.storedMarks || view.state.selection.$from.marks();
-      result = marks
-        .filter((m) => m.type === spanClassType)
-        .map((m) => m.attrs?.class as string)
-        .filter(Boolean)
-        .flatMap((c) => c.split(/\s+/));
-    });
+    try {
+      builderInstance?.editor.action((ctx) => {
+        const view = ctx.get(editorViewCtx);
+        const spanClassType = spanClassSchema.type(ctx);
+        const { empty, from, to } = view.state.selection;
+        
+        if (empty) {
+          const marks = view.state.storedMarks || view.state.selection.$from.marks();
+          result = marks
+            .filter((m) => m.type === spanClassType)
+            .map((m) => m.attrs?.class as string)
+            .filter(Boolean)
+            .flatMap((c) => c.split(/\s+/));
+        } else {
+          const classes = new Set<string>();
+          view.state.doc.nodesBetween(from, to, (node) => {
+            node.marks
+              .filter((m) => m.type === spanClassType)
+              .forEach((m) => {
+                const classStr = m.attrs?.class as string;
+                if (classStr) {
+                  classStr.split(/\s+/).forEach((c) => classes.add(c));
+                }
+              });
+          });
+          result = Array.from(classes);
+        }
+      });
+    } catch {
+      result = [];
+    }
     return result;
   },
 });
