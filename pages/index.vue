@@ -978,7 +978,7 @@ onBeforeUnmount(() => {
 						>
 							<SeriesCard
 								v-if="item.kind === 'series-card'"
-								:item="item"
+								:item="(item as any)"
 								class="post-card"
 								:style="postCardStyle(index)"
 								@filter:author="handlePostAuthorFilterClick"
