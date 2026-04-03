@@ -84,8 +84,8 @@ export type EditorToolbarApi = {
   insertCodeBlock: (language?: string) => void;
   insertMathBlock: () => void;
   applyTextColor: (className: string) => void;
-  removeTextColor: () => void;
-  getActiveTextColor: () => string | null;
+  removeTextColor: (className?: string) => void;
+  getActiveTextColors: () => string[];
 };
 
 const emit = defineEmits<{
@@ -348,22 +348,21 @@ watch(
           runCommand((ctx) =>
             ctx.get(commandsCtx).call(applySpanClassCommand.key, className)
           ),
-        removeTextColor: () =>
+        removeTextColor: (className?: string) =>
           runCommand((ctx) =>
-            ctx.get(commandsCtx).call(removeSpanClassCommand.key)
+            ctx.get(commandsCtx).call(removeSpanClassCommand.key, className)
           ),
-        getActiveTextColor: () => {
-          let result: string | null = null;
+        getActiveTextColors: () => {
+          let result: string[] = [];
           try {
             builderInstance?.editor.action((ctx) => {
               const view = ctx.get(editorViewCtx);
-              const { $from } = view.state.selection;
               const spanClassType = spanClassSchema.type(ctx);
-              const mark = $from.marks().find((m) => m.type === spanClassType);
-              result = (mark?.attrs?.class as string) ?? null;
+              const marks = view.state.storedMarks || view.state.selection.$from.marks();
+              result = marks.filter((m) => m.type === spanClassType).map((m) => m.attrs?.class as string).filter(Boolean);
             });
           } catch {
-            result = null;
+            result = [];
           }
           return result;
         },
@@ -527,18 +526,17 @@ defineExpose({
     runCommand((ctx) =>
       ctx.get(commandsCtx).call(applySpanClassCommand.key, className)
     ),
-  removeTextColor: () =>
+  removeTextColor: (className?: string) =>
     runCommand((ctx) =>
-      ctx.get(commandsCtx).call(removeSpanClassCommand.key)
+      ctx.get(commandsCtx).call(removeSpanClassCommand.key, className)
     ),
-  getActiveTextColor: () => {
-    let result: string | null = null;
+  getActiveTextColors: () => {
+    let result: string[] = [];
     builderInstance?.editor.action((ctx) => {
       const view = ctx.get(editorViewCtx);
-      const { $from } = view.state.selection;
       const spanClassType = spanClassSchema.type(ctx);
-      const mark = $from.marks().find((m) => m.type === spanClassType);
-      result = (mark?.attrs?.class as string) ?? null;
+      const marks = view.state.storedMarks || view.state.selection.$from.marks();
+      result = marks.filter((m) => m.type === spanClassType).map((m) => m.attrs?.class as string).filter(Boolean);
     });
     return result;
   },

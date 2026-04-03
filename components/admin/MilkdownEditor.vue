@@ -68,8 +68,8 @@ defineExpose({
   insertCodeBlock: (language?: string) => toolbarApi?.insertCodeBlock(language),
   insertMathBlock: () => toolbarApi?.insertMathBlock(),
   applyTextColor: (className: string) => toolbarApi?.applyTextColor(className),
-  removeTextColor: () => toolbarApi?.removeTextColor(),
-  getActiveTextColor: () => toolbarApi?.getActiveTextColor() ?? null,
+  removeTextColor: (className?: string) => toolbarApi?.removeTextColor(className),
+  getActiveTextColors: () => toolbarApi?.getActiveTextColors() ?? [],
 });
 </script>
 

@@ -19,6 +19,7 @@ const PATTERN = /\[([^\]]*)\]\s*\{\.([a-z][a-z0-9-]*)\}/g;
 
 /** Mark schema: inline span with a class attribute (e.g. red, green, orange). */
 export const spanClassSchema = $markSchema(SPAN_CLASS_MARK_ID, () => ({
+  excludes: "",
   attrs: {
     class: { default: "red", validate: (v) => typeof v === "string" },
   },
@@ -151,23 +152,80 @@ function spanClassRemarkPlugin(): MilkdownPlugin {
 
 /** Command key to apply spanClass mark with given class. */
 export const applySpanClassCommand = $command("ApplySpanClass", (ctx) => (className = "red") => (state, dispatch) => {
-  const { from, to } = state.selection;
+  const { empty, from, to } = state.selection;
   const markType = spanClassSchema.type(ctx);
-  if (from >= to) return false;
-  const tr = state.tr
-    .removeMark(from, to, markType)
-    .addMark(from, to, markType.create({ class: className }));
-  if (dispatch) dispatch(tr);
+  const mark = markType.create({ class: className });
+
+  if (empty) {
+    if (dispatch) {
+      let tr = state.tr;
+      const marks = state.storedMarks || state.selection.$from.marks();
+      marks.filter(m => m.type === markType).forEach(m => {
+        const exC = m.attrs.class;
+        if ( typeof className === "string" && (
+          exC === className ||
+          (className.startsWith('bg-') && exC.startsWith('bg-')) ||
+          (className.startsWith('text-') && exC.startsWith('text-'))
+        )) {
+          tr = tr.removeStoredMark(m);
+        }
+      });
+      tr = tr.addStoredMark(mark);
+      dispatch(tr);
+    }
+    return true;
+  }
+
+  if (dispatch) {
+    let tr = state.tr;
+    // Iterate to remove matching marks of the same group to avoid stacking colours
+    state.doc.nodesBetween(from, to, (node, pos) => {
+      node.marks.filter(m => m.type === markType).forEach(m => {
+        const exC = m.attrs.class;
+        if ( typeof className === "string" && (
+          exC === className ||
+          (className.startsWith('bg-') && exC.startsWith('bg-')) ||
+          (className.startsWith('text-') && exC.startsWith('text-'))
+        )) {
+          tr = tr.removeMark(Math.max(pos, from), Math.min(pos + node.nodeSize, to), m);
+        }
+      });
+    });
+    tr = tr.addMark(from, to, mark);
+    dispatch(tr);
+  }
   return true;
 });
 
 /** Command to remove spanClass mark from the current selection. */
-export const removeSpanClassCommand = $command("RemoveSpanClass", (ctx) => () => (state, dispatch) => {
-  const { from, to } = state.selection;
+export const removeSpanClassCommand = $command("RemoveSpanClass", (ctx) => (className?: string) => (state, dispatch) => {
+  const { empty, from, to } = state.selection;
   const markType = spanClassSchema.type(ctx);
-  if (from >= to) return false;
-  const tr = state.tr.removeMark(from, to, markType);
-  if (dispatch) dispatch(tr);
+
+  if (empty) {
+    if (dispatch) {
+      let tr = state.tr;
+      if (className) {
+        const mark = markType.create({ class: className });
+        tr = tr.removeStoredMark(mark);
+      } else {
+        tr = tr.removeStoredMark(markType);
+      }
+      dispatch(tr);
+    }
+    return true;
+  }
+
+  if (dispatch) {
+    let tr = state.tr;
+    if (className) {
+      const mark = markType.create({ class: className });
+      tr = tr.removeMark(from, to, mark);
+    } else {
+      tr = tr.removeMark(from, to, markType);
+    }
+    dispatch(tr);
+  }
   return true;
 });
 

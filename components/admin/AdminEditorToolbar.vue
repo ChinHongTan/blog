@@ -57,11 +57,11 @@
       <Icon name="heroicons:strikethrough" size="18" />
     </button>
     <!-- Underline: uses [text]{.underline}; click again to remove -->
-    <button type="button" class="admin-toolbar-btn" :class="{ 'admin-toolbar-btn-active': activeTextColor === 'underline' }" data-tooltip="底線" aria-label="底線" @click="onSpanClassClick('underline')">
+    <button type="button" class="admin-toolbar-btn" :class="{ 'admin-toolbar-btn-active': activeTextColors.includes('underline') }" data-tooltip="底線" aria-label="底線" @click="onSpanClassClick('underline')">
       <Icon name="heroicons:underline" size="18" />
     </button>
     <!-- Highlight: uses [text]{.highlight}; click again to remove -->
-    <button type="button" class="admin-toolbar-btn" :class="{ 'admin-toolbar-btn-active': activeTextColor === 'highlight' }" data-tooltip="螢光" aria-label="螢光" @click="onSpanClassClick('highlight')">
+    <button type="button" class="admin-toolbar-btn" :class="{ 'admin-toolbar-btn-active': activeTextColors.includes('highlight') }" data-tooltip="螢光" aria-label="螢光" @click="onSpanClassClick('highlight')">
       <Icon name="heroicons:paint-brush" size="18" />
     </button>
 
@@ -174,7 +174,7 @@
             :key="preset.class"
             type="button"
             class="admin-toolbar-color-swatch"
-            :class="{ 'admin-toolbar-color-swatch-active': activeTextColor === preset.class }"
+            :class="{ 'admin-toolbar-color-swatch-active': activeTextColors.includes(preset.class) }"
             :style="{ backgroundColor: preset.hex }"
             :title="preset.label ?? preset.class"
             :aria-label="preset.label ?? preset.class"
@@ -202,7 +202,7 @@
             :key="preset.class"
             type="button"
             class="admin-toolbar-color-swatch"
-            :class="{ 'admin-toolbar-color-swatch-active': activeTextColor === preset.class }"
+            :class="{ 'admin-toolbar-color-swatch-active': activeTextColors.includes(preset.class) }"
             :style="{ backgroundColor: preset.hex }"
             :title="preset.label ?? preset.class"
             :aria-label="preset.label ?? preset.class"
@@ -248,7 +248,7 @@ const activeFormatting = ref<{ bold: boolean; italic: boolean; strikethrough: bo
   strikethrough: false,
 });
 
-const activeTextColor = ref<string | null>(null);
+const activeTextColors = ref<string[]>([]);
 const activeHeadingLevel = ref<number>(0);
 
 const ACTIVE_POLL_INTERVAL_MS = 200;
@@ -257,8 +257,8 @@ let activePollTimer: ReturnType<typeof setInterval> | null = null;
 function pollActiveFormatting() {
   const next = props.api?.getActiveFormatting?.();
   if (next) activeFormatting.value = next;
-  const color = props.api?.getActiveTextColor?.();
-  activeTextColor.value = color ?? null;
+  const colors = props.api?.getActiveTextColors?.();
+  activeTextColors.value = colors ?? [];
   const level = props.api?.getActiveHeadingLevel?.();
   activeHeadingLevel.value = level ?? 0;
 }
@@ -272,8 +272,8 @@ function onHeadingClick(level: number) {
 }
 
 function onSpanClassClick(className: string) {
-  if (activeTextColor.value === className) {
-    props.api?.removeTextColor?.();
+  if (activeTextColors.value.includes(className)) {
+    props.api?.removeTextColor?.(className);
   } else {
     props.api?.applyTextColor?.(className);
   }
