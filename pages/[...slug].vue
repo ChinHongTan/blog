@@ -1225,8 +1225,7 @@ const {
 }
 
 .post-content :deep(.info-box strong) {
-	display: block;
-	margin-bottom: 0.5rem;
+	display: inline;
 	font-size: 1.1rem;
 	font-weight: 600;
 }
