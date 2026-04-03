@@ -479,6 +479,7 @@ interface TimelineYear {
 
 const groupedTimeline = computed<TimelineYear[]>(() => {
 		const yearsObj: Record<string, Record<string, { post: DisplayPost; globalIndex: number }[]>> = {};
+		let globalIndex = 0;
 
 	renderedPosts.value.forEach((post) => {
 		const dateObj = new Date(post.date);
@@ -493,7 +494,7 @@ const groupedTimeline = computed<TimelineYear[]>(() => {
 		if (!yearsObj[yearStr][dateLabel]) {
 			yearsObj[yearStr][dateLabel] = [];
 		}
-		yearsObj[yearStr][dateLabel].push({ post, globalIndex: globalIndex++ });
+		yearsObj[yearStr][dateLabel].push({ post: post as unknown as DisplayPost, globalIndex: globalIndex++ });
 	});
 
 	return Object.entries(yearsObj)
