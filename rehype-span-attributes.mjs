@@ -4,7 +4,15 @@
  */
 import { visit } from "unist-util-visit";
 
-const PATTERN = /\[([^\]]*)\]\s*\{\.([a-z][a-z0-9-]*)\}/g;
+const PATTERN = /\[([^\]]*)\]\s*\{((?:\s*\.[a-z][a-z0-9-]*)+)\}/g;
+
+function extractClassNames(classSection) {
+	return classSection
+		.split(/\s+/)
+		.map((c) => c.replace(/^\./, ""))
+		.filter((c) => c.length > 0)
+		.join(" ");
+}
 
 function replaceTextWithSpans(value) {
 	const parts = [];
@@ -18,10 +26,11 @@ function replaceTextWithSpans(value) {
 				value: value.slice(lastIndex, m.index),
 			});
 		}
+		const classes = extractClassNames(m[2]);
 		parts.push({
 			type: "element",
 			tagName: "span",
-			properties: { className: [m[2]] },
+			properties: { className: classes.split(" ") },
 			children: [{ type: "text", value: m[1] }],
 		});
 		lastIndex = PATTERN.lastIndex;

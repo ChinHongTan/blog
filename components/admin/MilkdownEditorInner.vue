@@ -359,7 +359,11 @@ watch(
               const view = ctx.get(editorViewCtx);
               const spanClassType = spanClassSchema.type(ctx);
               const marks = view.state.storedMarks || view.state.selection.$from.marks();
-              result = marks.filter((m) => m.type === spanClassType).map((m) => m.attrs?.class as string).filter(Boolean);
+              result = marks
+                .filter((m) => m.type === spanClassType)
+                .map((m) => m.attrs?.class as string)
+                .filter(Boolean)
+                .flatMap((c) => c.split(/\s+/));
             });
           } catch {
             result = [];
@@ -536,7 +540,11 @@ defineExpose({
       const view = ctx.get(editorViewCtx);
       const spanClassType = spanClassSchema.type(ctx);
       const marks = view.state.storedMarks || view.state.selection.$from.marks();
-      result = marks.filter((m) => m.type === spanClassType).map((m) => m.attrs?.class as string).filter(Boolean);
+      result = marks
+        .filter((m) => m.type === spanClassType)
+        .map((m) => m.attrs?.class as string)
+        .filter(Boolean)
+        .flatMap((c) => c.split(/\s+/));
     });
     return result;
   },
