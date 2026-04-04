@@ -1,7 +1,13 @@
 import { getRequestURL } from "h3";
 import { randomBytes } from "node:crypto";
+import { setGitHubToken } from "../../../utils/github";
 
 export default defineEventHandler((event) => {
+  if (import.meta.dev) {
+    setGitHubToken(event, "mock-dev-token");
+    return sendRedirect(event, "/admin");
+  }
+
   const config = useRuntimeConfig(event);
   const clientId = config.public?.githubClientId || config.githubClientId;
   if (!clientId) {

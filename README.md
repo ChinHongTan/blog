@@ -1,4 +1,4 @@
-# 星谷雜貨店 (chinono-blog)
+# 星谷雜貨店
 
 A personal blog built with [Nuxt 3](https://nuxt.com) and [Nuxt Content v3](https://content.nuxt.com), featuring a built-in admin panel with a WYSIWYG editor.
 

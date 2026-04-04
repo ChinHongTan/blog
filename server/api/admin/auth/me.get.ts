@@ -2,6 +2,10 @@ import { getGitHubTokenCacheKey, getOctokit, getRepoOwnerRepo, hasRepoWriteAcces
 import { withRequestCache } from "../../../utils/request-cache";
 
 export default defineEventHandler(async (event) => {
+  if (import.meta.dev) {
+    return { login: "local-dev", name: "Local Developer", avatar_url: "https://github.com/ghost.png" };
+  }
+
   const octokit = getOctokit(event);
   if (!octokit) {
     return null;
