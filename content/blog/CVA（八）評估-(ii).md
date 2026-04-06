@@ -2,7 +2,7 @@
 title: CVA（八）評估 (ii)
 description: Motor Assessment Scale~Functional Reach Test
 date: 2026-04-06T02:18
-edited_at: 2026-04-06T03:22:13.791Z
+edited_at: 2026-04-06T03:24:13.874Z
 author: hibiki12141132
 path: /blog/CVA（八）評估-(ii)
 featured_image: /images/uploads/1775445542448-135083397_p0.png
@@ -71,7 +71,7 @@ Reaching forward while standing——站立前往伸手
 （而老師有補充低於36分就一定會跌倒，45分以內也會高機率跌倒）
 
 最後講的是Functional Reach Test，這是一個可以快速中風或者老人的跌倒風險測試\
-那最基本測試對象需要這兩點能力（獨立站立30秒，肩至少能平舉90度）\
+那最基本測試對象[需要這兩點能力]{.bg-red-3}（獨立站立30秒，肩至少能平舉90度）\
 然後是判讀的部分\
 假如病人能向前伸6inch(15cm)以下，代表他跌倒風險高\
 假如病人能向前伸6\~10inch(25cm)，代表跌倒風險是中
