@@ -1,7 +1,8 @@
 ---
 title: Balance（二）前庭覺 (i)
+description: 周邊以及中樞前庭的構造及運作方式
 date: 2026-04-06T09:52
-edited_at: 2026-04-07T07:02:29.264Z
+edited_at: 2026-04-07T07:08:25.486Z
 author: hibiki12141132
 featured_image: /images/uploads/1775545346184-141163959_p0.png
 ---
