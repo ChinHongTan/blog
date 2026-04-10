@@ -2,7 +2,7 @@
 title: Motor Learning小兒（一）
 description: 感覺統合~三個協調的重點
 date: 2026-03-31T02:13
-edited_at: 2026-04-10T04:25:53.405Z
+edited_at: 2026-04-10T06:34:55.509Z
 author: hibiki12141132
 featured_image: /images/uploads/1775795013607-141589321_p0.jpg
 ---
@@ -103,3 +103,21 @@ iv)——生物與環境的影響(Biological vs. environmental influence)
    (例如速度的改變從走路變成跑步，相對時間不同，所以是另一個型態，不適應次序參數)\
    （對 黃老師教動態系統理論也提到過這個）
 
+最後講兩個實驗
+
+1. 第一個是關於踏步反射的實驗，那踏步反射在作原始反射，在第四周會消失，但在一歲時又會再次出現\
+   而神經成熟理論認為，是因為大腦成熟了，讓高階抑制了低階\
+   但動態模組理論發現，其實是因為在第四周寶寶[長脂肪比長肌肉快]{.underline .red-3}，導致[力量不足]{.green-3}做不出來\
+   將寶寶放在水中利用浮力降低脂肪重量，踏步反射就可以又被誘發出來
+2. 第二個實驗，是觀察青蛙生長的環境與發育的關係\
+   青蛙需要水跟泥土的環境才能發育健全，假如只給水不給泥土的環境，就會讓發育有缺陷\
+   所以神經成熟是可以讓動作型態形成，但必須得加上[環境，時間以及個體本身條件]{.underline .red-3}才能讓型態表現更好
+
+那在臨床意義上有以下幾點\
+分散式控制(Distributed control)\
+控制參數可能來自兒童或者環境(Control parameter may be from the child or from the environment)\
+由兒童主導(Active role of the child)\
+個體差異的訊息(variability provides important information)
+
+評估[不應只侷限在探討神經發展過程]{.underline .bg-green-3}，而是要根據[多個系統，家庭因素]{.bg-red-3 .underline}等問題\
+(之前聽到的例子，有一個治療師說家長假如一直給小兒玩手機沒讓他們多動，確實會讓發展遲緩)
