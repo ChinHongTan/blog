@@ -9,7 +9,8 @@ import { estimateReadingMinutes } from "~/utils/reading-time";
 const route = useRoute();
 
 // Try to fetch from blog collection first, then pages collection
-const { data: page } = await useAsyncData(route.path, async () => {
+const routePathKey = computed(() => normalizePath(safeDecode(route.path)));
+const { data: page } = await useAsyncData(routePathKey.value, async () => {
 	const normalizedRoutePath = normalizePath(route.path);
 	const decodedRoutePath = normalizePath(safeDecode(route.path));
 	const blogPathCandidates = Array.from(
@@ -47,6 +48,10 @@ const { data: page } = await useAsyncData(route.path, async () => {
 			[targetStem, decodedRouteStem].filter((value) => value.length > 0),
 		),
 	);
+	
+	console.log(">>> SSR ROUTE PATH:", route.path);
+	console.log(">>> SLUG PARAMS:", route.params.slug);
+	console.log(">>> STEM CANDIDATES:", stemCandidates);
 
 	if (stemCandidates.length > 0) {
 		for (const stemCandidate of stemCandidates) {

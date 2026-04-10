@@ -25,8 +25,11 @@ const WINDOW_SIZE = 5;
 
 export async function useSeriesSidebar(options: UseSeriesSidebarOptions) {
 	const activeSeriesName = computed(() => {
-		const querySeries = unref(options.routeSeriesQuery);
-		if (querySeries) return querySeries;
+		let querySeries = unref(options.routeSeriesQuery);
+		if (querySeries) {
+			querySeries = querySeries.replace(/\+/g, " ");
+			return querySeries;
+		}
 
 		const stem = getPostStem(unref(options.page));
 		const configuredSeries = unref(options.seriesData)?.series;
