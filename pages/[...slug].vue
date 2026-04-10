@@ -13,8 +13,9 @@ const routePathKey = computed(() => normalizePath(safeDecode(route.path)));
 const { data: page } = await useAsyncData(routePathKey.value, async () => {
 	const normalizedRoutePath = normalizePath(route.path);
 	const decodedRoutePath = normalizePath(safeDecode(route.path));
+	const encodedRoutePath = normalizePath(encodeURI(decodedRoutePath));
 	const blogPathCandidates = Array.from(
-		new Set([normalizedRoutePath, decodedRoutePath]),
+		new Set([normalizedRoutePath, decodedRoutePath, encodedRoutePath]),
 	);
 
 	for (const candidatePath of blogPathCandidates) {
@@ -36,22 +37,26 @@ const { data: page } = await useAsyncData(routePathKey.value, async () => {
 		: typeof slugParam === "string" && slugParam.length > 0
 			? [slugParam]
 			: [];
-	const normalizedSlugSegments = slugSegments.map((segment) =>
-		safeDecode(segment),
-	);
-	const targetStem = normalizedSlugSegments.join("/");
+	const rawSlugStem = slugSegments.join("/");
+	const decodedSlugStem = slugSegments.map((segment) => safeDecode(segment)).join("/");
+	const encodedSlugStem = encodeURI(decodedSlugStem);
 	const decodedRouteStem = normalizePath(decodedRoutePath)
+		.replace(/^\/+/, "")
+		.trim();
+	const encodedRouteStem = normalizePath(encodedRoutePath)
 		.replace(/^\/+/, "")
 		.trim();
 	const stemCandidates = Array.from(
 		new Set(
-			[targetStem, decodedRouteStem].filter((value) => value.length > 0),
+			[
+				rawSlugStem,
+				decodedSlugStem,
+				encodedSlugStem,
+				decodedRouteStem,
+				encodedRouteStem,
+			].filter((value) => value.length > 0),
 		),
 	);
-	
-	console.log(">>> SSR ROUTE PATH:", route.path);
-	console.log(">>> SLUG PARAMS:", route.params.slug);
-	console.log(">>> STEM CANDIDATES:", stemCandidates);
 
 	if (stemCandidates.length > 0) {
 		for (const stemCandidate of stemCandidates) {
