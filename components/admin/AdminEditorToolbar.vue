@@ -231,7 +231,7 @@
 
 <script setup lang="ts">
 import type { EditorToolbarApi } from "./MilkdownEditorInner.vue";
-import { EDITOR_COLOR_ROWS, EDITOR_BG_COLOR_ROWS } from "~/lib/editor-colors";
+import { EDITOR_COLOR_ROWS, EDITOR_BG_COLOR_ROWS } from "~/lib/editor/editor-colors";
 
 const props = defineProps<{
   api: EditorToolbarApi | null;

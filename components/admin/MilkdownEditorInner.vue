@@ -41,13 +41,13 @@ import {
   infoBoxSlashItems,
   runInsertInfoBox,
   type InfoBoxKind,
-} from "~/lib/milkdown-info-box";
+} from "~/lib/editor/milkdown-info-box";
 import {
   spanClassFeature,
   spanClassSchema,
   applySpanClassCommand,
   removeSpanClassCommand,
-} from "~/lib/milkdown-span-class";
+} from "~/lib/editor/milkdown-span-class";
 
 const { uploadImage } = useUploadImage();
 

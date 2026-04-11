@@ -1,19 +1,21 @@
 const remarkDirectiveFallbackPlugin = new URL(
-	"./remark-directive-fallback.mjs",
+	"./lib/markdown/remark-directive-fallback.mjs",
 	import.meta.url,
 ).href;
-const remarkInfoBoxPlugin = new URL("./remark-info-box.mjs", import.meta.url)
-	.href;
+const remarkInfoBoxPlugin = new URL(
+	"./lib/markdown/remark-info-box.mjs",
+	import.meta.url,
+).href;
 const remarkHeadingIdPlugin = new URL(
-	"./remark-heading-id.mjs",
+	"./lib/markdown/remark-heading-id.mjs",
 	import.meta.url,
 ).href;
 const rehypeFigureCaptionPlugin = new URL(
-	"./rehype-figure-caption.mjs",
+	"./lib/markdown/rehype-figure-caption.mjs",
 	import.meta.url,
 ).href;
 const rehypeSpanAttributesPlugin = new URL(
-	"./rehype-span-attributes.mjs",
+	"./lib/markdown/rehype-span-attributes.mjs",
 	import.meta.url,
 ).href;
 
