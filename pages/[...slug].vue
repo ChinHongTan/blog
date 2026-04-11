@@ -427,6 +427,7 @@ const {
 											year: "numeric",
 											month: "long",
 											day: "numeric",
+											timeZone: "UTC",
 										},
 									)
 								}}
@@ -458,6 +459,7 @@ const {
 												month: "long",
 												day: "numeric",
 												year: "numeric",
+												timeZone: "UTC",
 											},
 										)
 									}}
@@ -475,6 +477,7 @@ const {
 											month: "long",
 											day: "numeric",
 											year: "numeric",
+											timeZone: "UTC",
 										})
 									}}
 								</span>
