@@ -642,6 +642,15 @@
 			</template>
 		</BaseModal>
 
+		<ClientOnly>
+			<ImageCropperModal
+				v-model="showCropper"
+				:file="cropperFile"
+				@confirm="onCropperConfirm"
+				@cancel="onCropperCancel"
+			/>
+		</ClientOnly>
+
 		<BaseModal
 			:model-value="showRevertToGitHubConfirm"
 			title="還原 GitHub 版本"
@@ -759,6 +768,8 @@ const featuredFileInput = ref<HTMLInputElement | null>(null);
 const authorAvatarFileInput = ref<HTMLInputElement | null>(null);
 const authorBannerFileInput = ref<HTMLInputElement | null>(null);
 const heroDragOver = ref(false);
+const showCropper = ref(false);
+const cropperFile = ref<File | null>(null);
 const tagInputRef = ref<HTMLInputElement | null>(null);
 const fileSha = ref<string | undefined>(undefined);
 /** True after initial content load (or no file to load). Ensures Milkdown mounts with correct body. */
@@ -1646,16 +1657,11 @@ async function confirmDeleteDraft() {
 	}
 }
 
-async function onFeaturedDrop(e: DragEvent) {
+function onFeaturedDrop(e: DragEvent) {
 	heroDragOver.value = false;
 	const file = e.dataTransfer?.files?.[0];
 	if (!file?.type.startsWith("image/")) return;
-	try {
-		meta.featured_image = await uploadImage(file);
-	} catch (err) {
-		console.error(err);
-		toast.error(getApiErrorMessage(err, "上傳失敗，請稍後再試。"));
-	}
+	openCropper(file);
 }
 
 function onFeaturedFileChange(e: Event) {
@@ -1663,14 +1669,27 @@ function onFeaturedFileChange(e: Event) {
 	const file = input.files?.[0];
 	input.value = "";
 	if (!file) return;
-	uploadImage(file)
-		.then((path) => {
-			meta.featured_image = path;
-		})
-		.catch((err) => {
-			console.error(err);
-			toast.error(getApiErrorMessage(err, "上傳失敗，請稍後再試。"));
-		});
+	openCropper(file);
+}
+
+function openCropper(file: File) {
+	cropperFile.value = file;
+	showCropper.value = true;
+}
+
+async function onCropperConfirm(cropped: File) {
+	try {
+		meta.featured_image = await uploadImage(cropped);
+	} catch (err) {
+		console.error(err);
+		toast.error(getApiErrorMessage(err, "上傳失敗，請稍後再試。"));
+	} finally {
+		cropperFile.value = null;
+	}
+}
+
+function onCropperCancel() {
+	cropperFile.value = null;
 }
 
 async function onAuthorAvatarFileChange(e: Event) {

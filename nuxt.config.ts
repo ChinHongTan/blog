@@ -176,7 +176,7 @@ export default defineNuxtConfig({
 					"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
 					"font-src 'self' https://fonts.gstatic.com",
 					"img-src 'self' data: https: blob:",
-					"connect-src 'self' https://waline.chinono.dev https://api.github.com https://placehold.co https://raw.githubusercontent.com https://events.vercount.one https://unpkg.com https://vitals.vercel-insights.com",
+					"connect-src 'self' blob: https://waline.chinono.dev https://api.github.com https://placehold.co https://raw.githubusercontent.com https://events.vercount.one https://unpkg.com https://vitals.vercel-insights.com",
 					"frame-src https://www.youtube.com https://www.youtube-nocookie.com",
 				].join("; "),
 				"X-Content-Type-Options": "nosniff",

@@ -1235,7 +1235,8 @@ const {
 	padding-bottom: 0;
 }
 
-.post-content :deep(details.info-box[open]) {
+.post-content :deep(details.info-box > .info-box-content) {
+	overflow: hidden;
 	padding-bottom: var(--space-4);
 }
 
