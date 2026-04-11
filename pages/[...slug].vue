@@ -3,13 +3,18 @@ import mediumZoom from "medium-zoom";
 import { normalizePath, safeDecode } from "~/utils/content-routing";
 import { useReadingProgress } from "~/composables/useReadingProgress";
 import { useSeriesSidebar } from "~/composables/useSeriesSidebar";
+import { getAuthorId } from "~/composables/useAuthorId";
 import { buildFallbackAvatar } from "~/utils/avatar";
 import { estimateReadingMinutes } from "~/utils/reading-time";
 
 const route = useRoute();
 
+// Stable cache key: decoded + normalized so SSR and CSR agree regardless of
+// URL encoding differences (e.g. commas encoded as %2C on some browsers).
+const pageCacheKey = normalizePath(safeDecode(route.path));
+
 // Try to fetch from blog collection first, then pages collection
-const { data: page } = await useAsyncData(route.path, async () => {
+const { data: page } = await useAsyncData(pageCacheKey, async () => {
 	const normalizedRoutePath = normalizePath(route.path);
 	const decodedRoutePath = normalizePath(safeDecode(route.path));
 	const blogPathCandidates = Array.from(
@@ -140,31 +145,37 @@ useSeoMeta({
 		"星谷雜貨店",
 });
 
-// Fetch author profile if author name exists and it's a blog post
-const authorProfile =
-	page.value && "author" in page.value && page.value.author
-		? await useAuthor(page.value.author)
-		: null;
+// Fetch all authors unconditionally so authorProfile can react to page changes.
+// A previous implementation wrapped `useAuthor` in a conditional `await`, which
+// captured a null value at setup time when client-side hydration briefly had no
+// page data — leaving the avatar and nickname empty forever.
+const { data: allAuthors } = await useAsyncData("authors-all", () =>
+	queryCollection("authors").all(),
+);
+
+const authorProfile = computed(() => {
+	if (!page.value || !("author" in page.value) || !page.value.author) return null;
+	if (!allAuthors.value) return null;
+	const targetId = page.value.author as string;
+	return (
+		allAuthors.value.find(
+			(entry: unknown) =>
+				getAuthorId(entry as { path?: string; name?: string }) === targetId,
+		) ?? null
+	);
+});
 
 // Get author avatar - prioritize from author profile, then fallback to placeholder
 const authorAvatar = computed(() => {
-	if (authorProfile?.value) {
-		const profile = authorProfile.value as { avatar?: string };
-		if (profile.avatar) return profile.avatar;
-	}
-	const label =
-		(authorProfile?.value as { name?: string })?.name ??
-		page.value?.author ??
-		"A";
-	return buildFallbackAvatar(
-		typeof label === "string" ? label : "A",
-		40,
-	);
+	const profile = authorProfile.value as { avatar?: string; name?: string } | null;
+	if (profile?.avatar) return profile.avatar;
+	const label = profile?.name ?? page.value?.author ?? "A";
+	return buildFallbackAvatar(typeof label === "string" ? label : "A", 40);
 });
 
 const authorDisplayName = computed(
 	() =>
-		(authorProfile?.value as { name?: string })?.name ??
+		(authorProfile.value as { name?: string } | null)?.name ??
 		page.value?.author ??
 		"Anonymous",
 );
@@ -237,16 +248,12 @@ onMounted(async () => {
 	});
 });
 
-const {
-	showResumeBar,
-	savedScrollPercent,
-	resumeReading,
-	dismissResume,
-} = useReadingProgress({
-	isEnabled: isBlogPost,
-	pagePath: computed(() => page.value?.path),
-	scrollPercentage,
-});
+const { showResumeBar, savedScrollPercent, resumeReading, dismissResume } =
+	useReadingProgress({
+		isEnabled: isBlogPost,
+		pagePath: computed(() => page.value?.path),
+		scrollPercentage,
+	});
 
 const {
 	activeSeriesName,
