@@ -178,7 +178,7 @@ export default defineNuxtConfig({
 					"default-src 'self'",
 					"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://events.vercount.one",
 					"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
-					"font-src 'self' https://fonts.gstatic.com",
+					"font-src 'self' data: https://fonts.gstatic.com",
 					"img-src 'self' data: https: blob:",
 					"connect-src 'self' blob: https://waline.chinono.dev https://api.github.com https://api.iconify.design https://placehold.co https://raw.githubusercontent.com https://events.vercount.one https://unpkg.com https://vitals.vercel-insights.com",
 					"frame-src https://www.youtube.com https://www.youtube-nocookie.com",
