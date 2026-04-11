@@ -1230,6 +1230,52 @@ const {
 	font-weight: 600;
 }
 
+.post-content :deep(details.info-box) {
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+.post-content :deep(details.info-box[open]) {
+	padding-bottom: var(--space-4);
+}
+
+.post-content :deep(details.info-box > summary) {
+	list-style: none;
+	cursor: pointer;
+	font-size: 1.1rem;
+	font-weight: 600;
+	padding: var(--space-4) calc(var(--space-6) + 1.25rem) var(--space-4) 0;
+	margin: 0;
+	position: relative;
+	user-select: none;
+}
+
+.post-content :deep(details.info-box > summary::-webkit-details-marker) {
+	display: none;
+}
+
+.post-content :deep(details.info-box > summary::after) {
+	content: "";
+	position: absolute;
+	right: 0.25rem;
+	top: 50%;
+	width: 0.55rem;
+	height: 0.55rem;
+	border-right: 2px solid currentColor;
+	border-bottom: 2px solid currentColor;
+	transform: translateY(-75%) rotate(-45deg);
+	transition: transform 0.2s ease;
+	opacity: 0.7;
+}
+
+.post-content :deep(details.info-box[open] > summary::after) {
+	transform: translateY(-25%) rotate(45deg);
+}
+
+.post-content :deep(details.info-box > summary:hover::after) {
+	opacity: 1;
+}
+
 /* Markdown / GFM tables: styled like former .my-table */
 .post-content :deep(table) {
 	width: 100%;
