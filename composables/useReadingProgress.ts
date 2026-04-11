@@ -1,4 +1,4 @@
-import { onBeforeUnmount, onMounted, ref, unref, type MaybeRef, type Ref } from "vue";
+import { onBeforeUnmount, onMounted, ref, unref, watch, type MaybeRef, type Ref } from "vue";
 
 type UseReadingProgressOptions = {
 	isEnabled: MaybeRef<boolean>;
@@ -49,6 +49,14 @@ export function useReadingProgress(options: UseReadingProgressOptions) {
 		const key = getStorageKey();
 		if (key) localStorage.removeItem(key);
 	}
+
+	// Auto-dismiss the resume bar once the reader has scrolled past the
+	// saved position — the prompt is answered by the act of continuing.
+	watch(options.scrollPercentage, (current) => {
+		if (showResumeBar.value && current >= savedScrollPercent.value) {
+			showResumeBar.value = false;
+		}
+	});
 
 	onMounted(() => {
 		if (typeof window === "undefined") return;

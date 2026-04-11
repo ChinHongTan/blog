@@ -114,6 +114,11 @@ const extractTOC = () => {
   });
 };
 
+// Suppress scroll-spy updates while a TOC click is smooth-scrolling,
+// otherwise the indicator bounces through every heading it passes.
+let isProgrammaticScroll = false;
+let programmaticScrollTimeout: ReturnType<typeof setTimeout> | null = null;
+
 // Smooth scroll to heading
 const scrollToHeading = (id: string) => {
   const element = document.getElementById(id);
@@ -122,22 +127,29 @@ const scrollToHeading = (id: string) => {
     const elementPosition = element.getBoundingClientRect().top;
     const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
+    isProgrammaticScroll = true;
+    activeId.value = id;
+
     window.scrollTo({
       top: offsetPosition,
       behavior: 'smooth'
     });
-    
-    // Update active ID
-    activeId.value = id;
+
+    if (programmaticScrollTimeout) clearTimeout(programmaticScrollTimeout);
+    programmaticScrollTimeout = setTimeout(() => {
+      isProgrammaticScroll = false;
+      programmaticScrollTimeout = null;
+    }, 800);
   }
 };
 
 // Update active heading based on scroll position
 const setupScrollObserver = () => {
   if (typeof window === 'undefined' || !props.isPostPage) return;
-  
+
   const observer = new IntersectionObserver(
     (entries) => {
+      if (isProgrammaticScroll) return;
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           activeId.value = entry.target.id;

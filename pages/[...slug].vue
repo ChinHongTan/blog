@@ -9,13 +9,11 @@ import { estimateReadingMinutes } from "~/utils/reading-time";
 const route = useRoute();
 
 // Try to fetch from blog collection first, then pages collection
-const routePathKey = computed(() => normalizePath(safeDecode(route.path)));
-const { data: page } = await useAsyncData(routePathKey.value, async () => {
+const { data: page } = await useAsyncData(route.path, async () => {
 	const normalizedRoutePath = normalizePath(route.path);
 	const decodedRoutePath = normalizePath(safeDecode(route.path));
-	const encodedRoutePath = normalizePath(encodeURI(decodedRoutePath));
 	const blogPathCandidates = Array.from(
-		new Set([normalizedRoutePath, decodedRoutePath, encodedRoutePath]),
+		new Set([normalizedRoutePath, decodedRoutePath]),
 	);
 
 	for (const candidatePath of blogPathCandidates) {
@@ -37,24 +35,16 @@ const { data: page } = await useAsyncData(routePathKey.value, async () => {
 		: typeof slugParam === "string" && slugParam.length > 0
 			? [slugParam]
 			: [];
-	const rawSlugStem = slugSegments.join("/");
-	const decodedSlugStem = slugSegments.map((segment) => safeDecode(segment)).join("/");
-	const encodedSlugStem = encodeURI(decodedSlugStem);
+	const normalizedSlugSegments = slugSegments.map((segment) =>
+		safeDecode(segment),
+	);
+	const targetStem = normalizedSlugSegments.join("/");
 	const decodedRouteStem = normalizePath(decodedRoutePath)
-		.replace(/^\/+/, "")
-		.trim();
-	const encodedRouteStem = normalizePath(encodedRoutePath)
 		.replace(/^\/+/, "")
 		.trim();
 	const stemCandidates = Array.from(
 		new Set(
-			[
-				rawSlugStem,
-				decodedSlugStem,
-				encodedSlugStem,
-				decodedRouteStem,
-				encodedRouteStem,
-			].filter((value) => value.length > 0),
+			[targetStem, decodedRouteStem].filter((value) => value.length > 0),
 		),
 	);
 
