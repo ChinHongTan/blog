@@ -1,8 +1,8 @@
 ---
 title: Gait analysis小兒（二）
-description: 八分期肌肉拆解以及腿後肌力不足的問題
+description: 八分期肌肉拆解，腿後肌力不足的問題以及小兒步態發展過程
 date: 2026-04-11T07:05
-edited_at: 2026-04-11T09:27:26.876Z
+edited_at: 2026-04-11T10:07:44.540Z
 author: hibiki12141132
 featured_image: /images/uploads/1775898442489-136249570_p0_master1200.webp
 ---
@@ -29,6 +29,18 @@ featured_image: /images/uploads/1775898442489-136249570_p0_master1200.webp
 * Mid-stannce——比目魚肌無力的話，會讓\[Ankle做DF]{.red-3 .underline}，\
   那由於代償原因，Knee會做flexion來讓腳踩在地面，結果變成股四頭肌必須要加入收縮才能穩定站立
 
-* Terminal stance和Pre-swing——腓腸肌力量不足的話，[沒辦法產生足夠的推進力]{.underline .red-3}\
-  只好讓[髖屈肌收縮]{.red-3 .underline}提起整段下肢，確保[腳尖離地]{.green-3}，導致[步距變短]{.bg-red-3}
+* Terminal stance和Pre-swing——腓腸肌力量不足的話，\[沒辦法產生足夠的推進力]{.underline .red-3}\
+  只好讓\[髖屈肌收縮]{.red-3 .underline}提起整段下肢，確保\[腳尖離地]{.green-3}，導致\[步距變短]{.bg-red-3}
+
+最後講小孩的步態發展過程\
+在18個月就會出現交互雙手擺動以及腳跟著地（Heel strike）的形態\
+2歲的小孩懂得矢狀面(Sagittal-plane)關節旋轉\
+7歲的小孩步態已經能達到成人標準了
+
+CP的小孩在五歲時——有54%不需要輔具獨立行走，16%需要輔具行走，30%無法行走\
+那CP小孩預測能力方面也分成了三個時段
+
+1. 9\~18個月——頭部控制能力
+2. 24個月——不需要支撐能獨自坐穩
+3. 30個月——做爬行
 
