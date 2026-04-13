@@ -2,7 +2,7 @@
 title: Motor Learning小兒（二）
 description: Motor Learning定義~結束
 date: 2026-04-10T06:02
-edited_at: 2026-04-11T03:13:04.265Z
+edited_at: 2026-04-13T13:16:43.314Z
 author: hibiki12141132
 featured_image: /images/uploads/1775875520542-37128694_p0_master1200.jpg
 ---
@@ -13,7 +13,7 @@ featured_image: /images/uploads/1775875520542-37128694_p0_master1200.jpg
 動作學習就是過程，而動作表現是動作做出來的結果。
 
 而這邊講道Positive和Negative Sign\
-Positive是指正常人沒有，但病人身上會出現的異常動作\
+Positive是指正常人沒有，但病人身上會出現的異常動作 \
 Negative則相反，正常人有的，但病人身上無法出現
 
 對於動作學習有三大要素
