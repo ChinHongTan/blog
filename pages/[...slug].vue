@@ -201,6 +201,21 @@ const hasToc = computed(() => {
 	return page.value?.body?.toc?.links && page.value.body.toc.links.length > 0;
 });
 
+type TocLink = { id: string; text: string; depth: number; children?: TocLink[] };
+
+const flatTocLinks = computed<TocLink[]>(() => {
+	const result: TocLink[] = [];
+	const walk = (links: TocLink[] | undefined) => {
+		if (!links) return;
+		for (const link of links) {
+			result.push({ id: link.id, text: link.text, depth: link.depth });
+			if (link.children?.length) walk(link.children);
+		}
+	};
+	walk(page.value?.body?.toc?.links as TocLink[] | undefined);
+	return result;
+});
+
 const showToc = ref(true);
 const scrollPercentage = ref(0);
 
@@ -524,6 +539,75 @@ const {
 							</div>
 						</div>
 					</header>
+
+					<!-- Mobile-only Series Card -->
+					<div
+						v-if="hasSeries && activeSeriesName"
+						class="mobile-series-card"
+					>
+						<NuxtLink
+							:to="`/series/${encodeURIComponent(activeSeriesName)}`"
+							class="mobile-series-header"
+						>
+							<Icon name="heroicons:bookmark-square" size="16" />
+							<span class="mobile-series-name">{{ activeSeriesName }}</span>
+							<span class="mobile-series-count">
+								{{ seriesAllPosts?.length ?? 0 }} 篇
+							</span>
+						</NuxtLink>
+						<details class="mobile-series-details">
+							<summary class="mobile-series-summary">
+								<span>本系列文章</span>
+								<Icon
+									name="heroicons:chevron-down"
+									size="16"
+									class="mobile-chevron"
+								/>
+							</summary>
+							<div class="mobile-series-list">
+								<NuxtLink
+									v-for="(post, idx) in seriesAllPosts ?? []"
+									:key="post.id"
+									:to="`${getSeriesPostPath(post)}?series=${encodeURIComponent(activeSeriesName)}`"
+									class="mobile-series-item"
+									:class="{
+										'is-current':
+											getSeriesPostPath(post) ===
+											normalizePath(safeDecode(route.path)),
+									}"
+								>
+									<span class="mobile-series-number">{{ idx + 1 }}</span>
+									<span class="mobile-series-title">{{ post.title }}</span>
+								</NuxtLink>
+							</div>
+						</details>
+					</div>
+
+					<!-- Mobile-only Table of Contents -->
+					<details
+						v-if="hasToc"
+						class="mobile-toc"
+					>
+						<summary class="mobile-toc-summary">
+							<Icon name="heroicons:list-bullet" size="16" />
+							<span>本頁內容</span>
+							<Icon
+								name="heroicons:chevron-down"
+								size="16"
+								class="mobile-chevron"
+							/>
+						</summary>
+						<nav class="mobile-toc-links">
+							<a
+								v-for="link in flatTocLinks"
+								:key="link.id"
+								:href="`#${link.id}`"
+								:class="['mobile-toc-link', `level-${link.depth}`]"
+							>
+								{{ link.text }}
+							</a>
+						</nav>
+					</details>
 
 					<div class="post-content">
 						<ContentRenderer :value="page" class="nuxt-content" />
@@ -1504,6 +1588,176 @@ html.dark .post-content :deep(thead) {
 	.floating-series-toggle {
 		left: 1rem;
 	}
+}
+
+/* Mobile-only Series Card & TOC (hidden on desktop) */
+.mobile-series-card,
+.mobile-toc {
+	display: none;
+}
+
+@media (max-width: 1200px) {
+	.mobile-series-card,
+	.mobile-toc {
+		display: block;
+		margin-bottom: 1.25rem;
+		border: 1px solid var(--color-border-light);
+		border-radius: var(--radius-md);
+		background: color-mix(
+			in srgb,
+			var(--color-bg-primary) 85%,
+			transparent
+		);
+		overflow: hidden;
+	}
+
+	/* Hide the floating TOC / Series buttons on mobile — they're replaced by inline blocks */
+	.floating-toc-toggle,
+	.floating-series-toggle {
+		display: none;
+	}
+}
+
+.mobile-series-header {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.7rem 0.9rem;
+	color: var(--color-text-primary);
+	text-decoration: none;
+	font-weight: 600;
+	border-bottom: 1px solid var(--color-border-light);
+}
+
+.mobile-series-name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.mobile-series-count {
+	font-size: 0.8rem;
+	color: var(--color-text-tertiary);
+	font-weight: 500;
+	flex-shrink: 0;
+}
+
+.mobile-series-details[open] .mobile-chevron,
+.mobile-toc[open] .mobile-chevron {
+	transform: rotate(180deg);
+}
+
+.mobile-chevron {
+	transition: transform 0.2s ease;
+	margin-left: auto;
+}
+
+.mobile-series-summary,
+.mobile-toc-summary {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.7rem 0.9rem;
+	cursor: pointer;
+	color: var(--color-text-secondary);
+	font-size: 0.9rem;
+	font-weight: 600;
+	list-style: none;
+	user-select: none;
+}
+
+.mobile-series-summary::-webkit-details-marker,
+.mobile-toc-summary::-webkit-details-marker {
+	display: none;
+}
+
+.mobile-series-list {
+	display: flex;
+	flex-direction: column;
+	max-height: 50vh;
+	overflow-y: auto;
+	padding: 0 0.5rem 0.5rem;
+	border-top: 1px solid var(--color-border-light);
+}
+
+.mobile-series-item {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	padding: 0.5rem 0.5rem;
+	color: var(--color-text-secondary);
+	text-decoration: none;
+	font-size: 0.88rem;
+	border-radius: var(--radius-sm);
+}
+
+.mobile-series-item.is-current {
+	background: var(--color-bg-blue-tint);
+	color: var(--color-primary-dark);
+	font-weight: 600;
+}
+
+.mobile-series-number {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: var(--color-bg-secondary);
+	font-size: 0.75rem;
+	font-weight: 600;
+	flex-shrink: 0;
+	color: var(--color-text-tertiary);
+}
+
+.mobile-series-item.is-current .mobile-series-number {
+	background: var(--color-primary);
+	color: #fff;
+}
+
+.mobile-series-title {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.mobile-toc-links {
+	display: flex;
+	flex-direction: column;
+	max-height: 50vh;
+	overflow-y: auto;
+	padding: 0 0.5rem 0.5rem;
+	border-top: 1px solid var(--color-border-light);
+}
+
+.mobile-toc-link {
+	display: block;
+	padding: 0.4rem 0.5rem;
+	color: var(--color-text-secondary);
+	text-decoration: none;
+	font-size: 0.88rem;
+	border-radius: var(--radius-sm);
+	line-height: 1.4;
+}
+
+.mobile-toc-link.level-3 {
+	padding-left: 1.5rem;
+	font-size: 0.82rem;
+}
+
+.mobile-toc-link.level-4 {
+	padding-left: 2.3rem;
+	font-size: 0.8rem;
+}
+
+.mobile-toc-link:hover {
+	color: var(--color-primary-dark);
+	background: var(--color-bg-blue-tint);
 }
 
 .post-content :deep(.info-box p) {
