@@ -2,7 +2,7 @@
 title: CP補充（一）
 description: 前面CP的大段文字英翻中
 date: 2026-04-14T02:17
-edited_at: 2026-04-14T03:25:59.999Z
+edited_at: 2026-04-14T03:35:25.762Z
 author: hibiki12141132
 path: /blog/CP補充（一）
 featured_image: /images/uploads/1776137123982-e925b25f25c941afa92d440eefa3b271.webp
@@ -14,7 +14,7 @@ featured_image: /images/uploads/1776137123982-e925b25f25c941afa92d440eefa3b271.w
 
 1. 產前——先天性腦部畸型，血管問題（中腦動脈阻塞），母體攝入毒素\
    母體感染（德國痲疹，巨細胞病毒，弓形蟲病），代謝障礙，基因綜合徵
-2. 產中——主要為\[胎兒中毒以及產時窒]{.underline .green-3}\
+2. 產中——主要為\[胎兒中毒以及產時窒息]{.underline .green-3}\
    血液樣本顯示為代謝性酸中毒，pH<7以及鹼剩餘>12mmol/L\
    妊娠周數>34周，早期會出現中度或重度腦病變\
    低血糖，未經治療的黃疽，嚴重的新生兒感染亦會導致CP
@@ -38,8 +38,8 @@ featured_image: /images/uploads/1776137123982-e925b25f25c941afa92d440eefa3b271.w
 1. 根據張力與動作異常形態區分——\
    痙攣型——佔比七成，傷到錐狀束，上肢Flexor tone強+pronation，下肢Extenor tone強\
    徐動型——佔比一成五，傷到基底核，皮質無影響，所以智力正\
-   僵直型——傷到皮質，比[痙攣型張力還大]{.underline .red-3}\
-   運動失調型——佔比一成三，傷到小腦，[協調能力差]{.underline .red-3}且尤其是[下肢]{.yellow-3}特別明顯，步寬大，走路搖晃\
+   僵直型——傷到皮質，比\[痙攣型張力還大]{.underline .red-3}\
+   運動失調型——佔比一成三，傷到小腦，\[協調能力差]{.underline .red-3}且尤其是\[下肢]{.yellow-3}特別明顯，步寬大，走路搖晃\
    低張力型——為暫時性(CP無永久低張)，之後會發展成其他類型，CP，因為low tone，所以ROM大且無法抗重力\
    顫抖型——較徐動型有節奏，在遠端顫抖\
    混合型\
