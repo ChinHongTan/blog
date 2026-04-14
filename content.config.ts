@@ -24,7 +24,6 @@ export default defineContentConfig({
 						.transform((v) => (typeof v === "string" ? v : v[0]))
 						.optional(),
 					seriesOrder: z.number().optional(),
-					path: z.string().optional(),
 				}),
 			}),
 		),

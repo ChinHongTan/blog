@@ -51,27 +51,37 @@ export async function useSeriesSidebar(options: UseSeriesSidebarOptions) {
 		}
 	});
 
+	// Snapshot reactive values at call time. The fetcher closure previously
+	// read activeSeriesName.value directly, which meant a re-invocation
+	// during navigation (when page.value is transiently null, so the
+	// computed falls through to null) wrote [] into the shared cache under
+	// the correct series key and poisoned the sidebar for the rest of the
+	// session.
+	const seriesKeySnapshot = activeSeriesName.value;
+	const stemsForSeriesSnapshot = seriesKeySnapshot
+		? unref(options.seriesData)?.series?.[seriesKeySnapshot] || []
+		: [];
+
 	const { data: seriesAllPosts } = await useAsyncData(
-		`series-sidebar-${activeSeriesName.value || "none"}`,
+		`series-sidebar-${seriesKeySnapshot || "none"}`,
 		async () => {
-			if (!activeSeriesName.value) return [] as SeriesPost[];
+			if (!seriesKeySnapshot || stemsForSeriesSnapshot.length === 0) {
+				return [] as SeriesPost[];
+			}
 			const allPosts = await queryCollection("blog")
 				.order("date", "DESC")
 				.all();
 
-			const stemsForSeries =
-				unref(options.seriesData)?.series?.[activeSeriesName.value] || [];
-
 			const postsInSeries = allPosts.filter((post) => {
 				const stem = getPostStem(post);
-				return stemsForSeries.includes(stem);
+				return stemsForSeriesSnapshot.includes(stem);
 			});
 
 			return postsInSeries.sort((a, b) => {
 				const stemA = getPostStem(a);
 				const stemB = getPostStem(b);
-				let orderA = stemsForSeries.indexOf(stemA);
-				let orderB = stemsForSeries.indexOf(stemB);
+				let orderA = stemsForSeriesSnapshot.indexOf(stemA);
+				let orderB = stemsForSeriesSnapshot.indexOf(stemB);
 
 				if (orderA === -1) orderA = Infinity;
 				if (orderB === -1) orderB = Infinity;

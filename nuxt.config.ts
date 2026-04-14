@@ -55,6 +55,18 @@ export default defineNuxtConfig({
 		"@nuxt/image",
 	],
 
+	hooks: {
+		// Filename is the URL. Avoids @nuxt/content's default slugifier,
+		// which strips CJK characters and collides paths like
+		// "Motor-Learning" and "Motor-Learning小兒（二）".
+		"content:file:afterParse"(ctx) {
+			const stem = ctx.content.stem;
+			if (typeof stem === "string" && stem.length > 0) {
+				ctx.content.path = `/${stem}`;
+			}
+		},
+	},
+
 	site: {
 		url: "https://blog.chinono.dev",
 		title: "星谷雜貨店",

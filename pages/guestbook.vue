@@ -28,6 +28,7 @@ onMounted(() => {
 		meta: ["nick", "link"],
 		requiredMeta: ["nick"],
 		dark: "html.dark",
+		emoji: ["https://unpkg.com/@waline/emojis@1.1.0/weibo"],
 	});
 });
 </script>

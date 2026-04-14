@@ -5,7 +5,6 @@ date: 2026-04-10T06:02
 edited_at: 2026-04-13T13:20:44.276Z
 author: hibiki12141132
 featured_image: /images/uploads/1775875520542-37128694_p0_master1200.jpg
-path: /blog/motor-learning-小兒-2
 ---
 
 阿對的，又要來講動作學習的定義了，雖然之前就有講過

@@ -63,6 +63,19 @@ const { data: page } = await useAsyncData(pageCacheKey, async () => {
 			}
 		}
 
+		// Back-compat: some older external links used an ASCII-lowercased
+		// URL (e.g. /blog/motor-learning) for a file whose stem has mixed
+		// case (Motor-Learning.md). SQLite's LIKE is case-insensitive for
+		// ASCII, so this catches those without affecting CJK matching.
+		for (const stemCandidate of stemCandidates) {
+			const blogByStemCI = await queryCollection("blog")
+				.where("stem", "LIKE", stemCandidate)
+				.first();
+			if (blogByStemCI) {
+				return blogByStemCI;
+			}
+		}
+
 		for (const stemCandidate of stemCandidates) {
 			const pageByStem = await queryCollection("pages")
 				.where("stem", "=", stemCandidate)
@@ -240,6 +253,7 @@ onMounted(async () => {
 			meta: ["nick", "link"],
 			requiredMeta: ["nick"],
 			dark: "html.dark",
+			emoji: ["https://unpkg.com/@waline/emojis@1.1.0/weibo"],
 		});
 	}
 	await nextTick();
