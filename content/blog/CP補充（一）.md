@@ -1,10 +1,11 @@
 ---
 title: CP補充（一）
-description: 第七頁作業
+description: 前面CP的大段文字英翻中
 date: 2026-04-14T02:17
-edited_at: 2026-04-14T03:24:45.814Z
+edited_at: 2026-04-14T03:25:59.999Z
 author: hibiki12141132
 path: /blog/CP補充（一）
+featured_image: /images/uploads/1776137123982-e925b25f25c941afa92d440eefa3b271.webp
 ---
 
 好多，先把老師特別叫我們看的先讀完好了，看後面還有沒有時間讀
