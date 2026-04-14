@@ -1,8 +1,8 @@
 ---
-title: CP—Rood & Bobath
+title: CP—Rood & Bobath（一）
 description: 主要是寫有特別註解的 到抑制flexor張力的部份
 date: 2026-04-14T03:35
-edited_at: 2026-04-14T14:26:30.304Z
+edited_at: 2026-04-14T14:31:37.671Z
 author: hibiki12141132
 featured_image: /images/uploads/1776176663348-EbXNw8qWkAMAVcN.webp
 ---
@@ -81,6 +81,6 @@ featured_image: /images/uploads/1776176663348-EbXNw8qWkAMAVcN.webp
 2. 而通常都會在這支勢下扶穩小孩的shoulder，前後左右的輕微的搖擺，讓小孩\[逐漸放鬆]{.green-3 .underline}，同時也能\[靠重力牽拉flexor肌肉]{.underline .red-3}\
    再進階就遠端例如hip去做同樣的事
 3. 進一步的做法是，抓住小孩的小肢，將球往小孩的頭側推\
-   這樣因為滾動的原因變成頭反而靠近地面，呈[頭靠近地面]{.green-3 .underline}，這樣也能讓[extensor tone上升]{.red-3 .underline}
+   這樣因為滾動的原因變成頭反而靠近地面，呈\[頭靠近地面]{.green-3 .underline}，這樣也能讓\[extensor tone上升]{.red-3 .underline}
 4. 還能結合旋轉去訓練，一樣也是抓住腳帶動軀幹做輕微旋轉，以降低張力
 
