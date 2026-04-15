@@ -781,18 +781,26 @@ onBeforeUnmount(() => {
 	<div class="home-page" :style="heroStyle">
 		<div class="hero-background" aria-hidden="true">
 			<!-- Dual images for smooth fade -->
-			<img
+			<NuxtImg
 				src="/images/background_light.jpg"
 				alt=""
 				class="hero-image light-mode"
 				:class="{ active: theme === 'light' }"
-			>
-			<img
+				sizes="100vw"
+				format="webp"
+				preload
+				fetchpriority="high"
+			/>
+			<NuxtImg
 				src="/images/background_dark.jpg"
 				alt=""
 				class="hero-image dark-mode"
 				:class="{ active: theme === 'dark' }"
-			>
+				sizes="100vw"
+				format="webp"
+				preload
+				fetchpriority="high"
+			/>
 			<div class="hero-background-mask" />
 		</div>
 
@@ -824,11 +832,15 @@ onBeforeUnmount(() => {
 								class="sidebar-identity"
 							>
 								<div class="sidebar-profile">
-									<img
+									<NuxtImg
 										:src="sidebarProfileCard.avatar"
 										:alt="sidebarProfileCard.name"
 										class="site-avatar"
-									>
+										width="84"
+										height="84"
+										format="webp"
+										loading="lazy"
+									/>
 									<h2 class="site-name">
 										{{ sidebarProfileCard.name }}
 									</h2>
@@ -939,11 +951,15 @@ onBeforeUnmount(() => {
 								@pointercancel="clearAuthorPress"
 								@pointerleave="clearAuthorPress"
 							>
-								<img
+								<NuxtImg
 									:src="author.avatar"
 									:alt="author.name"
 									class="author-avatar"
-								>
+									width="30"
+									height="30"
+									format="webp"
+									loading="lazy"
+								/>
 							</button>
 						</div>
 					</div>
@@ -994,10 +1010,13 @@ onBeforeUnmount(() => {
 										v-if="item.featured_image"
 										class="post-image"
 									>
-										<img
+										<NuxtImg
 											:src="item.featured_image"
 											:alt="item.title"
-										>
+											sizes="sm:100vw md:400px lg:400px"
+											format="webp"
+											loading="lazy"
+										/>
 									</div>
 								</NuxtLink>
 								<div class="post-content">
@@ -1016,7 +1035,7 @@ onBeforeUnmount(() => {
 									<div class="post-meta-row">
 										<div class="post-meta-main">
 											<template v-if="item.author">
-												<img
+												<NuxtImg
 													:src="
 														item.authorAvatar ||
 														buildFallbackAvatar(
@@ -1029,7 +1048,11 @@ onBeforeUnmount(() => {
 														item.author
 													"
 													class="post-author-avatar"
-												>
+													width="32"
+													height="32"
+													format="webp"
+													loading="lazy"
+												/>
 											</template>
 											<div class="post-meta-text">
 												<button
