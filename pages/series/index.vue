@@ -5,23 +5,25 @@ import { getPostStem } from "~/utils/content-routing";
 import { buildFallbackAvatar } from "~/utils/avatar";
 
 const { data: posts } = useAsyncData<BlogCollectionItem[]>("series-posts", () =>
-	queryCollection("blog").order("date", "DESC").all()
+	queryCollection("blog").order("date", "DESC").all(),
 );
 
 const { data: seriesData } = useAsyncData("series-index-data", () =>
-	queryCollection("series").first()
+	queryCollection("series").first(),
 );
 
 // Fetch author directory for avatars
 const { data: authorsData } = useAsyncData("series-index-authors", () =>
-	queryCollection("authors").all()
+	queryCollection("authors").all(),
 );
 
 type AuthorProfile = { name?: string; avatar?: string; [key: string]: unknown };
 
 const authorDirectory = computed<Record<string, AuthorProfile>>(() => {
 	const dir: Record<string, AuthorProfile> = {};
-	const records = (authorsData.value ?? []) as unknown as (AuthorProfile & { path?: string })[];
+	const records = (authorsData.value ?? []) as unknown as (AuthorProfile & {
+		path?: string;
+	})[];
 	records.forEach((entry) => {
 		const id = getAuthorId(entry);
 		if (id) dir[id] = entry;
@@ -109,9 +111,7 @@ useHead({
 				<Icon name="heroicons:bookmark-square" size="36" />
 				系列
 			</h1>
-			<p class="page-description">
-				系列文章合集，按主題整理的深度內容
-			</p>
+			<p class="page-description">系列文章合集，按主題整理的深度內容</p>
 		</header>
 
 		<div v-if="seriesList.length > 0" class="series-grid">
@@ -123,11 +123,14 @@ useHead({
 			>
 				<!-- Big cover image -->
 				<div class="series-image">
-					<img
+					<NuxtImg
 						v-if="series.featuredImages.length"
 						:src="series.featuredImages[0]"
 						:alt="series.name"
-					>
+						sizes="sm:100vw md:400px lg:500px"
+						format="webp"
+						loading="lazy"
+					/>
 					<div v-else class="series-image-placeholder">
 						<Icon name="heroicons:book-open" size="56" />
 					</div>
@@ -146,25 +149,55 @@ useHead({
 						<div class="series-meta-main">
 							<!-- Author avatars stack -->
 							<div class="series-authors-stack">
-								<img
-									v-for="authorId in Array.from(series.authors).slice(0, 3)"
+								<NuxtImg
+									v-for="authorId in Array.from(
+										series.authors,
+									).slice(0, 3)"
 									:key="authorId"
-									:src="authorDirectory[authorId]?.avatar ?? buildFallbackAvatar(authorDirectory[authorId]?.name ?? authorId)"
-									:alt="authorDirectory[authorId]?.name ?? authorId"
+									:src="
+										authorDirectory[authorId]?.avatar ??
+										buildFallbackAvatar(
+											authorDirectory[authorId]?.name ??
+												authorId,
+										)
+									"
+									:alt="
+										authorDirectory[authorId]?.name ??
+										authorId
+									"
 									class="series-author-avatar"
-								>
+									width="30"
+									height="30"
+									format="webp"
+									loading="lazy"
+								/>
 							</div>
 							<div class="series-meta-text">
 								<span class="series-author-names">
-									{{ Array.from(series.authors).slice(0, 2).map((id) => authorDirectory[id]?.name ?? id).join("、") }}
+									{{
+										Array.from(series.authors)
+											.slice(0, 2)
+											.map(
+												(id) =>
+													authorDirectory[id]?.name ??
+													id,
+											)
+											.join("、")
+									}}
 									<template v-if="series.authors.size > 2">
 										等 {{ series.authors.size }} 位作者
 									</template>
 								</span>
 								<span class="series-date">
-									<Icon name="heroicons:calendar-days" size="15" class="meta-icon" />
+									<Icon
+										name="heroicons:calendar-days"
+										size="15"
+										class="meta-icon"
+									/>
 									最近更新：{{
-										new Date(series.latestDate).toLocaleDateString("zh-TW", {
+										new Date(
+											series.latestDate,
+										).toLocaleDateString("zh-TW", {
 											year: "numeric",
 											month: "2-digit",
 											day: "2-digit",
@@ -277,7 +310,11 @@ useHead({
 	justify-content: center;
 	background: linear-gradient(
 		135deg,
-		color-mix(in srgb, var(--color-primary-light) 25%, var(--color-bg-tertiary)),
+		color-mix(
+			in srgb,
+			var(--color-primary-light) 25%,
+			var(--color-bg-tertiary)
+		),
 		color-mix(in srgb, var(--color-accent) 12%, var(--color-bg-tertiary))
 	);
 }
@@ -298,7 +335,8 @@ useHead({
 	padding: 0.3rem 0.65rem;
 	background: color-mix(in srgb, var(--color-bg-primary) 80%, transparent);
 	backdrop-filter: blur(8px);
-	border: 1px solid color-mix(in srgb, var(--color-border-light) 60%, transparent);
+	border: 1px solid
+		color-mix(in srgb, var(--color-border-light) 60%, transparent);
 	border-radius: var(--radius-pill);
 	font-size: 0.78rem;
 	font-weight: 600;

@@ -45,11 +45,15 @@ useHead({
 				class="author-card"
 			>
 				<div class="author-avatar-large">
-					<img
+					<NuxtImg
 						v-if="author.avatar"
 						:src="author.avatar"
 						:alt="author.name"
-					>
+						width="120"
+						height="120"
+						format="webp"
+						loading="lazy"
+					/>
 					<div v-else class="avatar-placeholder">
 						{{ (author.name ?? getAuthorId(author))[0] }}
 					</div>

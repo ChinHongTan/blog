@@ -48,11 +48,14 @@ const isExpanded = ref(false);
 		<!-- Image area -->
 		<NuxtLink :to="seriesUrl" class="series-feed-image-link">
 			<div class="series-feed-image">
-				<img
+				<NuxtImg
 					v-if="item.latestPost.featured_image"
 					:src="item.latestPost.featured_image"
 					:alt="item.seriesName"
-				>
+					sizes="sm:100vw md:400px lg:400px"
+					format="webp"
+					loading="lazy"
+				/>
 				<div v-else class="series-feed-image-placeholder">
 					<Icon name="heroicons:book-open" size="40" />
 				</div>
@@ -85,11 +88,15 @@ const isExpanded = ref(false);
 							:title="author.name"
 							@click.stop="emit('filter:author', author.id)"
 						>
-							<img
+							<NuxtImg
 								:src="author.avatar"
 								:alt="author.name"
 								class="series-feed-author-avatar"
-							>
+								width="30"
+								height="30"
+								format="webp"
+								loading="lazy"
+							/>
 						</button>
 					</div>
 					<div class="series-feed-meta-text">

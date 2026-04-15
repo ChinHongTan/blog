@@ -39,7 +39,7 @@ watch(
 	() => {
 		isMobileMenuOpen.value = false;
 		isSearchOpen.value = false;
-	}
+	},
 );
 
 const mobileMenuRef = ref<HTMLElement | null>(null);
@@ -51,7 +51,7 @@ function trapFocus(e: KeyboardEvent) {
 	}
 	if (e.key !== "Tab" || !mobileMenuRef.value) return;
 	const focusable = mobileMenuRef.value.querySelectorAll<HTMLElement>(
-		'a[href], button, input, [tabindex]:not([tabindex="-1"])'
+		'a[href], button, input, [tabindex]:not([tabindex="-1"])',
 	);
 	if (focusable.length === 0) return;
 	const first = focusable[0];
@@ -68,7 +68,10 @@ function trapFocus(e: KeyboardEvent) {
 watch(isMobileMenuOpen, (open) => {
 	if (open) {
 		nextTick(() => {
-			const first = mobileMenuRef.value?.querySelector<HTMLElement>('a[href], button');
+			const first =
+				mobileMenuRef.value?.querySelector<HTMLElement>(
+					"a[href], button",
+				);
 			first?.focus();
 		});
 	}
@@ -79,11 +82,15 @@ watch(isMobileMenuOpen, (open) => {
 	<header class="main-header" :class="{ 'header-hidden': isHeaderHidden }">
 		<div class="header-content">
 			<NuxtLink to="/" class="logo">
-				<img
+				<NuxtImg
 					src="/images/uploads/103467998_p0 copy.png"
 					alt="Logo"
 					class="logo-image"
-				>
+					width="40"
+					height="40"
+					format="webp"
+					fetchpriority="high"
+				/>
 				<span>星谷雜貨店</span>
 			</NuxtLink>
 			<div class="header-actions">
@@ -109,7 +116,10 @@ watch(isMobileMenuOpen, (open) => {
 						<span>作者</span>
 					</NuxtLink>
 					<NuxtLink to="/guestbook">
-						<Icon name="heroicons:chat-bubble-left-ellipsis" size="20" />
+						<Icon
+							name="heroicons:chat-bubble-left-ellipsis"
+							size="20"
+						/>
 						<span>留言板</span>
 					</NuxtLink>
 				</nav>
@@ -140,7 +150,11 @@ watch(isMobileMenuOpen, (open) => {
 					class="mobile-menu-button"
 					@click="isMobileMenuOpen = !isMobileMenuOpen"
 				>
-					<Icon v-if="!isMobileMenuOpen" name="heroicons:bars-3" size="24" />
+					<Icon
+						v-if="!isMobileMenuOpen"
+						name="heroicons:bars-3"
+						size="24"
+					/>
 					<Icon v-else name="heroicons:x-mark" size="24" />
 				</button>
 			</div>
@@ -149,7 +163,14 @@ watch(isMobileMenuOpen, (open) => {
 
 	<!-- Mobile Menu Overlay -->
 	<Transition name="mobile-menu">
-		<div v-if="isMobileMenuOpen" class="mobile-menu-overlay" role="dialog" aria-modal="true" @click="isMobileMenuOpen = false" @keydown="trapFocus">
+		<div
+			v-if="isMobileMenuOpen"
+			class="mobile-menu-overlay"
+			role="dialog"
+			aria-modal="true"
+			@click="isMobileMenuOpen = false"
+			@keydown="trapFocus"
+		>
 			<div ref="mobileMenuRef" class="mobile-menu" @click.stop>
 				<nav class="mobile-nav">
 					<NuxtLink to="/" class="mobile-nav-link">
@@ -173,14 +194,22 @@ watch(isMobileMenuOpen, (open) => {
 						作者
 					</NuxtLink>
 					<NuxtLink to="/guestbook" class="mobile-nav-link">
-						<Icon name="heroicons:chat-bubble-left-ellipsis" size="20" />
+						<Icon
+							name="heroicons:chat-bubble-left-ellipsis"
+							size="20"
+						/>
 						留言板
 					</NuxtLink>
 					<NuxtLink to="/code-of-conduct" class="mobile-nav-link">
 						<Icon name="heroicons:document-text" size="20" />
 						行為準則
 					</NuxtLink>
-					<a href="https://github.com/ChinHongTan/blog" target="_blank" rel="noopener" class="mobile-nav-link">
+					<a
+						href="https://github.com/ChinHongTan/blog"
+						target="_blank"
+						rel="noopener"
+						class="mobile-nav-link"
+					>
 						<Icon name="simple-icons:github" size="20" />
 						網站原始碼
 					</a>

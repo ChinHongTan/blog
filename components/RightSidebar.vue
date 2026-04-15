@@ -311,7 +311,7 @@ const authors = computed(() => {
           :to="`/?author=${encodeURIComponent(id)}`"
           class="author-item"
         >
-          <img :src="avatar" :alt="`${name} Avatar`" class="author-avatar">
+          <NuxtImg :src="avatar" :alt="`${name} Avatar`" class="author-avatar" width="30" height="30" format="webp" loading="lazy" />
           <div class="author-meta">
             <span class="author-name">{{ name }}</span>
             <span class="author-count">({{ count }})</span>

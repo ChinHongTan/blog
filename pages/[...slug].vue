@@ -435,7 +435,14 @@ const {
 							v-if="isBlogPost && page.featured_image"
 							class="featured-hero"
 						>
-							<img :src="page.featured_image" :alt="page.title" >
+							<NuxtImg
+								:src="page.featured_image"
+								:alt="page.title"
+								sizes="sm:100vw md:900px lg:1000px"
+								format="webp"
+								preload
+								fetchpriority="high"
+							/>
 							<div class="hero-title-wrap">
 								<h1 class="post-title hero-title">
 									{{ page.title }}
@@ -466,11 +473,15 @@ const {
 						<!-- Post Meta Information (only for blog posts) -->
 						<div v-if="isBlogPost" class="post-meta-bar">
 							<div class="author-info">
-								<img
+								<NuxtImg
 									:src="authorAvatar"
 									:alt="authorDisplayName"
 									class="author-avatar"
-								>
+									width="40"
+									height="40"
+									format="webp"
+									loading="lazy"
+								/>
 								<span class="author-name">{{
 									authorDisplayName
 								}}</span>

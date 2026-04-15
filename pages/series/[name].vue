@@ -111,7 +111,13 @@ useHead({
 			>
 				<!-- Side thumbnail image -->
 				<div v-if="post.featured_image" class="article-image">
-					<img :src="post.featured_image" :alt="post.title" >
+					<NuxtImg
+						:src="post.featured_image"
+						:alt="post.title"
+						sizes="sm:100vw md:300px lg:300px"
+						format="webp"
+						loading="lazy"
+					/>
 				</div>
 				<div v-else class="article-image article-image-placeholder">
 					<Icon name="heroicons:document-text" size="32" />
@@ -128,11 +134,15 @@ useHead({
 							>#{{ index + 1 }}</span
 						>
 						<div v-if="post.author" class="article-author">
-							<img
+							<NuxtImg
 								:src="getAuthorAvatar(post.author)"
 								:alt="post.author"
 								class="author-tiny-avatar"
-							>
+								width="24"
+								height="24"
+								format="webp"
+								loading="lazy"
+							/>
 							<span class="article-author-name">{{ post.author }}</span>
 						</div>
 						<span class="article-date">
