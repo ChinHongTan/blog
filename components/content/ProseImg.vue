@@ -18,13 +18,15 @@ const props = withDefaults(
 </script>
 
 <template>
-	<img
+	<NuxtImg
 		:src="props.src"
 		:alt="props.alt"
 		:title="props.title"
 		:width="props.width"
 		:height="props.height"
+		sizes="sm:100vw md:720px lg:800px"
+		format="webp"
 		loading="lazy"
 		decoding="async"
-	>
+	/>
 </template>

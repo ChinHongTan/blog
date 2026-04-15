@@ -55,6 +55,12 @@ export default defineNuxtConfig({
 		"@nuxt/image",
 	],
 
+	image: {
+		provider: process.env.VERCEL ? "vercel" : "ipx",
+		domains: ["raw.githubusercontent.com"],
+		format: ["webp"],
+	},
+
 	hooks: {
 		// Filename is the URL. Avoids @nuxt/content's default slugifier,
 		// which strips CJK characters and collides paths like
