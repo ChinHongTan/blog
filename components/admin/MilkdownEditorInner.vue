@@ -35,11 +35,13 @@ import {
 } from "@milkdown/kit/preset/commonmark";
 import { createTable, strikethroughSchema, toggleStrikethroughCommand } from "@milkdown/kit/preset/gfm";
 import { replaceAll } from "@milkdown/kit/utils";
+import type { NodeType, Attrs } from "@milkdown/prose/model";
+import { liftTarget } from "@milkdown/prose/transform";
 import { watch, onBeforeUnmount } from "vue";
 import {
   infoBoxFeature,
+  infoBoxSchema,
   infoBoxSlashItems,
-  runInsertInfoBox,
   type InfoBoxKind,
 } from "~/lib/editor/milkdown-info-box";
 import {
@@ -168,6 +170,26 @@ const zhTWConfig = {
   },
 } as const;
 
+/** Toggle a wrapping block node: if cursor is inside it, lift out; otherwise wrap. */
+function toggleWrapBlock(ctx: Ctx, nodeType: NodeType, attrs?: Attrs | null) {
+  const view = ctx.get(editorViewCtx);
+  const { state } = view;
+  const { $from, $to } = state.selection;
+
+  // Check if already inside this node type
+  const range = $from.blockRange($to, (node) => node.type === nodeType);
+  if (range) {
+    const target = liftTarget(range);
+    if (target != null) {
+      view.dispatch(state.tr.lift(range, target).scrollIntoView());
+      return;
+    }
+  }
+
+  // Not inside — wrap
+  ctx.get(commandsCtx).call(wrapInBlockTypeCommand.key, { nodeType, attrs: attrs ?? null });
+}
+
 let builderInstance: InstanceType<typeof Crepe> | null = null;
 
 const { loading } = useEditor((root: HTMLElement) => {
@@ -273,15 +295,9 @@ watch(
           return state;
         },
         wrapInBlockquote: () =>
-          runCommand((ctx) => {
-            const commands = ctx.get(commandsCtx);
-            commands.call(clearTextInCurrentBlockCommand.key);
-            commands.call(wrapInBlockTypeCommand.key, {
-              nodeType: blockquoteSchema.type(ctx),
-            });
-          }),
+          runCommand((ctx) => toggleWrapBlock(ctx, blockquoteSchema.type(ctx))),
         insertInfoBox: (kind: InfoBoxKind) =>
-          runCommand((ctx) => runInsertInfoBox(ctx, kind)),
+          runCommand((ctx) => toggleWrapBlock(ctx, infoBoxSchema.type(ctx), { kind })),
         insertTable: () =>
           runCommand((ctx) => {
             const commands = ctx.get(commandsCtx);
@@ -294,30 +310,11 @@ watch(
             commands.call(selectTextNearPosCommand.key, { pos: from });
           }),
         wrapInBulletList: () =>
-          runCommand((ctx) => {
-            const commands = ctx.get(commandsCtx);
-            commands.call(clearTextInCurrentBlockCommand.key);
-            commands.call(wrapInBlockTypeCommand.key, {
-              nodeType: bulletListSchema.type(ctx),
-            });
-          }),
+          runCommand((ctx) => toggleWrapBlock(ctx, bulletListSchema.type(ctx))),
         wrapInOrderedList: () =>
-          runCommand((ctx) => {
-            const commands = ctx.get(commandsCtx);
-            commands.call(clearTextInCurrentBlockCommand.key);
-            commands.call(wrapInBlockTypeCommand.key, {
-              nodeType: orderedListSchema.type(ctx),
-            });
-          }),
+          runCommand((ctx) => toggleWrapBlock(ctx, orderedListSchema.type(ctx))),
         wrapInTaskList: () =>
-          runCommand((ctx) => {
-            const commands = ctx.get(commandsCtx);
-            commands.call(clearTextInCurrentBlockCommand.key);
-            commands.call(wrapInBlockTypeCommand.key, {
-              nodeType: listItemSchema.type(ctx),
-              attrs: { checked: false },
-            });
-          }),
+          runCommand((ctx) => toggleWrapBlock(ctx, listItemSchema.type(ctx), { checked: false })),
         insertHr: () =>
           runCommand((ctx) => {
             const commands = ctx.get(commandsCtx);
@@ -328,10 +325,20 @@ watch(
           }),
         insertCodeBlock: (language) =>
           runCommand((ctx) => {
-            const commands = ctx.get(commandsCtx);
-            commands.call(clearTextInCurrentBlockCommand.key);
-            commands.call(setBlockTypeCommand.key, {
-              nodeType: codeBlockSchema.type(ctx),
+            const view = ctx.get(editorViewCtx);
+            const { $from } = view.state.selection;
+            const codeBlockType = codeBlockSchema.type(ctx);
+            // Toggle: if already in code block, convert to paragraph
+            for (let d = $from.depth; d > 0; d--) {
+              if ($from.node(d).type === codeBlockType) {
+                ctx.get(commandsCtx).call(setBlockTypeCommand.key, {
+                  nodeType: paragraphSchema.type(ctx),
+                });
+                return;
+              }
+            }
+            ctx.get(commandsCtx).call(setBlockTypeCommand.key, {
+              nodeType: codeBlockType,
               ...(language ? { attrs: { language } } : {}),
             });
           }),
@@ -472,15 +479,9 @@ defineExpose({
     return state;
   },
   wrapInBlockquote: () =>
-    runCommand((ctx) => {
-      const commands = ctx.get(commandsCtx);
-      commands.call(clearTextInCurrentBlockCommand.key);
-      commands.call(wrapInBlockTypeCommand.key, {
-        nodeType: blockquoteSchema.type(ctx),
-      });
-    }),
+    runCommand((ctx) => toggleWrapBlock(ctx, blockquoteSchema.type(ctx))),
   insertInfoBox: (kind: InfoBoxKind) =>
-    runCommand((ctx) => runInsertInfoBox(ctx, kind)),
+    runCommand((ctx) => toggleWrapBlock(ctx, infoBoxSchema.type(ctx), { kind })),
   insertTable: () =>
     runCommand((ctx) => {
       const commands = ctx.get(commandsCtx);
@@ -493,30 +494,11 @@ defineExpose({
       commands.call(selectTextNearPosCommand.key, { pos: from });
     }),
   wrapInBulletList: () =>
-    runCommand((ctx) => {
-      const commands = ctx.get(commandsCtx);
-      commands.call(clearTextInCurrentBlockCommand.key);
-      commands.call(wrapInBlockTypeCommand.key, {
-        nodeType: bulletListSchema.type(ctx),
-      });
-    }),
+    runCommand((ctx) => toggleWrapBlock(ctx, bulletListSchema.type(ctx))),
   wrapInOrderedList: () =>
-    runCommand((ctx) => {
-      const commands = ctx.get(commandsCtx);
-      commands.call(clearTextInCurrentBlockCommand.key);
-      commands.call(wrapInBlockTypeCommand.key, {
-        nodeType: orderedListSchema.type(ctx),
-      });
-    }),
+    runCommand((ctx) => toggleWrapBlock(ctx, orderedListSchema.type(ctx))),
   wrapInTaskList: () =>
-    runCommand((ctx) => {
-      const commands = ctx.get(commandsCtx);
-      commands.call(clearTextInCurrentBlockCommand.key);
-      commands.call(wrapInBlockTypeCommand.key, {
-        nodeType: listItemSchema.type(ctx),
-        attrs: { checked: false },
-      });
-    }),
+    runCommand((ctx) => toggleWrapBlock(ctx, listItemSchema.type(ctx), { checked: false })),
   insertHr: () =>
     runCommand((ctx) => {
       const commands = ctx.get(commandsCtx);
@@ -527,10 +509,19 @@ defineExpose({
     }),
   insertCodeBlock: (language?: string) =>
     runCommand((ctx) => {
-      const commands = ctx.get(commandsCtx);
-      commands.call(clearTextInCurrentBlockCommand.key);
-      commands.call(setBlockTypeCommand.key, {
-        nodeType: codeBlockSchema.type(ctx),
+      const view = ctx.get(editorViewCtx);
+      const { $from } = view.state.selection;
+      const codeBlockType = codeBlockSchema.type(ctx);
+      for (let d = $from.depth; d > 0; d--) {
+        if ($from.node(d).type === codeBlockType) {
+          ctx.get(commandsCtx).call(setBlockTypeCommand.key, {
+            nodeType: paragraphSchema.type(ctx),
+          });
+          return;
+        }
+      }
+      ctx.get(commandsCtx).call(setBlockTypeCommand.key, {
+        nodeType: codeBlockType,
         ...(language ? { attrs: { language } } : {}),
       });
     }),

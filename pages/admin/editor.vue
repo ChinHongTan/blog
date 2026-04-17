@@ -118,95 +118,87 @@
 			GitHub。
 		</div>
 		<div class="admin-editor-body">
-			<!-- Post: toolbar, then metadata (same width as editor), then editor -->
+			<!-- Post: inline title, Obsidian-style properties, featured image, then editor -->
 			<template v-if="docType === 'post'">
-				<!-- 編輯/原始碼 toolbar -->
-				<div class="admin-editor-toolbar">
-					<div class="admin-editor-tabs">
-						<button
-							type="button"
-							class="admin-tab"
-							:class="{ active: viewMode === 'wysiwyg' }"
-							@click="viewMode = 'wysiwyg'"
-						>
-							編輯
-						</button>
-						<button
-							type="button"
-							class="admin-tab"
-							:class="{ active: viewMode === 'raw' }"
-							@click="viewMode = 'raw'"
-						>
-							原始碼
-						</button>
-					</div>
+				<!-- Inline title -->
+				<div class="admin-inline-title-wrap">
+					<input
+						v-model="meta.title"
+						type="text"
+						class="admin-inline-title"
+						placeholder="文章標題…"
+					>
+					<small
+						v-if="!isPostTitleValidForSave"
+						class="admin-inline-title-warning"
+					>
+						請填寫標題（不可為空或 untitled）
+					</small>
 				</div>
 
-				<!-- Metadata: below toolbar, same width as editor -->
+				<!-- Properties: Obsidian-style with icons -->
 				<div class="admin-properties-top">
-					<button
-						type="button"
-						class="admin-properties-toggle"
-						:aria-expanded="propertiesOpen"
-						@click="propertiesOpen = !propertiesOpen"
-					>
-						<Icon
-							:name="
-								propertiesOpen
-									? 'heroicons:chevron-down'
-									: 'heroicons:chevron-right'
-							"
-							size="18"
-						/>
-						<span>屬性</span>
-					</button>
+					<div class="admin-properties-header">
+						<button
+							type="button"
+							class="admin-properties-toggle"
+							:aria-expanded="propertiesOpen"
+							@click="propertiesOpen = !propertiesOpen"
+						>
+							<Icon
+								:name="
+									propertiesOpen
+										? 'heroicons:chevron-down'
+										: 'heroicons:chevron-right'
+								"
+								size="18"
+							/>
+							<span>屬性</span>
+						</button>
+						<div class="admin-header-mode-toggle">
+							<button
+								type="button"
+								class="admin-mode-btn"
+								:class="{ active: viewMode === 'wysiwyg' }"
+								@click="viewMode = 'wysiwyg'"
+							>
+								編輯
+							</button>
+							<button
+								type="button"
+								class="admin-mode-btn"
+								:class="{ active: viewMode === 'raw' }"
+								@click="viewMode = 'raw'"
+							>
+								Markdown
+							</button>
+						</div>
+					</div>
 					<Transition name="properties-panel">
 						<div
 							v-show="propertiesOpen"
 							class="admin-properties-table-wrap"
 						>
 							<div class="admin-properties-table">
-								<div
-									class="admin-property-tr admin-property-tr-title"
-								>
-									<span class="admin-property-name"
-										>標題</span
-									>
-									<div class="admin-property-field">
-										<input
-											v-model="meta.title"
-											type="text"
-											class="admin-property-cell"
-											placeholder="未命名"
-										>
-										<small class="admin-property-hint"
-											>必填。標題會用來產生文章網址。</small
-										>
-										<small
-											v-if="!isPostTitleValidForSave"
-											class="admin-property-hint admin-property-hint-warning"
-										>
-											請填寫標題（不可為空或 untitled）
-										</small>
-									</div>
-								</div>
 								<div class="admin-property-tr">
-									<span class="admin-property-name"
-										>簡述</span
-									>
+									<span class="admin-property-name">
+										<Icon name="heroicons:document-text" size="14" class="admin-property-icon" />
+										簡述
+									</span>
 									<input
 										v-model="meta.description"
 										type="text"
 										class="admin-property-cell"
-										placeholder="空"
+										placeholder="輸入簡述…"
 									>
 								</div>
 								<div
 									class="admin-property-tr admin-property-tr-tags"
 								>
-									<span class="admin-property-name"
-										>標籤</span
-									>
+									<span class="admin-property-name">
+										<Icon name="heroicons:tag" size="14" class="admin-property-icon" />
+										標籤
+									</span>
 									<div
 										class="admin-property-cell admin-property-tags-wrap"
 										@click="focusTagInput"
@@ -232,7 +224,7 @@
 											v-model="tagInputValue"
 											type="text"
 											class="admin-property-tag-input"
-											placeholder="空"
+											placeholder="新增標籤…"
 											@keydown.enter.prevent="addTag"
 											@focus="onTagInputFocus"
 											@blur="onTagInputBlur"
@@ -274,53 +266,113 @@
 								<div
 									class="admin-property-tr admin-property-tr-tags admin-property-tr-series"
 								>
-									<span class="admin-property-name"
-										>系列</span
-									>
+									<span class="admin-property-name">
+										<Icon name="heroicons:rectangle-group" size="14" class="admin-property-icon" />
+										系列
+									</span>
 									<div
-										class="admin-property-cell"
-										style="
-											display: flex;
-											align-items: center;
-											color: #52525b;
-											font-size: 0.9em;
-											padding-left: 0.5rem;
-										"
+										class="admin-property-cell admin-property-tags-wrap"
+										@click="focusSeriesInput"
 									>
-										管理系列請至左側導航欄「序列」
-									</div>
-								</div>
-								<div
-									class="admin-property-tr admin-property-tr-pinned"
-								>
-									<span class="admin-property-name"
-										>置頂</span
-									>
-									<div class="admin-property-field">
-										<label class="admin-pinned-toggle">
-											<input
-												v-model="meta.pinned"
-												type="checkbox"
-												:disabled="!canEditPost"
-												aria-label="置頂"
+										<template v-if="currentSeries">
+											<span
+												class="admin-meta-chip admin-meta-chip-series"
 											>
-										</label>
+												{{ currentSeries }}
+												<button
+													type="button"
+													class="admin-meta-chip-remove"
+													aria-label="移除"
+													@click.stop="clearSeries"
+												>
+													×
+												</button>
+											</span>
+										</template>
+										<input
+											v-if="!currentSeries"
+											ref="seriesInputRef"
+											v-model="seriesInputValue"
+											type="text"
+											class="admin-property-tag-input"
+											placeholder="選擇系列…"
+											@focus="onSeriesInputFocus"
+											@blur="onSeriesInputBlur"
+										>
+										<div
+											v-if="
+												showSeriesSuggestions &&
+												seriesSuggestions.length > 0
+											"
+											class="admin-series-suggestions"
+										>
+											<button
+												v-for="s in seriesSuggestions"
+												:key="s"
+												type="button"
+												class="admin-series-suggestion"
+												@mousedown.prevent="
+													selectSeries(s)
+												"
+											>
+												{{ s }}
+											</button>
+										</div>
 									</div>
 								</div>
-								<div
-									v-if="meta.edited_at"
-									class="admin-property-tr"
-								>
-									<span class="admin-property-name"
-										>最後編輯</span
+								<!-- 更多選項 -->
+								<div class="admin-property-tr admin-property-tr-more">
+									<button
+										type="button"
+										class="admin-more-toggle"
+										@click="moreOptionsOpen = !moreOptionsOpen"
 									>
-									<span
-										class="admin-property-cell admin-property-readonly"
-										>{{
-											formatEditedAt(meta.edited_at)
-										}}</span
-									>
+										<Icon
+											:name="moreOptionsOpen ? 'heroicons:chevron-down' : 'heroicons:chevron-right'"
+											size="14"
+											class="admin-property-icon"
+										/>
+										更多選項
+									</button>
 								</div>
+								<template v-if="moreOptionsOpen">
+									<div
+										class="admin-property-tr admin-property-tr-pinned"
+									>
+										<span class="admin-property-name">
+											<Icon name="heroicons:bookmark" size="14" class="admin-property-icon" />
+											置頂
+										</span>
+										<div class="admin-property-field">
+											<label class="admin-toggle-switch">
+												<input
+													v-model="meta.pinned"
+													type="checkbox"
+													:disabled="!canEditPost"
+													aria-label="置頂"
+												>
+												<span class="admin-toggle-track">
+													<span class="admin-toggle-thumb" />
+												</span>
+											</label>
+										</div>
+									</div>
+									<div
+										v-if="meta.edited_at"
+										class="admin-property-tr"
+									>
+										<span class="admin-property-name">
+											<Icon name="heroicons:clock" size="14" class="admin-property-icon" />
+											最後編輯
+										</span>
+										<span
+											class="admin-property-cell admin-property-readonly"
+											>{{
+												formatEditedAt(meta.edited_at)
+											}}</span
+										>
+									</div>
+								</template>
 							</div>
 						</div>
 					</Transition>
@@ -409,13 +461,13 @@
 				</div>
 			</template>
 
-			<!-- Author: toolbar + meta + editor -->
+			<!-- Author: mode toggle + meta + editor -->
 			<template v-else-if="docType === 'author'">
-				<div class="admin-editor-toolbar">
-					<div class="admin-editor-tabs">
+				<div class="admin-properties-header" style="padding-left: 120px; margin-bottom: 0.5rem;">
+					<div class="admin-header-mode-toggle">
 						<button
 							type="button"
-							class="admin-tab"
+							class="admin-mode-btn"
 							:class="{ active: viewMode === 'wysiwyg' }"
 							@click="viewMode = 'wysiwyg'"
 						>
@@ -423,11 +475,11 @@
 						</button>
 						<button
 							type="button"
-							class="admin-tab"
+							class="admin-mode-btn"
 							:class="{ active: viewMode === 'raw' }"
 							@click="viewMode = 'raw'"
 						>
-							原始碼
+							Markdown
 						</button>
 					</div>
 				</div>
@@ -785,6 +837,7 @@ const showFixedToolbar = computed(
 const rawBodyUpdateFromMilkdown = ref(false);
 const saving = ref(false);
 const propertiesOpen = ref(true);
+const moreOptionsOpen = ref(false);
 const { uploadImage, uploading: featuredUploading } = useUploadImage();
 const { uploadImage: uploadImageAvatar, uploading: avatarUploading } =
 	useUploadImage();
@@ -841,6 +894,35 @@ const canCreateNewTag = computed(() => {
 
 // Series autocomplete state
 const availableSeries = ref<string[]>([]);
+const seriesInputRef = ref<HTMLInputElement | null>(null);
+const seriesInputValue = ref("");
+const showSeriesSuggestions = ref(false);
+const seriesSuggestions = computed(() => {
+	const query = seriesInputValue.value.toLowerCase().trim();
+	if (!query) return availableSeries.value;
+	return availableSeries.value.filter((s) => s.toLowerCase().includes(query));
+});
+const currentSeries = computed(() => meta.series[0] ?? "");
+
+function selectSeries(s: string) {
+	meta.series = [s];
+	seriesInputValue.value = "";
+	showSeriesSuggestions.value = false;
+}
+function clearSeries() {
+	meta.series = [];
+}
+function focusSeriesInput() {
+	seriesInputRef.value?.focus();
+}
+function onSeriesInputFocus() {
+	showSeriesSuggestions.value = true;
+}
+function onSeriesInputBlur() {
+	setTimeout(() => {
+		showSeriesSuggestions.value = false;
+	}, 150);
+}
 
 async function fetchAvailableSeries() {
 	try {
@@ -2105,10 +2187,76 @@ onUnmounted(() => {
 	}
 }
 
-/* Obsidian-style borderless properties table at top */
+/* Inline title */
+.admin-inline-title-wrap {
+	margin-bottom: 0.75rem;
+	padding-left: 120px;
+}
+.admin-inline-title {
+	width: 100%;
+	padding: 0.25rem 0;
+	font-size: 2rem;
+	font-weight: 700;
+	font-family: var(--font-heading);
+	line-height: 1.3;
+	border: none;
+	background: transparent;
+	color: var(--color-text-primary);
+	outline: none;
+}
+.admin-inline-title::placeholder {
+	color: var(--color-text-tertiary);
+	font-weight: 400;
+}
+.admin-inline-title:focus {
+	outline: none;
+}
+.admin-inline-title-warning {
+	display: block;
+	margin-top: 0.25rem;
+	font-size: 0.75rem;
+	color: var(--color-warning-text);
+}
+
+/* Obsidian-style properties panel with icons */
 .admin-properties-top {
 	margin-bottom: 0.5rem;
 	padding-left: 120px;
+}
+.admin-properties-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+/* Mode toggle (編輯/Markdown) — inline with properties header */
+.admin-header-mode-toggle {
+	display: flex;
+	gap: 0;
+	border: 1px solid var(--color-border-light);
+	border-radius: var(--radius-sm);
+	overflow: hidden;
+}
+.admin-mode-btn {
+	padding: 0.25rem 0.75rem;
+	font-size: 0.8125rem;
+	font-weight: 500;
+	border: none;
+	background: transparent;
+	color: var(--color-text-secondary);
+	cursor: pointer;
+	transition: background 0.15s, color 0.15s;
+	line-height: 1.5;
+}
+.admin-mode-btn:hover {
+	background: var(--color-bg-tertiary);
+	color: var(--color-text-primary);
+}
+.admin-mode-btn.active {
+	background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+	color: var(--color-primary);
+}
+.admin-mode-btn + .admin-mode-btn {
+	border-left: 1px solid var(--color-border-light);
 }
 .admin-properties-toggle {
 	display: flex;
@@ -2167,7 +2315,14 @@ onUnmounted(() => {
 	align-items: start;
 }
 .admin-property-name {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
 	color: var(--color-text-secondary);
+	flex-shrink: 0;
+}
+.admin-property-icon {
+	opacity: 0.6;
 	flex-shrink: 0;
 }
 .admin-property-field {
@@ -2208,18 +2363,71 @@ onUnmounted(() => {
 	gap: 0.35rem;
 }
 
-.admin-pinned-toggle {
-	display: flex;
+/* Toggle switch */
+.admin-toggle-switch {
+	position: relative;
+	display: inline-flex;
 	align-items: center;
-	gap: 0.6rem;
 	cursor: pointer;
 	user-select: none;
 }
+.admin-toggle-switch input {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+.admin-toggle-track {
+	position: relative;
+	width: 2rem;
+	height: 1.125rem;
+	background: var(--color-bg-tertiary);
+	border: 1px solid var(--color-border-light);
+	border-radius: var(--radius-pill);
+	transition: background 0.2s, border-color 0.2s;
+}
+.admin-toggle-thumb {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 0.75rem;
+	height: 0.75rem;
+	background: var(--color-text-tertiary);
+	border-radius: 50%;
+	transition: transform 0.2s, background 0.2s;
+}
+.admin-toggle-switch input:checked + .admin-toggle-track {
+	background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+	border-color: var(--color-primary);
+}
+.admin-toggle-switch input:checked + .admin-toggle-track .admin-toggle-thumb {
+	transform: translateX(0.875rem);
+	background: var(--color-primary);
+}
+.admin-toggle-switch input:disabled + .admin-toggle-track {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
 
-.admin-pinned-toggle input[type="checkbox"] {
-	width: 1rem;
-	height: 1rem;
-	accent-color: var(--color-primary);
+/* More options toggle */
+.admin-property-tr-more {
+	grid-template-columns: 1fr;
+}
+.admin-more-toggle {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	padding: 0.2rem 0;
+	font-size: 0.75rem;
+	font-weight: 500;
+	color: var(--color-text-tertiary);
+	background: none;
+	border: none;
+	cursor: pointer;
+	user-select: none;
+}
+.admin-more-toggle:hover {
+	color: var(--color-text-secondary);
 }
 
 .admin-property-empty {
