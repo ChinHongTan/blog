@@ -786,7 +786,7 @@ onBeforeUnmount(() => {
 				alt=""
 				class="hero-image light-mode"
 				:class="{ active: theme === 'light' }"
-				sizes="100vw"
+				sizes="sm:100vw md:100vw lg:100vw xl:100vw xxl:100vw"
 				format="webp"
 				preload
 				fetchpriority="high"
@@ -796,7 +796,7 @@ onBeforeUnmount(() => {
 				alt=""
 				class="hero-image dark-mode"
 				:class="{ active: theme === 'dark' }"
-				sizes="100vw"
+				sizes="sm:100vw md:100vw lg:100vw xl:100vw xxl:100vw"
 				format="webp"
 				preload
 				fetchpriority="high"
@@ -1265,6 +1265,9 @@ onBeforeUnmount(() => {
 	inset: 0;
 	width: 100%;
 	height: 100%;
+	/* Safari doesn't resolve height:100% on <img> inside fixed+vh parents —
+	   fall back to an explicit viewport height so it never collapses. */
+	min-height: 100vh;
 	object-fit: cover;
 	filter: blur(var(--hero-blur));
 	transform: scale(calc(1 + (var(--hero-blur) / 130)));
@@ -2081,6 +2084,10 @@ onBeforeUnmount(() => {
 	.hero-background {
 		inset: var(--header-height) 0 auto 0;
 		height: calc(100vh - var(--header-height));
+	}
+
+	.hero-image {
+		min-height: calc(100vh - var(--header-height));
 	}
 
 	.welcome-screen {
