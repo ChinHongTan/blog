@@ -593,6 +593,48 @@
 			role="alertdialog"
 			@update:model-value="onVersionChoiceModalVisibilityChange"
 		>
+			<div
+				v-if="versionChoiceDiffSummary"
+				class="version-choice-details"
+			>
+				<div class="version-choice-timestamps">
+					<div class="version-choice-row">
+						<span class="version-choice-label">GitHub 版本</span>
+						<span class="version-choice-time">{{
+							versionChoiceServerModified
+								? new Date(versionChoiceServerModified).toLocaleString()
+								: '未知'
+						}}</span>
+					</div>
+					<div class="version-choice-row">
+						<span class="version-choice-label">本機版本</span>
+						<span class="version-choice-time">{{
+							versionChoiceLocalSavedAt
+								? new Date(versionChoiceLocalSavedAt).toLocaleString()
+								: '未知'
+						}}</span>
+					</div>
+				</div>
+				<ul class="version-choice-diff-list">
+					<li v-if="versionChoiceDiffSummary.titleChanged">
+						標題不同：「{{ versionChoiceDiffSummary.serverTitle || '(無)' }}」→「{{ versionChoiceDiffSummary.localTitle || '(無)' }}」
+					</li>
+					<li v-if="!versionChoiceDiffSummary.bodyIdentical">
+						內文不同（GitHub {{ versionChoiceDiffSummary.serverWordCount }} 字 / 本機 {{ versionChoiceDiffSummary.localWordCount }} 字）
+					</li>
+					<li v-if="!versionChoiceDiffSummary.metaIdentical && !versionChoiceDiffSummary.titleChanged">
+						標籤或分類等設定不同
+					</li>
+					<li
+						v-if="
+							versionChoiceDiffSummary.bodyIdentical &&
+							versionChoiceDiffSummary.metaIdentical
+						"
+					>
+						內容相同（僅格式差異）
+					</li>
+				</ul>
+			</div>
 			<template #actions>
 				<button
 					type="button"
@@ -997,6 +1039,19 @@ let beforeUnloadHandler: ((e: BeforeUnloadEvent) => void) | null = null;
 const isHydratingFromRemote = ref(false);
 /** 用於比較「目前編輯器內容是否等於 GitHub 版本」。等於時可清除本機草稿。 */
 const serverBaselineSnapshot = ref<string | null>(null);
+/** 版本選擇 modal 用：本機草稿的儲存時間 & GitHub 版本的最後修改時間。 */
+const versionChoiceLocalSavedAt = ref<number | null>(null);
+const versionChoiceServerModified = ref<string | null>(null);
+/** 版本選擇 modal 用：兩個版本的摘要差異資訊。 */
+const versionChoiceDiffSummary = ref<{
+	titleChanged: boolean;
+	localTitle: string;
+	serverTitle: string;
+	localWordCount: number;
+	serverWordCount: number;
+	bodyIdentical: boolean;
+	metaIdentical: boolean;
+} | null>(null);
 
 function currentSnapshot(): string {
 	return serializeMeta() + "\n" + normalizeBodyForCompare(getBodyContent());
@@ -1021,6 +1076,61 @@ function serializeMeta(): string {
 
 function normalizeBodyForCompare(s: string): string {
 	return (s || "").replace(/\r\n/g, "\n").trim();
+}
+
+function countWords(s: string): number {
+	const text = (s || "").trim();
+	if (!text) return 0;
+	// Count CJK characters individually + whitespace-separated tokens for Latin
+	const cjk = text.match(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g);
+	const latin = text
+		.replace(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g, " ")
+		.split(/\s+/)
+		.filter((w) => w.length > 0);
+	return (cjk?.length ?? 0) + latin.length;
+}
+
+/** 比較 localStorage 草稿與已載入的 server 版本，產生差異摘要。若完全相同則自動關閉 modal。 */
+function computeVersionChoiceDiff(rawDraft: string): boolean {
+	try {
+		const draft = JSON.parse(rawDraft);
+		const localMeta = draft.meta || {};
+		const localBody = normalizeBodyForCompare(draft.body ?? "");
+		const serverBody = normalizeBodyForCompare(rawBody.value);
+		const localTitle = (localMeta.title ?? "").trim();
+		const serverTitle = (meta.title ?? "").trim();
+
+		const bodyIdentical = localBody === serverBody;
+		const metaIdentical =
+			localTitle === serverTitle &&
+			JSON.stringify(localMeta.tags ?? []) ===
+				JSON.stringify(meta.tags ?? []) &&
+			JSON.stringify(localMeta.series ?? []) ===
+				JSON.stringify(meta.series ?? []) &&
+			(localMeta.description ?? "").trim() ===
+				(meta.description ?? "").trim();
+
+		if (bodyIdentical && metaIdentical) {
+			// Versions are identical — auto-dismiss, no need to ask
+			return true;
+		}
+
+		versionChoiceLocalSavedAt.value =
+			typeof draft.savedAt === "number" ? draft.savedAt : null;
+		versionChoiceServerModified.value = serverLastModified.value;
+		versionChoiceDiffSummary.value = {
+			titleChanged: localTitle !== serverTitle,
+			localTitle,
+			serverTitle,
+			localWordCount: countWords(localBody),
+			serverWordCount: countWords(serverBody),
+			bodyIdentical,
+			metaIdentical,
+		};
+		return false;
+	} catch {
+		return false;
+	}
 }
 
 const hasUnsavedChanges = computed(() => {
@@ -1208,13 +1318,20 @@ function useGitHubVersion() {
 	versionChoicePending.value = false;
 	clearLocalDraftKey();
 	showVersionChoiceModal.value = false;
+	versionChoiceDiffSummary.value = null;
 	serverLastModified.value = null;
 	lastSavedToLocalSnapshot.value = currentSnapshot();
 	serverBaselineSnapshot.value = lastSavedToLocalSnapshot.value;
 	contentReady.value = true;
+	isHydratingFromRemote.value = true;
 	nextTick(() => {
 		setTimeout(() => {
 			lastSavedBody.value = normalizeBodyForCompare(getBodyContent());
+			const stableSnapshot = currentSnapshot();
+			serverBaselineSnapshot.value = stableSnapshot;
+			lastSavedToLocalSnapshot.value = stableSnapshot;
+			clearLocalDraftKey();
+			isHydratingFromRemote.value = false;
 		}, 600);
 	});
 }
@@ -1223,6 +1340,7 @@ function useGitHubVersion() {
 function useLocalVersion() {
 	versionChoicePending.value = false;
 	showVersionChoiceModal.value = false;
+	versionChoiceDiffSummary.value = null;
 	contentReady.value = false;
 	nextTick(() => {
 		loadDraft();
@@ -1347,11 +1465,19 @@ function loadFromApi(): Promise<void> {
 						(pathQuery.value.startsWith("content/blog/") ||
 							pathQuery.value.startsWith("content/drafts/"))
 					) {
-						showVersionChoiceModal.value = true;
-						isHydratingFromRemote.value = false;
-						return;
-					}
-					if (serverLastModified.value) {
+						const identical =
+							computeVersionChoiceDiff(rawDraft);
+						if (identical) {
+							// Local draft is identical to server — silently discard it
+							versionChoicePending.value = false;
+							clearLocalDraftKey();
+							// Skip recovery bar — content is the same
+						} else {
+							showVersionChoiceModal.value = true;
+							isHydratingFromRemote.value = false;
+							return;
+						}
+					} else if (serverLastModified.value) {
 						try {
 							const draft = JSON.parse(rawDraft);
 							const localSavedAt =
@@ -1387,9 +1513,15 @@ function loadFromApi(): Promise<void> {
 				setTimeout(() => {
 					lastSavedBody.value =
 						normalizeBodyForCompare(getBodyContent());
+					// Re-capture baseline after the editor has stabilized
+					// so Milkdown's re-serialization doesn't create a false diff.
+					const stableSnapshot = currentSnapshot();
+					serverBaselineSnapshot.value = stableSnapshot;
+					lastSavedToLocalSnapshot.value = stableSnapshot;
+					clearLocalDraftKey();
+					isHydratingFromRemote.value = false;
 				}, 600);
 				contentReady.value = true;
-				isHydratingFromRemote.value = false;
 			});
 		})
 		.catch(() => {
@@ -2781,5 +2913,41 @@ onUnmounted(() => {
 html.dark .admin-wysiwyg-site :deep(.milkdown .milkdown-table-block thead),
 html.dark .admin-wysiwyg-site :deep(.milkdown-table-block thead) {
 	background: color-mix(in srgb, var(--color-bg-tertiary) 80%, transparent);
+}
+
+/* Version choice modal details */
+.version-choice-details {
+	font-size: 0.875rem;
+}
+.version-choice-timestamps {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	padding: var(--space-3);
+	background: var(--color-bg-secondary);
+	border-radius: var(--radius-md);
+	margin-bottom: var(--space-3);
+}
+.version-choice-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+.version-choice-label {
+	font-weight: 600;
+	color: var(--color-text-primary);
+}
+.version-choice-time {
+	color: var(--color-text-secondary);
+	font-variant-numeric: tabular-nums;
+}
+.version-choice-diff-list {
+	margin: 0;
+	padding-left: 1.25rem;
+	color: var(--color-text-secondary);
+	line-height: 1.6;
+}
+.version-choice-diff-list li {
+	margin-bottom: var(--space-1);
 }
 </style>
