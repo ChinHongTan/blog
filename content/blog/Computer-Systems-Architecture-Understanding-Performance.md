@@ -1,7 +1,7 @@
 ---
 title: Computer Systems Architecture: Understanding Performance
 date: 2026-04-18T16:19
-edited_at: 2026-04-18T16:23:05.082Z
+edited_at: 2026-04-18T16:24:45.952Z
 author: chinono
 path: /blog/Computer-Systems-Architecture-Understanding-Performance
 ---
@@ -105,7 +105,8 @@ A few key definitions:
 * **Clock period (or clock cycle time):** The time it takes for one complete cycle. For example, 5 nanoseconds.
 
 * **Clock rate:** The inverse of the clock period — how many cycles happen per second. If the clock period is 5 ns, then the clock rate is 1 / (5 × 10⁻⁹) = **200 MHz**.
-  So when you hear that a processor runs at "3.5 GHz," that means its clock ticks 3.5 billion times per second. Each tick represents one opportunity for the processor to do work.
+
+So when you hear that a processor runs at "3.5 GHz," that means its clock ticks 3.5 billion times per second. Each tick represents one opportunity for the processor to do work.
 
 ## Measuring Performance: CPU Time
 
@@ -257,7 +258,8 @@ The benchmarks cover a fascinating range of real-world tasks: Perl interpreting,
 * **Speed metric:** How long a single task takes to complete — useful for comparing single-threaded performance.
 
 * **Rate metric:** How many tasks a system can complete in a given time — a throughput measure that leverages multiple processors.
-  The SPEC evaluation process follows a structured workflow: get the benchmark program, run it multiple times, select the median result, compute the ratio against the reference machine, and finally compute the geometric mean across all benchmarks to get a single aggregate score.
+
+The SPEC evaluation process follows a structured workflow: get the benchmark program, run it multiple times, select the median result, compute the ratio against the reference machine, and finally compute the geometric mean across all benchmarks to get a single aggregate score.
 
 ## Wrapping Up
 
