@@ -2981,6 +2981,10 @@ onUnmounted(() => {
 	padding: 1rem 1.5rem;
 	border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
+/* Keep Crepe's virtual cursor above blocks with opaque backgrounds (e.g. blockquote). */
+.admin-wysiwyg-site :deep(.milkdown .prosemirror-virtual-cursor) {
+	z-index: 1;
+}
 .admin-wysiwyg-site :deep(.milkdown img) {
 	max-width: 100%;
 	height: auto;
