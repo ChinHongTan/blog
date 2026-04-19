@@ -1,7 +1,7 @@
 ---
 title: "The Memory Hierarchy: Understanding Cache Memory"
 date: 2026-04-19T11:34
-edited_at: 2026-04-19T10:29:00.137Z
+edited_at: 2026-04-19T14:30:34.243Z
 author: chinono
 path: /blog/The-Memory-Hierarchy-Understanding-Cache-Memory
 ---
@@ -180,7 +180,8 @@ Modern systems don't have just one cache — they use a **multilevel** hierarchy
 * **L2 cache** — larger and slightly slower. Usually **unified** (holds both instructions and data).
 
 * **L3 cache** — even larger, often shared across multiple processor cores.
-  Splitting L1 into instruction and data caches is important for **pipelining**, where the processor simultaneously fetches a new instruction while executing a previous one. If both operations need the same cache, they'd conflict. Splitting eliminates this contention.
+
+Splitting L1 into instruction and data caches is important for **pipelining**, where the processor simultaneously fetches a new instruction while executing a previous one. If both operations need the same cache, they'd conflict. Splitting eliminates this contention.
 
 ## Cache Coherency
 
@@ -193,7 +194,8 @@ Several approaches exist:
 * **Hardware transparency (snooping protocols)** — dedicated hardware ensures that any cache update is propagated to all other caches. More complex, but works with write-back policies too.
 
 * **Noncacheable memory** — shared memory regions are simply marked as noncacheable. Every access goes directly to main memory. Simple but sacrifices performance for shared data.
-  In modern multi-core processors, sophisticated protocols like **MESI** (Modified, Exclusive, Shared, Invalid) handle coherency, but the fundamental ideas are the same.
+
+In modern multi-core processors, sophisticated protocols like **MESI** (Modified, Exclusive, Shared, Invalid) handle coherency, but the fundamental ideas are the same.
 
 ## Inclusion Policy
 
