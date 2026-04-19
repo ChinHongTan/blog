@@ -1,7 +1,7 @@
 ---
-title: Week 1 — Introduction to Computer Systems
+title: Introduction to Computer Systems
 date: 2026-04-18T07:43
-edited_at: 2026-04-18T16:18:00.594Z
+edited_at: 2026-04-19T09:22:28.558Z
 author: chinono
 ---
 

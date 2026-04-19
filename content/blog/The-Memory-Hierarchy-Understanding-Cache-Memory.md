@@ -1,7 +1,7 @@
 ---
 title: "The Memory Hierarchy: Understanding Cache Memory"
 date: 2026-04-19T11:34
-edited_at: 2026-04-19T03:37:56.717Z
+edited_at: 2026-04-19T14:30:34.243Z
 author: chinono
 path: /blog/The-Memory-Hierarchy-Understanding-Cache-Memory
 ---
@@ -35,7 +35,8 @@ Unfortunately, you can't have it all:
 * Larger memory is cheaper per bit, but slower.
 
 * You always want more capacity *and* more speed, but your budget disagrees.
-  The solution is a **hierarchy** — multiple levels of memory, each with different speed, size, and cost characteristics:
+
+The solution is a **hierarchy** — multiple levels of memory, each with different speed, size, and cost characteristics:
 
 | Level                 | Technology                | Typical Size        | Managed By         |
 | --------------------- | ------------------------- | ------------------- | ------------------ |
@@ -56,7 +57,8 @@ When the processor needs a piece of data, it checks the cache first:
 * **Cache hit** — the data is in the cache. Great! The processor gets it almost instantly.
 
 * **Cache miss** — the data isn't in the cache. The system has to fetch it from main memory (or a lower cache level), which takes much longer.
-  The **hit rate** (percentage of accesses that are hits) is the single most important measure of cache performance. A well-designed cache can achieve hit rates above 90%, meaning the processor rarely has to wait.
+
+The **hit rate** (percentage of accesses that are hits) is the single most important measure of cache performance. A well-designed cache can achieve hit rates above 90%, meaning the processor rarely has to wait.
 
 ### Key Terminology
 
@@ -108,7 +110,9 @@ Any block can go in **any** cache line.
 
 The address is split into just two fields:
 
-\| Tag (22 bits) | Word (2 bits) |
+| Tag (22 bits) | Word (2 bits) |
+| ------------- | ------------- |
+| <br />        | <br />        |
 
 **How it works:** When looking for a block, the cache must compare the tag against *every* line simultaneously. This requires special hardware called a **content-addressable memory (CAM)**.
 
@@ -176,7 +180,8 @@ Modern systems don't have just one cache — they use a **multilevel** hierarchy
 * **L2 cache** — larger and slightly slower. Usually **unified** (holds both instructions and data).
 
 * **L3 cache** — even larger, often shared across multiple processor cores.
-  Splitting L1 into instruction and data caches is important for **pipelining**, where the processor simultaneously fetches a new instruction while executing a previous one. If both operations need the same cache, they'd conflict. Splitting eliminates this contention.
+
+Splitting L1 into instruction and data caches is important for **pipelining**, where the processor simultaneously fetches a new instruction while executing a previous one. If both operations need the same cache, they'd conflict. Splitting eliminates this contention.
 
 ## Cache Coherency
 
@@ -189,7 +194,8 @@ Several approaches exist:
 * **Hardware transparency (snooping protocols)** — dedicated hardware ensures that any cache update is propagated to all other caches. More complex, but works with write-back policies too.
 
 * **Noncacheable memory** — shared memory regions are simply marked as noncacheable. Every access goes directly to main memory. Simple but sacrifices performance for shared data.
-  In modern multi-core processors, sophisticated protocols like **MESI** (Modified, Exclusive, Shared, Invalid) handle coherency, but the fundamental ideas are the same.
+
+In modern multi-core processors, sophisticated protocols like **MESI** (Modified, Exclusive, Shared, Invalid) handle coherency, but the fundamental ideas are the same.
 
 ## Inclusion Policy
 
@@ -210,4 +216,3 @@ The key takeaways:
 The **principle of locality** is *why* caches work. Temporal and spatial locality mean that a small, fast memory can satisfy the vast majority of a processor's requests. The **memory hierarchy** gives us the best of all worlds: the speed of small memories and the capacity of large ones. **Cache design** is a web of interconnected decisions — mapping, replacement, write policy, line size, levels, and inclusion — where no single choice is optimal in isolation; each must be tuned in context.
 
 If you remember nothing else, remember this: the goal of the entire memory system is to create the **illusion** that the processor has access to a very large, very fast memory — even though no such memory physically exists.
-
