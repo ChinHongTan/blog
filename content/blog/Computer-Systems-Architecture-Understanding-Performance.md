@@ -1,5 +1,5 @@
 ---
-title: Computer Systems Architecture: Understanding Performance
+title: "Computer Systems Architecture: Understanding Performance"
 date: 2026-04-18T16:19
 edited_at: 2026-04-18T16:24:45.952Z
 author: chinono

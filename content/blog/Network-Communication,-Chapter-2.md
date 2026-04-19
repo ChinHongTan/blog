@@ -1,5 +1,5 @@
 ---
-title: How Data is Packaged: The TCP/IP Model
+title: "How Data is Packaged: The TCP/IP Model"
 date: 2026-04-09T12:59
 edited_at: 2026-04-19T03:10:30.160Z
 author: chinono

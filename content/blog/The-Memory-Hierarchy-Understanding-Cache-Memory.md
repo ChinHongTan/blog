@@ -1,5 +1,5 @@
 ---
-title: The Memory Hierarchy: Understanding Cache Memory
+title: "The Memory Hierarchy: Understanding Cache Memory"
 date: 2026-04-19T11:34
 edited_at: 2026-04-19T03:37:56.717Z
 author: chinono

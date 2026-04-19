@@ -806,7 +806,16 @@ const canEditPost = computed(() => {
 function getLocalDateTimeString(): string {
 	const now = new Date();
 	const pad = (n: number) => String(n).padStart(2, "0");
-	return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+	const tzOffsetMin = -now.getTimezoneOffset();
+	const tzSign = tzOffsetMin >= 0 ? "+" : "-";
+	const tzAbs = Math.abs(tzOffsetMin);
+	const tzHour = pad(Math.floor(tzAbs / 60));
+	const tzMin = pad(tzAbs % 60);
+	return (
+		`${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}` +
+		`T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}` +
+		`${tzSign}${tzHour}:${tzMin}`
+	);
 }
 
 const meta = reactive({

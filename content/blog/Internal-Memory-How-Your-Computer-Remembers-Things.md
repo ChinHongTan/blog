@@ -1,5 +1,5 @@
 ---
-title: Internal Memory: How Your Computer Remembers Things
+title: "Internal Memory: How Your Computer Remembers Things"
 date: 2026-04-19T11:38
 edited_at: 2026-04-19T03:45:21.780Z
 author: chinono

@@ -1,5 +1,5 @@
 ---
-title: IPv6: Addressing, SLAAC, and NDP
+title: "IPv6: Addressing, SLAAC, and NDP"
 date: 2026-04-13T10:48
 edited_at: 2026-04-19T03:14:21.420Z
 author: chinono

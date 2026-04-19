@@ -22,19 +22,36 @@ interface AuthorMeta {
 
 type EditorMeta = PostMeta & AuthorMeta;
 
+function yamlScalar(value: string): string {
+	const needsQuoting =
+		value === "" ||
+		/:(\s|$)/.test(value) ||
+		/\s#/.test(value) ||
+		/^[\s\-?:,\[\]{}&*!|>'"%@`#]/.test(value) ||
+		/\s$/.test(value) ||
+		/^(true|false|null|yes|no|on|off|~)$/i.test(value);
+	if (!needsQuoting) return value;
+	if (!value.includes('"')) return `"${value.replace(/\\/g, "\\\\")}"`;
+	return `'${value.replace(/'/g, "''")}'`;
+}
+
 export function buildPostFrontmatter(meta: PostMeta): string {
 	const lines: string[] = ["---"];
-	if (meta.title) lines.push(`title: ${meta.title}`);
-	if (meta.description) lines.push(`description: ${meta.description}`);
-	if (meta.date) lines.push(`date: ${meta.date}`);
-	if (meta.edited_at) lines.push(`edited_at: ${meta.edited_at}`);
-	if (meta.author) lines.push(`author: ${meta.author}`);
-	if (meta.path) lines.push(`path: ${meta.path}`);
+	if (meta.title) lines.push(`title: ${yamlScalar(meta.title)}`);
+	if (meta.description)
+		lines.push(`description: ${yamlScalar(meta.description)}`);
+	if (meta.date) lines.push(`date: ${yamlScalar(meta.date)}`);
+	if (meta.edited_at)
+		lines.push(`edited_at: ${yamlScalar(meta.edited_at)}`);
+	if (meta.author) lines.push(`author: ${yamlScalar(meta.author)}`);
+	if (meta.path) lines.push(`path: ${yamlScalar(meta.path)}`);
 	if (meta.featured_image)
-		lines.push(`featured_image: ${meta.featured_image}`);
+		lines.push(`featured_image: ${yamlScalar(meta.featured_image)}`);
 	if (meta.pinned) lines.push("pinned: true");
 	if (meta.tags && meta.tags.length)
-		lines.push(`tags:\n  - ${meta.tags.join("\n  - ")}`);
+		lines.push(
+			`tags:\n  - ${meta.tags.map((t) => yamlScalar(t)).join("\n  - ")}`,
+		);
 	lines.push("---");
 	return lines.join("\n");
 }

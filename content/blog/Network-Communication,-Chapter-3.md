@@ -1,5 +1,5 @@
 ---
-title: Layers 1 & 2: Physical Media, Ethernet, and Switching
+title: "Layers 1 & 2: Physical Media, Ethernet, and Switching"
 date: 2026-04-13T10:29
 edited_at: 2026-04-19T03:12:45.938Z
 author: chinono
