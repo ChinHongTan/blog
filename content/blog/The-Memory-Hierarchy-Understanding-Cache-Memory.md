@@ -1,7 +1,7 @@
 ---
 title: "The Memory Hierarchy: Understanding Cache Memory"
 date: 2026-04-19T11:34
-edited_at: 2026-04-19T03:37:56.717Z
+edited_at: 2026-04-19T10:14:37.274Z
 author: chinono
 path: /blog/The-Memory-Hierarchy-Understanding-Cache-Memory
 ---
@@ -35,7 +35,8 @@ Unfortunately, you can't have it all:
 * Larger memory is cheaper per bit, but slower.
 
 * You always want more capacity *and* more speed, but your budget disagrees.
-  The solution is a **hierarchy** — multiple levels of memory, each with different speed, size, and cost characteristics:
+
+The solution is a **hierarchy** — multiple levels of memory, each with different speed, size, and cost characteristics:
 
 | Level                 | Technology                | Typical Size        | Managed By         |
 | --------------------- | ------------------------- | ------------------- | ------------------ |
@@ -210,4 +211,3 @@ The key takeaways:
 The **principle of locality** is *why* caches work. Temporal and spatial locality mean that a small, fast memory can satisfy the vast majority of a processor's requests. The **memory hierarchy** gives us the best of all worlds: the speed of small memories and the capacity of large ones. **Cache design** is a web of interconnected decisions — mapping, replacement, write policy, line size, levels, and inclusion — where no single choice is optimal in isolation; each must be tuned in context.
 
 If you remember nothing else, remember this: the goal of the entire memory system is to create the **illusion** that the processor has access to a very large, very fast memory — even though no such memory physically exists.
-
