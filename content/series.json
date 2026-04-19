@@ -92,9 +92,12 @@
       "Network-Communications,-Chapter-5",
       "Network-Communication,-Chapter-6"
     ],
-    "Computer System Architecture": [
+    "CSA": [
       "Week-1-—-Introduction-to-Computer-Systems",
-      "A-Top-Level-View-of-Computer-Function-and-Interconnection"
+      "Computer-Systems-Architecture-Understanding-Performance",
+      "A-Top-Level-View-of-Computer-Function-and-Interconnection",
+      "The-Memory-Hierarchy-Understanding-Cache-Memory",
+      "Internal-Memory-How-Your-Computer-Remembers-Things"
     ],
     "機器學習": [
       "機器學習導論",
