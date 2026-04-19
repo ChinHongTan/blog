@@ -1,7 +1,7 @@
 ---
 title: "The Memory Hierarchy: Understanding Cache Memory"
 date: 2026-04-19T11:34
-edited_at: 2026-04-19T10:19:42.146Z
+edited_at: 2026-04-19T10:29:00.137Z
 author: chinono
 path: /blog/The-Memory-Hierarchy-Understanding-Cache-Memory
 ---
@@ -110,7 +110,9 @@ Any block can go in **any** cache line.
 
 The address is split into just two fields:
 
-\| Tag (22 bits) | Word (2 bits) |
+| Tag (22 bits) | Word (2 bits) |
+| ------------- | ------------- |
+| <br />        | <br />        |
 
 **How it works:** When looking for a block, the cache must compare the tag against *every* line simultaneously. This requires special hardware called a **content-addressable memory (CAM)**.
 
