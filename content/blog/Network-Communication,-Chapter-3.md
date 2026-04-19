@@ -1,7 +1,7 @@
 ---
-title: Network Communication, Chapter 3
+title: Layers 1 & 2: Physical Media, Ethernet, and Switching
 date: 2026-04-13T10:29
-edited_at: 2026-04-13T10:31:07.032Z
+edited_at: 2026-04-19T03:12:45.938Z
 author: chinono
 path: /blog/Network-Communication,-Chapter-3
 ---
@@ -13,7 +13,9 @@ Everything on a network ultimately boils down to **bits** — 1s and 0s. But bit
 The physical layer takes a complete frame from the data link layer above it and converts it into **signals** that can be sent over the actual transmission medium. What those signals look like depends entirely on the medium:
 
 * **Copper cable** → patterns of electrical pulses
+
 * **Fiber-optic cable** → patterns of light
+
 * **Wireless** → patterns of microwave/radio transmissions
 
 ### Three Functional Areas
@@ -25,6 +27,7 @@ The physical layer standards cover three key areas:
 **2. Encoding** — Before bits are sent as signals, they're first *encoded*. Encoding converts raw data bits into a predefined code — a pattern that both the sender and receiver agree on. This helps with things like identifying where a frame begins and ends. Two common encoding schemes are:
 
 * **Manchester Encoding**: A `0` is represented by a high-to-low voltage transition, and a `1` by a low-to-high transition. The beauty of this scheme is that there's always a transition in the middle of each bit period, which helps the receiver stay synchronized.
+
 * **Non-Return to Zero (NRZ)**: Simpler — one voltage level means `0`, another means `1`. No guaranteed transition in every bit period, which can cause synchronization issues over long runs.
 
 **3. Signaling** — This defines how the encoded bits are physically represented. For example, a long pulse might represent a `1` and a short pulse a `0`. The standard must be agreed upon so both ends interpret the signals the same way.
@@ -34,7 +37,9 @@ The physical layer standards cover three key areas:
 These three terms are related but distinct, and confusing them is a classic beginner mistake:
 
 * **Bandwidth** is the *theoretical maximum* capacity of a medium — how much data it *could* carry. Measured in kbps, Mbps, or Gbps.
+
 * **Throughput** is the *actual* rate of data transfer over a period of time. It's always affected by real-world factors: traffic volume, type of traffic, network congestion, and the number of devices the data passes through.
+
 * **Goodput** is the *usable* data transferred — throughput minus all the overhead (session setup, acknowledgments, retransmissions, encapsulation headers). This is what you actually care about as an end user.
 
 The relationship is always: **Goodput ≤ Throughput ≤ Bandwidth**.
@@ -60,7 +65,9 @@ Copper is the workhorse of networking — cheap, easy to install, and widely ava
 Not all Ethernet cables are wired the same way:
 
 * **Straight-through cable**: The most common. Used to connect *different* types of devices — e.g., a host to a switch, or a switch to a router.
+
 * **Crossover cable**: Used to connect *similar* devices — switch to switch, host to host, router to router. Less common today because most modern devices support **Auto-MDIX**, which automatically detects and adjusts for the cable type.
+
 * **Rollover cable**: A Cisco proprietary cable used specifically for connecting to a router or switch's console port for management.
 
 ### Fiber-Optic Cabling
@@ -68,8 +75,11 @@ Not all Ethernet cables are wired the same way:
 Fiber uses pulses of light instead of electrical signals, which gives it some major advantages: much longer distances, higher bandwidth, and immunity to electromagnetic interference. It's used across several domains:
 
 * **Enterprise networks** for high-speed backbones
+
 * **FTTH (Fiber-to-the-Home)** for residential broadband
+
 * **Long-haul networks** spanning hundreds or thousands of kilometers
+
 * **Submarine networks** for transoceanic links — specially engineered cables that survive harsh undersea conditions
 
 There are two main types of fiber:
@@ -85,7 +95,9 @@ There are two main types of fiber:
 Common fiber connectors include:
 
 * **ST (Straight-Tip)**: Older bayonet-style, commonly used with multimode fiber.
+
 * **SC (Subscriber Connector)**: Push-pull mechanism, used with both single-mode and multimode.
+
 * **LC (Lucent Connector)**: Smaller form factor, growing in popularity, supports both fiber types.
 
 ### Wireless Media
@@ -93,7 +105,9 @@ Common fiber connectors include:
 Wireless transmits data using radio or microwave frequencies. It offers mobility and convenience, but comes with its own set of challenges:
 
 * **Coverage**: Building materials and terrain can limit signal range significantly.
+
 * **Interference**: Everyday devices — cordless phones, microwaves, fluorescent lights — can disrupt wireless signals.
+
 * **Security**: Because the signal travels through the air, wireless networks require careful security management to prevent unauthorized access.
 
 ## The Data Link Layer — Framing the Conversation
@@ -117,7 +131,9 @@ The data link layer is divided into two sublayers:
 A data link layer frame has three parts:
 
 * **Header**: Control information like source and destination addresses. Located at the beginning.
+
 * **Data (Payload)**: The encapsulated content — includes the IP header, transport layer header, and application data.
+
 * **Trailer**: Error detection information (like a CRC checksum), appended at the end.
 
 ## Media Access Control — Who Gets to Talk?
@@ -125,6 +141,7 @@ A data link layer frame has three parts:
 When multiple devices share the same medium, there needs to be a system that determines who gets to transmit and when. The method used depends on two factors:
 
 * **Topology**: How the connections between nodes appear to the data link layer.
+
 * **Media sharing**: How nodes share the medium.
 
 ### Two Approaches
@@ -154,7 +171,9 @@ Every device on an Ethernet network needs a unique identifier — this is the **
 MAC addresses are used for three types of communication:
 
 * **Unicast**: One-to-one. A frame sent to a single specific device.
+
 * **Broadcast**: One-to-all. A frame sent to every device on the local network (destination MAC: `FF:FF:FF:FF:FF:FF`).
+
 * **Multicast**: One-to-many. A frame sent to a group of devices that have subscribed to receive it.
 
 > On Windows, you can check your MAC address by running `ipconfig /all` in the command prompt.
@@ -181,6 +200,7 @@ The switch waits until it has received the **entire frame**, stores it in a buff
 The switch starts forwarding the frame as soon as it reads the destination address — before the entire frame has arrived. This is faster, but it forwards corrupted frames too since there's no error check. There are two variants:
 
 * **Fast-forward switching**: Forwards immediately after reading the destination address. Lowest latency, but no error checking at all.
+
 * **Fragment-free switching**: Waits for the first **64 bytes** before forwarding. Why 64 bytes? Because most collision-related errors occur within the first 64 bytes of a frame, so this catches the majority of bad frames while still being faster than store-and-forward.
 
 ### Frame Buffering
@@ -222,8 +242,11 @@ ARP has two notable issues:
 In this chapter, we traced the journey of data from the abstract world of bits down to the physical signals on a wire (or through the air), and back up through the framing and addressing mechanisms that make local network communication possible. Here's a quick mental model:
 
 * **Physical Layer**: Converts bits into signals (electrical, light, or radio) and defines the hardware.
+
 * **Data Link Layer**: Packages data into frames, handles MAC addressing, and manages media access.
+
 * **Ethernet**: The dominant LAN technology, using MAC addresses and switches to deliver frames.
+
 * **ARP**: The bridge between IP addresses (Layer 3) and MAC addresses (Layer 2).
 
 Understanding these layers is essential because every higher-level protocol — HTTP, DNS, SSH, you name it — ultimately relies on these mechanisms to move data across the wire. Getting comfortable with these fundamentals will make everything else in networking click.

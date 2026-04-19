@@ -1,6 +1,7 @@
 ---
 title: Week 1 — Introduction to Computer Systems
 date: 2026-04-18T07:43
+edited_at: 2026-04-18T16:18:00.594Z
 author: chinono
 ---
 
@@ -62,7 +63,8 @@ At each level, we ask two questions:
 * **Structure** — How are the components inter-related? (the wiring, the shape)
 
 * **Function** — What does each component *do* as part of the whole? (the behaviour)
-  There is a classic question that comes up here: when analysing or designing a computer, do you go **top-down** (start from the whole system and decompose) or **bottom-up** (start from transistors and build up)? Both approaches have value, but in this course we will mostly go top-down: start from what a computer does, then zoom in to how it does it.
+
+There is a classic question that comes up here: when analysing or designing a computer, do you go **top-down** (start from the whole system and decompose) or **bottom-up** (start from transistors and build up)? Both approaches have value, but in this course we will mostly go top-down: start from what a computer does, then zoom in to how it does it.
 
 ## 3. The Four Functions of a Computer
 
@@ -125,7 +127,8 @@ At the highest level, the computer is a single blob that interacts with the **ex
 * **Peripherals** (keyboard, mouse, monitor, printer, etc.)
 
 * **Communication lines** (network cables, Wi-Fi, Bluetooth)
-  Inside that blob, the essential jobs are **Storage** and **Processing**. Everything else at this level is just "the outside world".
+
+Inside that blob, the essential jobs are **Storage** and **Processing**. Everything else at this level is just "the outside world".
 
 ### Level 2: The internal structure of a computer
 
@@ -176,7 +179,8 @@ ENIAC (Electronic Numerical Integrator and Computer) was the first general-purpo
 * Was a **decimal machine**: 10 vacuum tubes were used to represent a single decimal digit
 
 * Was programmed by **manually flipping switches**
-  Imagine programming a machine the size of a tennis court by walking around flipping thousands of switches. That was software engineering in 1946.
+
+Imagine programming a machine the size of a tennis court by walking around flipping thousands of switches. That was software engineering in 1946.
 
 #### EDVAC and the Von Neumann breakthrough
 
@@ -214,7 +218,8 @@ In 1947, Bell Labs invented the transistor. It was a revolution:
 * **Smaller, cheaper, and dissipated less heat** than a vacuum tube
 
 * **Solid-state** device made from silicon — no fragile glass, no vacuum
-  To appreciate the jump, picture the difference:
+
+To appreciate the jump, picture the difference:
 
 * A **vacuum tube** requires wires, metal plates, a glass capsule, and a vacuum inside. Picture a light bulb with extra plumbing.
 
@@ -286,7 +291,8 @@ As manufacturing improved, engineers kept cramming more components onto a single
 * **VLSI** (Very Large Scale Integration)
 
 * **ULSI** (Ultra Large Scale Integration)
-  The **number of components per chip increased yearly** — the phenomenon famously captured by Moore's Law. Two major leaps happened in this era.
+
+The **number of components per chip increased yearly** — the phenomenon famously captured by Moore's Law. Two major leaps happened in this era.
 
 #### Semiconductor memory replaces core memory
 
@@ -297,7 +303,8 @@ In the 1950s and 1960s, memory was built from **rings of ferromagnetic material*
 * **Expensive**
 
 * **Destructive readout** — reading a bit erased it, so the value had to be re-written immediately afterwards
-  In **1970, Fairchild introduced semiconductor memory**. It was **non-destructive** (reading did not erase the bit) and **faster than core**. This is the ancestor of every DRAM and SRAM chip in use today.
+
+In **1970, Fairchild introduced semiconductor memory**. It was **non-destructive** (reading did not erase the bit) and **faster than core**. This is the ancestor of every DRAM and SRAM chip in use today.
 
 To appreciate the insane scale of this transition, the slides end with one of my favourite images in the whole course:
 
@@ -318,7 +325,8 @@ From there, microprocessor improvements have followed a few steady trends:
 * **Decrease in clock switching time** (faster clock = more instructions per second)
 
 * **Other hardware improvements** (pipelining, caches, branch prediction, multiple cores…)
-  The chip in your phone right now is a direct descendant of the Intel 4004 — only about **a billion times more capable**.
+
+The chip in your phone right now is a direct descendant of the Intel 4004 — only about **a billion times more capable**.
 
 ## Recap
 
@@ -344,6 +352,3 @@ Until then, a little homework to cement the ideas:
 * Ask yourself: in an ENIAC with 18,000 vacuum tubes, how would you debug a failure?
   See you in Week 2.
 
-***
-
-*Notes based on Week 1 lecture material for Computer Systems Architecture. Concepts and terminology follow the standard Stallings-style framework. Any errors or oversimplifications are mine.*

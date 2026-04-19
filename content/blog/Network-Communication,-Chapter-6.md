@@ -1,7 +1,7 @@
 ---
-title: Network Communication, Chapter 6
+title: IPv6: Addressing, SLAAC, and NDP
 date: 2026-04-13T10:48
-edited_at: 2026-04-13T10:50:47.744Z
+edited_at: 2026-04-19T03:14:21.420Z
 author: chinono
 path: /blog/Network-Communication,-Chapter-6
 ---

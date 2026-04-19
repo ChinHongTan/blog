@@ -1,7 +1,7 @@
 ---
-title: Network Communications, Chapter 5
+title: IPv4 Addressing, Subnetting, and VLSM
 date: 2026-04-13T10:47
-edited_at: 2026-04-13T10:48:47.786Z
+edited_at: 2026-04-19T03:13:55.905Z
 author: chinono
 path: /blog/Network-Communications,-Chapter-5
 ---

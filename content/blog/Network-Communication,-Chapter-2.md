@@ -1,7 +1,7 @@
 ---
-title: Network Communication, Chapter 2
+title: How Data is Packaged: The TCP/IP Model
 date: 2026-04-09T12:59
-edited_at: 2026-04-10T10:12:38.381Z
+edited_at: 2026-04-19T03:10:30.160Z
 author: chinono
 path: /blog/Network-Communication,-Chapter-2
 ---
@@ -185,7 +185,7 @@ The router looks up your computer's IP address in its local directory to find yo
 
 ## Network Operating Systems
 
-Now that we know how data travels across networks, how do we actually control the devices—like routers and switches—that are directing all this traffic? To do that, we need to look at the software running on the hardware. 
+Now that we know how data travels across networks, how do we actually control the devices—like routers and switches—that are directing all this traffic? To do that, we need to look at the software running on the hardware.
 
 Routers, switches, and other infrastructure devices don't run Windows or macOS — they run specialised **network operating systems**. On Cisco devices, this is the **Cisco IOS (Internetwork Operating System)**.
 
