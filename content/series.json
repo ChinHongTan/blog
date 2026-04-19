@@ -59,7 +59,8 @@
       "小兒發展（二）",
       "小兒發展（三）",
       "小兒發展（四）",
-      "小兒發展（五）"
+      "小兒發展（五）",
+      "GMFCS"
     ],
     "中風": [
       "腦血管病變（CVA）（中風）(一)",
@@ -80,7 +81,8 @@
       "Balance（四）評估",
       "Balance（五）復健",
       "Balance（六）功能恢復",
-      "Balance（七）前庭障礙"
+      "Balance（七）前庭障礙",
+      "Balance（八）檢查"
     ],
     "Network Communication": [
       "Network-Communication,-Chapter-1",
@@ -90,9 +92,12 @@
       "Network-Communications,-Chapter-5",
       "Network-Communication,-Chapter-6"
     ],
-    "Computer System Architecture": [
+    "CSA": [
       "Week-1-—-Introduction-to-Computer-Systems",
-      "A-Top-Level-View-of-Computer-Function-and-Interconnection"
+      "Computer-Systems-Architecture-Understanding-Performance",
+      "A-Top-Level-View-of-Computer-Function-and-Interconnection",
+      "The-Memory-Hierarchy-Understanding-Cache-Memory",
+      "Internal-Memory-How-Your-Computer-Remembers-Things"
     ],
     "機器學習": [
       "機器學習導論",
