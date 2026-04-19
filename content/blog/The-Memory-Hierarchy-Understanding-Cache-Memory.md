@@ -1,7 +1,7 @@
 ---
 title: "The Memory Hierarchy: Understanding Cache Memory"
 date: 2026-04-19T11:34
-edited_at: 2026-04-19T10:14:37.274Z
+edited_at: 2026-04-19T10:19:42.146Z
 author: chinono
 path: /blog/The-Memory-Hierarchy-Understanding-Cache-Memory
 ---
@@ -57,7 +57,8 @@ When the processor needs a piece of data, it checks the cache first:
 * **Cache hit** — the data is in the cache. Great! The processor gets it almost instantly.
 
 * **Cache miss** — the data isn't in the cache. The system has to fetch it from main memory (or a lower cache level), which takes much longer.
-  The **hit rate** (percentage of accesses that are hits) is the single most important measure of cache performance. A well-designed cache can achieve hit rates above 90%, meaning the processor rarely has to wait.
+
+The **hit rate** (percentage of accesses that are hits) is the single most important measure of cache performance. A well-designed cache can achieve hit rates above 90%, meaning the processor rarely has to wait.
 
 ### Key Terminology
 
