@@ -1,7 +1,7 @@
 ---
 title: Internal Memory: How Your Computer Remembers Things
 date: 2026-04-19T11:38
-edited_at: 2026-04-19T03:40:31.433Z
+edited_at: 2026-04-19T03:45:21.780Z
 author: chinono
 path: /blog/Internal-Memory-How-Your-Computer-Remembers-Things
 ---
@@ -19,7 +19,8 @@ So engineers face an impossible wish list:
 * Memory large enough for all running programs
 
 * Memory that's cheap
-  You can't have all three at once. That tension is the reason we have a *memory hierarchy* — different types of memory layered together, each making a different trade-off between speed, size, and cost. In this post, we'll focus on **internal memory**: the semiconductor-based memory that lives on or near the processor, as opposed to external storage like hard drives.
+
+You can't have all three at once. That tension is the reason we have a *memory hierarchy* — different types of memory layered together, each making a different trade-off between speed, size, and cost. In this post, we'll focus on **internal memory**: the semiconductor-based memory that lives on or near the processor, as opposed to external storage like hard drives.
 
 ## The Memory Cell: The Smallest Unit
 
@@ -30,7 +31,8 @@ Every piece of memory, at its most basic level, is built from **memory cells**. 
 * Can be **written to** — setting its state
 
 * Can be **read from** — sensing its current state
-  When you *write* to a cell, a **select** signal activates it, a **control** signal tells it "this is a write operation," and **data in** provides the value. When you *read*, the select and control signals activate the cell, and a **sense** line outputs the stored value.
+
+When you *write* to a cell, a **select** signal activates it, a **control** signal tells it "this is a write operation," and **data in** provides the value. When you *read*, the select and control signals activate the cell, and a **sense** line outputs the stored value.
 
 Think of it like a light switch with a lock — you can flip it on (1) or off (0), lock it in place, and later check which position it's in.
 
@@ -58,7 +60,8 @@ The two big branches are **volatile** memory (loses data without power) and **no
 * It's **volatile** — turn off the power, and everything disappears
 
 * It serves as **temporary storage** for programs and data currently in use
-  There are two major flavors of RAM: **DRAM** and **SRAM**.
+
+There are two major flavors of RAM: **DRAM** and **SRAM**.
 
 ### DRAM (Dynamic RAM) — The Forgetful One
 
@@ -71,7 +74,8 @@ But there's a catch: capacitors *leak*. The charge slowly drains away over time,
 * **Writing:** A voltage is applied to the bit line (high for 1, low for 0). Then the address line is activated, which turns on the transistor, allowing the charge to transfer to the capacitor.
 
 * **Reading:** The address line is activated, turning on the transistor. The charge stored in the capacitor flows out through the bit line to a **sense amplifier**, which compares it against a reference voltage to determine whether it's a 0 or 1. Here's the tricky part — reading is **destructive**. The act of reading drains the capacitor, so the charge must be written back after every read.
-  **Refreshing in practice:**
+
+**Refreshing in practice:**
 
 A dedicated refresh circuit is built into the chip. It temporarily disables normal access, steps through each row, reads the data, and writes it back. This takes time and slightly reduces the apparent performance of the chip. Every few milliseconds, the entire memory array must be refreshed.
 
@@ -82,7 +86,8 @@ SRAM takes a completely different approach. Instead of a capacitor, it stores ea
 * **State 1:** Point C₁ is high, C₂ is low. Transistors T₁ and T₄ are off, T₂ and T₃ are on.
 
 * **State 0:** Point C₂ is high, C₁ is low. Transistors T₂ and T₃ are off, T₁ and T₄ are on.
-  The beauty of SRAM is that **as long as power is supplied, the flip-flop holds its state indefinitely** — no refresh needed. To write, you apply the desired value to bit line B and its complement to B̄, then activate the address line. To read, the value simply appears on bit line B when the address line is activated.
+
+The beauty of SRAM is that **as long as power is supplied, the flip-flop holds its state indefinitely** — no refresh needed. To write, you apply the desired value to bit line B and its complement to B̄, then activate the address line. To read, the value simply appears on bit line B when the address line is activated.
 
 ### SRAM vs. DRAM — A Quick Comparison
 
@@ -151,7 +156,8 @@ Memory isn't perfect. Errors can and do occur:
 * **Hard failures** are permanent physical defects — a cell that's stuck at 0 or 1.
 
 * **Soft errors** are random, non-destructive events. A cosmic ray or electrical noise might flip a bit, but the cell itself is fine. No permanent damage to the memory.
-  To detect and fix these, memory systems use **error-correcting codes (ECC)**, most commonly **Hamming codes**.
+
+To detect and fix these, memory systems use **error-correcting codes (ECC)**, most commonly **Hamming codes**.
 
 Here's the basic idea: when data (M bits) is written to memory, a function *f* generates K check bits from the data. Both the M data bits and K check bits are stored together. When the data is read back, the same function *f* is applied to the M data bits to generate a *new* set of K check bits. These are **compared** with the stored check bits. If they match, no error. If they differ, the comparison result (called a **syndrome**) identifies which bit flipped, and a **corrector** circuit fixes it. An error signal is also raised so the system knows a correction occurred.
 
@@ -218,4 +224,3 @@ Registers → SRAM Cache (L1, L2, L3) → DRAM Main Memory → Flash/SSD Storage
 Each layer compensates for the weaknesses of the next. SRAM cache hides the relative slowness of DRAM. DRAM provides the capacity that SRAM can't afford. Flash provides persistence that DRAM can't. And the entire hierarchy works together to give you the *illusion* of memory that's fast, big, cheap, and permanent — even though no single technology delivers all four.
 
 Understanding this hierarchy — and the physics behind each layer — is one of the most fundamental insights in computer architecture. Every optimisation in modern computing, from CPU cache policies to SSD wear levelling, traces back to these core trade-offs.
-
