@@ -289,6 +289,8 @@ const {
 	hasSeries,
 	seriesAllPosts,
 	seriesWindow,
+	seriesPrevPost,
+	seriesNextPost,
 	showSeriesSidebar,
 	getSeriesPostPath,
 } = await useSeriesSidebar({
@@ -623,6 +625,42 @@ const {
 					<div class="post-content">
 						<ContentRenderer :value="page" class="nuxt-content" />
 					</div>
+
+					<!-- Series prev/next navigation -->
+					<nav
+						v-if="hasSeries && (seriesPrevPost || seriesNextPost)"
+						class="series-post-nav"
+						aria-label="系列文章導覽"
+					>
+						<NuxtLink
+							v-if="seriesPrevPost"
+							:to="`${getSeriesPostPath(seriesPrevPost)}?series=${encodeURIComponent(activeSeriesName!)}`"
+							class="series-nav-card series-nav-prev"
+						>
+							<div class="series-nav-label">
+								<Icon name="heroicons:arrow-left" size="16" />
+								<span>上一篇</span>
+							</div>
+							<div class="series-nav-title">
+								{{ seriesPrevPost.title }}
+							</div>
+						</NuxtLink>
+						<div v-else class="series-nav-spacer" />
+
+						<NuxtLink
+							v-if="seriesNextPost"
+							:to="`${getSeriesPostPath(seriesNextPost)}?series=${encodeURIComponent(activeSeriesName!)}`"
+							class="series-nav-card series-nav-next"
+						>
+							<div class="series-nav-label">
+								<span>下一篇</span>
+								<Icon name="heroicons:arrow-right" size="16" />
+							</div>
+							<div class="series-nav-title">
+								{{ seriesNextPost.title }}
+							</div>
+						</NuxtLink>
+					</nav>
 
 					<!-- Post Footer -->
 					<footer class="post-footer">
@@ -1872,6 +1910,76 @@ html.dark .post-content :deep(thead) {
 .post-content :deep(MjxContainer[jax="SVG"][display="true"] > svg) {
 	display: inline-block !important;
 	max-width: 100%;
+}
+
+/* Series prev/next navigation */
+.series-post-nav {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1rem;
+	margin-top: 3rem;
+}
+
+.series-nav-card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+	padding: 1rem 1.1rem;
+	border: 1px solid var(--color-border-light);
+	border-radius: var(--radius-lg);
+	background: color-mix(in srgb, var(--color-bg-primary) 60%, transparent);
+	text-decoration: none;
+	color: inherit;
+	transition: all var(--transition-base);
+	min-width: 0;
+}
+
+.series-nav-card:hover {
+	border-color: var(--color-primary-light);
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-sm);
+}
+
+.series-nav-next {
+	text-align: right;
+}
+
+.series-nav-label {
+	display: flex;
+	align-items: center;
+	gap: 0.3rem;
+	font-size: 0.8rem;
+	font-weight: 500;
+	color: var(--color-text-tertiary);
+}
+
+.series-nav-next .series-nav-label {
+	justify-content: flex-end;
+}
+
+.series-nav-title {
+	font-size: 1rem;
+	font-weight: 600;
+	color: var(--color-text-primary);
+	line-height: 1.4;
+	display: -webkit-box;
+	line-clamp: 2;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.series-nav-card:hover .series-nav-title {
+	color: var(--color-primary-dark);
+}
+
+@media (max-width: 640px) {
+	.series-post-nav {
+		grid-template-columns: 1fr;
+	}
+	.series-nav-spacer {
+		display: none;
+	}
 }
 
 /* Post Footer */

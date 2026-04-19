@@ -129,11 +129,28 @@ export async function useSeriesSidebar(options: UseSeriesSidebarOptions) {
 		return { posts: posts.slice(start, end), startIndex: start };
 	});
 
+	const seriesPrevPost = computed(() => {
+		const posts = seriesAllPosts.value ?? [];
+		const idx = currentSeriesIndex.value;
+		if (idx <= 0) return null;
+		return posts[idx - 1] ?? null;
+	});
+
+	const seriesNextPost = computed(() => {
+		const posts = seriesAllPosts.value ?? [];
+		const idx = currentSeriesIndex.value;
+		if (idx < 0 || idx >= posts.length - 1) return null;
+		return posts[idx + 1] ?? null;
+	});
+
 	return {
 		activeSeriesName,
 		hasSeries,
 		seriesAllPosts,
 		seriesWindow,
+		seriesPrevPost,
+		seriesNextPost,
+		currentSeriesIndex,
 		showSeriesSidebar,
 		getSeriesPostPath,
 	};
