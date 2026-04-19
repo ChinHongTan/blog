@@ -1,7 +1,7 @@
 ---
-title: Network Communication Chapter 4
+title: Layers 3 & 4: Routing, TCP, and UDP
 date: 2026-04-13T10:39
-edited_at: 2026-04-13T10:42:26.656Z
+edited_at: 2026-04-19T03:13:02.793Z
 author: chinono
 path: /blog/Network-Communication-Chapter-4
 ---
@@ -240,4 +240,3 @@ The network and transport layers work hand-in-hand to deliver data across the in
 Understanding these layers gives you a solid foundation for grasping how the internet really works — from the moment you type a URL in your browser to the instant the page appears on your screen. Every packet goes through addressing, routing, encapsulation, and transport protocol handling, all happening invisibly in milliseconds.
 
 Whether it's TCP's meticulous reliability or UDP's carefree speed, each protocol has its place. The beauty of networking is in how all these pieces fit together to create the seamless experience we take for granted every day.
-
