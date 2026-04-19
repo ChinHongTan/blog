@@ -1,7 +1,7 @@
 ---
 title: A Top-Level View of Computer Function and Interconnection
 date: 2026-04-19T03:15
-edited_at: 2026-04-19T09:42:48.015Z
+edited_at: 2026-04-19T09:51:06.185Z
 author: chinono
 path: /blog/A-Top-Level-View-of-Computer-Function-and-Interconnection
 ---
@@ -75,7 +75,8 @@ Now, some processors have more powerful instructions. Consider the PDP-11 instru
 3. Read memory location B into the processor (the CPU needs two internal registers to hold both values).
 4. Add the two values.
 5. Write the result back to location A.
-   The takeaway: richer instructions can reduce the number of cycles, but each cycle does more work.
+
+The takeaway: richer instructions can reduce the number of cycles, but each cycle does more work.
 
 ## 3. Interrupts
 
