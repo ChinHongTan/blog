@@ -80,8 +80,7 @@
       "Balance（四）評估",
       "Balance（五）復健",
       "Balance（六）功能恢復",
-      "Balance（七）前庭障礙",
-      "Balance（八）檢查"
+      "Balance（七）前庭障礙"
     ],
     "Network Communication": [
       "Network-Communication,-Chapter-1",
@@ -90,6 +89,10 @@
       "Network-Communication-Chapter-4",
       "Network-Communications,-Chapter-5",
       "Network-Communication,-Chapter-6"
+    ],
+    "Computer System Architecture": [
+      "Week-1-—-Introduction-to-Computer-Systems",
+      "A-Top-Level-View-of-Computer-Function-and-Interconnection"
     ]
   }
 }
