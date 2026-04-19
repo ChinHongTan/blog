@@ -248,10 +248,9 @@ function startRename(name: string) {
 function onRenameInputRef(el: Element | null | unknown) {
 	if (!el) return;
 	const input = el as HTMLInputElement;
-	if (typeof input.focus === "function") {
-		input.focus();
-		input.select?.();
-	}
+	if (document.activeElement === input) return;
+	input.focus?.();
+	input.select?.();
 }
 
 function cancelRename() {
