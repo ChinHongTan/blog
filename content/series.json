@@ -93,6 +93,11 @@
     "Computer System Architecture": [
       "Week-1-—-Introduction-to-Computer-Systems",
       "A-Top-Level-View-of-Computer-Function-and-Interconnection"
+    ],
+    "機器學習": [
+      "機器學習導論",
+      "資料前處理與迴歸分析",
+      "決策樹"
     ]
   }
 }
