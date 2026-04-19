@@ -803,6 +803,12 @@ const canEditPost = computed(() => {
 
 // slugifyTitle, buildFrontmatter, parseFrontmatter are auto-imported from composables/useEditorFrontmatter
 
+function getLocalDateTimeString(): string {
+	const now = new Date();
+	const pad = (n: number) => String(n).padStart(2, "0");
+	return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+}
+
 const meta = reactive({
 	title: "",
 	description: "",
@@ -1485,7 +1491,7 @@ function loadFromApi(): Promise<void> {
 	if (!filePath.value) {
 		serverBaselineSnapshot.value = null;
 		if (docType.value === "post") {
-			meta.date = new Date().toISOString().slice(0, 16);
+			meta.date = getLocalDateTimeString();
 		}
 		loadDraft();
 		nextTick(() => {
@@ -1610,7 +1616,7 @@ function loadFromApi(): Promise<void> {
 			serverBaselineSnapshot.value = null;
 			loadDraft();
 			if (docType.value === "post")
-				meta.date = new Date().toISOString().slice(0, 16);
+				meta.date = getLocalDateTimeString();
 			contentReady.value = true;
 			isHydratingFromRemote.value = false;
 		});
@@ -1622,7 +1628,7 @@ async function publish() {
 		if (meta.date) {
 			meta.edited_at = new Date().toISOString();
 		} else {
-			meta.date = new Date().toISOString();
+			meta.date = getLocalDateTimeString();
 		}
 		meta.author = currentUserAuthorId.value ?? meta.author;
 		if (!pathQuery.value) {
@@ -1756,7 +1762,7 @@ async function saveDraftToGitHub() {
 	const stem =
 		meta.path?.replace(/^\/blog\/?/, "").trim() || slugifyTitle(meta.title);
 	const draftPath = `content/drafts/${stem}.md`;
-	if (!meta.date) meta.date = new Date().toISOString().slice(0, 16);
+	if (!meta.date) meta.date = getLocalDateTimeString();
 	meta.author = currentUserAuthorId.value ?? meta.author;
 	const content = `${buildFrontmatterStr()}\n\n${getBodyContent()}`;
 	savingDraft.value = true;
