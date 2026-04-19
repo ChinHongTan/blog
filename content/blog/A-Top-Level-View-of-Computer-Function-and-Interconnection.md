@@ -1,7 +1,7 @@
 ---
 title: A Top-Level View of Computer Function and Interconnection
 date: 2026-04-19T03:15
-edited_at: 2026-04-19T03:17:15.140Z
+edited_at: 2026-04-19T09:42:48.015Z
 author: chinono
 path: /blog/A-Top-Level-View-of-Computer-Function-and-Interconnection
 ---
@@ -28,7 +28,8 @@ At the highest level, a computer is built from three types of modules:
 * **Memory** — A collection of *N* words, each with a unique numerical address (0, 1, …, N−1). The processor can read from or write to any address.
 
 * **I/O Modules** — From the computer's internal perspective, I/O works a lot like memory — there are read and write operations. A single I/O module may control multiple external devices (keyboard, display, disk, etc.).
-  Two special registers sit between the processor and memory:
+
+Two special registers sit between the processor and memory:
 
 * **MAR (Memory Address Register)** — Holds the address of the memory location the processor wants to access.
 
@@ -225,4 +226,3 @@ The computer's fundamental operation is a loop — **fetch** an instruction, **e
 All of this requires a way for the processor, memory, and I/O to communicate. Older systems used **shared buses** (simple but limited in bandwidth). Modern systems use **point-to-point interconnects** like Intel's QPI and PCIe, which offer dedicated high-speed links, layered protocols, and packetized data transfer.
 
 Understanding this top-level view — the instruction cycle, interrupts, and interconnection — gives you the foundation for everything else in computer architecture. Each of these topics goes much deeper, but now you have the mental map to navigate them.
-
