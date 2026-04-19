@@ -27,7 +27,7 @@ function yamlScalar(value: string): string {
 		value === "" ||
 		/:(\s|$)/.test(value) ||
 		/\s#/.test(value) ||
-		/^[\s\-?:,\[\]{}&*!|>'"%@`#]/.test(value) ||
+		/^[\s\-?:,[\]{}&*!|>'"%@`#]/.test(value) ||
 		/\s$/.test(value) ||
 		/^(true|false|null|yes|no|on|off|~)$/i.test(value);
 	if (!needsQuoting) return value;
