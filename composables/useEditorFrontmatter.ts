@@ -5,7 +5,6 @@ interface PostMeta {
 	edited_at: string;
 	author: string;
 	path: string;
-	series?: string[];
 	tags: string[];
 	featured_image: string;
 	pinned?: boolean;
@@ -103,33 +102,14 @@ export function parseFrontmatter(
 				return;
 			}
 			if (
-				key === "series" ||
 				key === "tags" ||
 				key === "social" ||
 				key === "email"
 			)
 				return;
-			if (key === "seriesOrder" && docType === "post") {
-				const num = Number(val);
-				if (!Number.isNaN(num)) {
-					(result as Record<string, unknown>).seriesOrder = num;
-				}
-				return;
-			}
 			(result as Record<string, string>)[key] = val;
 		}
 	});
-
-	if (docType === "post" && raw.includes("series:")) {
-		const seriesMatch = raw.match(/series:\s*\n((?:\s+-\s*.+\n?)+)/);
-		if (seriesMatch) {
-			result.series = seriesMatch[1]
-				.split(/\n/)
-				.map((s) => s.replace(/^\s*-\s*/, "").trim())
-				.map((s) => s.replace(/^["']|["']$/g, ""))
-				.filter(Boolean);
-		}
-	}
 
 	if (docType === "post" && raw.includes("tags:")) {
 		const tagsMatch = raw.match(/tags:\s*\n((?:\s+-\s*.+\n?)+)/);

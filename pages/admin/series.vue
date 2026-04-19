@@ -16,8 +16,6 @@ type LocalPost = {
 	title?: string;
 	date?: string | Date;
 	author?: string;
-	series?: string | string[];
-	seriesOrder?: number;
 	internalId: string;
 };
 
@@ -32,12 +30,14 @@ const toast = useToast();
 
 const selectedSeries = ref<string | null>(null);
 const isUpdating = ref(false);
-const updateProgressMessage = ref("");
 const onlyMyPosts = ref(false);
 const newSeriesName = ref("");
 const customSeriesNames = ref<string[]>([]);
 const isDeleteModalOpen = ref(false);
 const seriesToDelete = ref<string | null>(null);
+const editingSeriesName = ref<string | null>(null);
+const editingSeriesInput = ref("");
+let clickToEditTimer: ReturnType<typeof setTimeout> | null = null;
 
 const { data: allPosts } = await useAsyncData<BlogCollectionItem[]>(
 	"admin-all-posts-series",
@@ -218,6 +218,78 @@ watch(
 	{ immediate: true },
 );
 
+function clearClickToEditTimer() {
+	if (clickToEditTimer !== null) {
+		clearTimeout(clickToEditTimer);
+		clickToEditTimer = null;
+	}
+}
+
+function onSeriesItemClick(name: string) {
+	if (editingSeriesName.value) return;
+	const wasSelected = selectedSeries.value === name;
+	selectedSeries.value = name;
+	clearClickToEditTimer();
+	if (!wasSelected) return;
+	clickToEditTimer = setTimeout(() => {
+		startRename(name);
+	}, 500);
+}
+
+function onSeriesItemDblClick() {
+	clearClickToEditTimer();
+}
+
+function startRename(name: string) {
+	editingSeriesName.value = name;
+	editingSeriesInput.value = name;
+}
+
+function onRenameInputRef(el: Element | null | unknown) {
+	if (!el) return;
+	const input = el as HTMLInputElement;
+	if (typeof input.focus === "function") {
+		input.focus();
+		input.select?.();
+	}
+}
+
+function cancelRename() {
+	editingSeriesName.value = null;
+	editingSeriesInput.value = "";
+}
+
+function commitRename() {
+	const oldName = editingSeriesName.value;
+	if (!oldName) return;
+	const newName = editingSeriesInput.value.trim();
+	if (!newName || newName === oldName) {
+		cancelRename();
+		return;
+	}
+	const dup = uniqueSeries.value.find(
+		(n) => n !== oldName && n.toLowerCase() === newName.toLowerCase(),
+	);
+	if (dup) {
+		toast.error(`系列「${newName}」已存在`);
+		cancelRename();
+		return;
+	}
+	if (seriesMap.value[oldName] !== undefined) {
+		const next: Record<string, string[]> = {};
+		for (const [k, v] of Object.entries(seriesMap.value)) {
+			next[k === oldName ? newName : k] = v;
+		}
+		seriesMap.value = next;
+	}
+	const idx = customSeriesNames.value.indexOf(oldName);
+	if (idx >= 0) customSeriesNames.value.splice(idx, 1, newName);
+	if (selectedSeries.value === oldName) selectedSeries.value = newName;
+	hasUnsavedChanges.value = true;
+	toast.success(`已將「${oldName}」重新命名為「${newName}」(請記得儲存變更)`);
+	cancelRename();
+}
+
 function createSeries() {
 	const value = newSeriesName.value.trim();
 	if (!value) return;
@@ -369,7 +441,6 @@ async function saveAllSeriesData() {
 	if (isUpdating.value) return;
 	isUpdating.value = true;
 	toast.info("開始儲存序列資料...");
-	updateProgressMessage.value = "正在儲存...";
 
 	try {
 		// Fetch current sha first
@@ -410,7 +481,6 @@ async function saveAllSeriesData() {
 		toast.error(getErrorMessage(error, "儲存時發生未知錯誤"));
 	} finally {
 		isUpdating.value = false;
-		updateProgressMessage.value = "";
 	}
 }
 
@@ -502,10 +572,25 @@ function resolvePostPath(post: LocalPost): string {
 							v-for="seriesName in uniqueSeries"
 							:key="seriesName"
 							class="admin-series-list-item"
-							:class="{ active: selectedSeries === seriesName }"
-							@click="selectedSeries = seriesName"
+							:class="{
+								active: selectedSeries === seriesName,
+								editing: editingSeriesName === seriesName,
+							}"
+							@click="onSeriesItemClick(seriesName)"
+							@dblclick="onSeriesItemDblClick"
 						>
-							{{ seriesName }}
+							<input
+								v-if="editingSeriesName === seriesName"
+								:ref="onRenameInputRef"
+								v-model="editingSeriesInput"
+								class="admin-series-rename-input"
+								type="text"
+								@click.stop
+								@keydown.enter.prevent="commitRename"
+								@keydown.escape.prevent="cancelRename"
+								@blur="commitRename"
+							>
+							<span v-else>{{ seriesName }}</span>
 						</li>
 					</ul>
 					<button
@@ -525,17 +610,6 @@ function resolvePostPath(post: LocalPost): string {
 							<h3 class="admin-series-content-title">
 								「{{ selectedSeries }}」的文章
 							</h3>
-							<div
-								v-if="isUpdating"
-								class="admin-indicator-updating"
-							>
-								<Icon
-									name="heroicons:arrow-path"
-									class="animate-spin"
-									size="16"
-								/>
-								{{ updateProgressMessage || "儲存中..." }}
-							</div>
 						</div>
 
 						<ul
@@ -813,6 +887,22 @@ function resolvePostPath(post: LocalPost): string {
 	font-weight: 500;
 }
 
+.admin-series-list-item.editing {
+	padding: 0.25rem 0.4rem;
+}
+
+.admin-series-rename-input {
+	width: 100%;
+	padding: 0.35rem 0.5rem;
+	border: 1px solid var(--color-primary);
+	border-radius: var(--radius-sm);
+	background: var(--color-bg-secondary);
+	color: var(--color-text-primary);
+	font-size: 0.95rem;
+	font-family: inherit;
+	outline: none;
+}
+
 .admin-series-delete-btn {
 	width: 100%;
 	margin-top: 0.9rem;
@@ -841,31 +931,6 @@ function resolvePostPath(post: LocalPost): string {
 	font-weight: 600;
 	color: var(--color-text-primary);
 	margin: 0;
-}
-
-.admin-indicator-updating {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	font-size: 0.9rem;
-	color: var(--color-primary);
-	font-weight: 500;
-	background: var(--color-bg-blue-tint);
-	padding: 0.4rem 0.8rem;
-	border-radius: var(--radius-full);
-}
-
-.animate-spin {
-	animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-	from {
-		transform: rotate(0deg);
-	}
-	to {
-		transform: rotate(360deg);
-	}
 }
 
 .admin-drag-list {

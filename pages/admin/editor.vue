@@ -263,63 +263,6 @@
 										</div>
 									</div>
 								</div>
-								<div
-									class="admin-property-tr admin-property-tr-tags admin-property-tr-series"
-								>
-									<span class="admin-property-name">
-										<Icon name="heroicons:rectangle-group" size="14" class="admin-property-icon" />
-										系列
-									</span>
-									<div
-										class="admin-property-cell admin-property-tags-wrap"
-										@click="focusSeriesInput"
-									>
-										<template v-if="currentSeries">
-											<span
-												class="admin-meta-chip admin-meta-chip-series"
-											>
-												{{ currentSeries }}
-												<button
-													type="button"
-													class="admin-meta-chip-remove"
-													aria-label="移除"
-													@click.stop="clearSeries"
-												>
-													×
-												</button>
-											</span>
-										</template>
-										<input
-											v-if="!currentSeries"
-											ref="seriesInputRef"
-											v-model="seriesInputValue"
-											type="text"
-											class="admin-property-tag-input"
-											placeholder="選擇系列…"
-											@focus="onSeriesInputFocus"
-											@blur="onSeriesInputBlur"
-										>
-										<div
-											v-if="
-												showSeriesSuggestions &&
-												seriesSuggestions.length > 0
-											"
-											class="admin-series-suggestions"
-										>
-											<button
-												v-for="s in seriesSuggestions"
-												:key="s"
-												type="button"
-												class="admin-series-suggestion"
-												@mousedown.prevent="
-													selectSeries(s)
-												"
-											>
-												{{ s }}
-											</button>
-										</div>
-									</div>
-								</div>
 								<!-- 更多選項 -->
 								<div class="admin-property-tr admin-property-tr-more">
 									<button
@@ -825,7 +768,6 @@ const meta = reactive({
 	edited_at: "",
 	author: "",
 	path: "",
-	series: [] as string[],
 	tags: [] as string[],
 	featured_image: "",
 	pinned: false,
@@ -907,49 +849,14 @@ const canCreateNewTag = computed(() => {
 	);
 });
 
-// Series autocomplete state
-const availableSeries = ref<string[]>([]);
-const seriesInputRef = ref<HTMLInputElement | null>(null);
-const seriesInputValue = ref("");
-const showSeriesSuggestions = ref(false);
-const seriesSuggestions = computed(() => {
-	const query = seriesInputValue.value.toLowerCase().trim();
-	if (!query) return availableSeries.value;
-	return availableSeries.value.filter((s) => s.toLowerCase().includes(query));
-});
-const currentSeries = computed(() => meta.series[0] ?? "");
-
-function selectSeries(s: string) {
-	meta.series = [s];
-	seriesInputValue.value = "";
-	showSeriesSuggestions.value = false;
-}
-function clearSeries() {
-	meta.series = [];
-}
-function focusSeriesInput() {
-	seriesInputRef.value?.focus();
-}
-function onSeriesInputFocus() {
-	showSeriesSuggestions.value = true;
-}
-function onSeriesInputBlur() {
-	setTimeout(() => {
-		showSeriesSuggestions.value = false;
-	}, 150);
-}
-
-async function fetchAvailableSeries() {
+async function fetchAvailableTags() {
 	try {
 		const result = await $fetch<{
 			posts: unknown[];
-			series: string[];
 			tags: string[];
 		}>("/api/admin/posts-index", { query: { t: Date.now() } });
-		availableSeries.value = result.series ?? [];
 		availableTags.value = result.tags ?? [];
 	} catch {
-		availableSeries.value = [];
 		availableTags.value = [];
 	}
 }
@@ -1166,7 +1073,6 @@ function serializeMeta(): string {
 	const metaCopy = {
 		...meta,
 		tags: [...meta.tags],
-		series: [...meta.series],
 	};
 	return JSON.stringify(metaCopy);
 }
@@ -1202,8 +1108,6 @@ function computeVersionChoiceDiff(rawDraft: string): boolean {
 			localTitle === serverTitle &&
 			JSON.stringify(localMeta.tags ?? []) ===
 				JSON.stringify(meta.tags ?? []) &&
-			JSON.stringify(localMeta.series ?? []) ===
-				JSON.stringify(meta.series ?? []) &&
 			(localMeta.description ?? "").trim() ===
 				(meta.description ?? "").trim();
 
@@ -1365,16 +1269,11 @@ function loadDraft() {
 			delete (m as Record<string, unknown>).email;
 		}
 		Object.keys(meta).forEach((k) => {
-			if (k === "tags" || k === "series") {
+			if (k === "tags") {
 				if (Array.isArray(m[k]))
 					(meta as Record<string, unknown>)[k] = m[k];
 				else if (typeof m.tagsText === "string")
 					(meta as Record<string, unknown>).tags = m.tagsText
-						.split(",")
-						.map((s: string) => s.trim())
-						.filter(Boolean);
-				else if (typeof m.seriesText === "string")
-					(meta as Record<string, unknown>).series = m.seriesText
 						.split(",")
 						.map((s: string) => s.trim())
 						.filter(Boolean);
@@ -1542,9 +1441,6 @@ function loadFromApi(): Promise<void> {
 					(meta as Record<string, unknown>)[key] = val;
 				}
 			});
-			if (Array.isArray(meta.series) && meta.series.length > 1) {
-				meta.series = [meta.series[0]];
-			}
 			nextTick(() => {
 				cachedMetaJson.value = serializeMeta();
 				lastSavedMetaJson.value = cachedMetaJson.value;
@@ -1965,7 +1861,7 @@ onMounted(async () => {
 		.catch(() => {
 			currentUserAuthorId.value = null;
 		});
-	await Promise.all([profilePromise, loadFromApi(), fetchAvailableSeries()]);
+	await Promise.all([profilePromise, loadFromApi(), fetchAvailableTags()]);
 	bodyCheckInterval = setInterval(() => {
 		bodyCheckTrigger.value++;
 		if (docType.value === "post" && !canEditPost.value) return;
@@ -2595,10 +2491,6 @@ onUnmounted(() => {
 	color: var(--color-text-secondary);
 	border-radius: var(--radius-pill);
 }
-.admin-meta-chip-series {
-	background: color-mix(in srgb, var(--color-primary) 18%, transparent);
-	color: var(--color-primary);
-}
 .admin-meta-chip-remove {
 	padding: 0;
 	margin-left: 0.15rem;
@@ -2623,10 +2515,6 @@ onUnmounted(() => {
 	position: relative;
 	width: fit-content;
 	max-width: min(100%, 28rem);
-}
-.admin-property-tr-series {
-	position: relative;
-	z-index: 40;
 }
 .admin-series-input-wrap,
 .admin-property-tags-wrap {

@@ -33,7 +33,7 @@ const seriesPosts = computed(() => {
 		return stemsForSeries.includes(stem);
 	});
 
-	// Sort by seriesOrder (if available), fallback to chronological order (oldest first)
+	// Sort by order defined in series.json, fallback to chronological order (oldest first)
 	return posts.sort((a, b) => {
 		const stemA = getPostStem(a);
 		const stemB = getPostStem(b);
