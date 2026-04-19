@@ -552,6 +552,13 @@
 			</template>
 		</div>
 
+		<!-- Hidden mirror used to measure raw-textarea height without collapsing the textarea. -->
+		<div
+			ref="rawMirrorRef"
+			class="admin-textarea admin-textarea-mirror"
+			aria-hidden="true"
+		/>
+
 		<!-- 本機較新版本恢復列：僅在 content/drafts/ 且 local savedAt > server 時顯示 -->
 		<div v-if="showRecoveryBar" class="admin-recovery-bar">
 			<span class="admin-recovery-text"
@@ -1881,15 +1888,23 @@ onMounted(async () => {
 	window.addEventListener("beforeunload", beforeUnloadHandler);
 });
 
-/** Resize raw markdown textarea to fit content (no inner scrollbar). */
+const rawMirrorRef = ref<HTMLDivElement | null>(null);
+
+/** Resize raw markdown textarea to fit content (no inner scrollbar).
+ * Measures via a hidden mirror div so the textarea never collapses mid-edit,
+ * which would otherwise cause the browser to scroll to keep the caret visible. */
 function resizeRawTextarea() {
 	nextTick(() => {
-		document
-			.querySelectorAll<HTMLTextAreaElement>(".admin-textarea")
-			.forEach((el) => {
-				el.style.height = "auto";
-				el.style.height = `${Math.max(el.scrollHeight, 50 * 16)}px`; /* at least 50vh in px approx */
-			});
+		const textarea = document.querySelector<HTMLTextAreaElement>(
+			".admin-textarea:not(.admin-textarea-mirror)",
+		);
+		const mirror = rawMirrorRef.value;
+		if (!textarea || !mirror) return;
+		mirror.style.width = `${textarea.getBoundingClientRect().width}px`;
+		// Trailing newline ensures a final empty line contributes height.
+		mirror.textContent = `${rawBody.value}\n`;
+		const h = Math.max(mirror.scrollHeight, 50 * 16);
+		textarea.style.height = `${h}px`;
 	});
 }
 
@@ -2748,6 +2763,21 @@ onUnmounted(() => {
 	line-height: 1.8;
 	background: transparent;
 	color: var(--color-text-primary);
+	box-sizing: border-box;
+}
+/* Mirror element for height measurement. Inherits .admin-textarea typography
+   so wrapping matches the real textarea; positioned off-screen. */
+.admin-textarea-mirror {
+	position: absolute;
+	top: -9999px;
+	left: 0;
+	visibility: hidden;
+	pointer-events: none;
+	min-height: 0 !important;
+	height: auto !important;
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
 }
 /* Editor area: full length, no inner scroll — page scrolls */
 .admin-wysiwyg-site :deep(.milkdown),
