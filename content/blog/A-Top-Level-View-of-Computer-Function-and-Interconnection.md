@@ -1,7 +1,7 @@
 ---
 title: A Top-Level View of Computer Function and Interconnection
 date: 2026-04-19T03:15
-edited_at: 2026-04-19T09:51:06.185Z
+edited_at: 2026-04-19T10:14:02.198Z
 author: chinono
 path: /blog/A-Top-Level-View-of-Computer-Function-and-Interconnection
 ---
@@ -123,8 +123,9 @@ What if several devices interrupt at the same time? Two strategies:
 While handling one interrupt, the processor *disables* further interrupts. Any new interrupt stays pending. Once the current handler finishes and re-enables interrupts, the processor checks for and services the next pending interrupt.
 
 * Simple, but it ignores urgency. A time-critical interrupt might have to wait behind a low-priority one.
-  **2. Priority-based (nested) approach:**
-  Each interrupt source has a **priority level**. A higher-priority interrupt can preempt (interrupt) a lower-priority handler. Lower-priority interrupts must wait.
+
+**2. Priority-based (nested) approach:**
+Each interrupt source has a **priority level**. A higher-priority interrupt can preempt (interrupt) a lower-priority handler. Lower-priority interrupts must wait.
 
 **Example:** Suppose we have three devices with these priorities — Printer: 2, Disk: 4, Communications line: 5.
 
