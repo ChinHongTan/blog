@@ -1,7 +1,7 @@
 ---
-title: The Local Network: Cabling, MAC Addresses, and ARP
+title: Layers 1 & 2: Physical Media, Ethernet, and Switching
 date: 2026-04-13T10:29
-edited_at: 2026-04-19T03:11:56.186Z
+edited_at: 2026-04-19T03:12:45.938Z
 author: chinono
 path: /blog/Network-Communication,-Chapter-3
 ---
