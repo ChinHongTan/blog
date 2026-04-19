@@ -7,6 +7,7 @@ import { getAuthorId } from "~/composables/useAuthorId";
 import { getPostStem } from "~/utils/content-routing";
 import { buildFallbackAvatar } from "~/utils/avatar";
 import { resolvePostPath } from "~/utils/post-path";
+import { buildPostExcerpt } from "~/utils/post-excerpt";
 
 const { theme } = useTheme();
 
@@ -104,6 +105,12 @@ function getSeriesNamesForPost(post: {
 	if (!stem) return [];
 	const mappedNames = seriesStemToNames.value.get(stem);
 	return mappedNames ? Array.from(mappedNames) : [];
+}
+
+function getCardPreview(item: { description?: string; body?: unknown }): string {
+	const description = (item.description ?? "").trim();
+	if (description) return description;
+	return buildPostExcerpt(item.body);
 }
 
 function enrichPost(post: BlogCollectionItem, path: string): DisplayPost {
@@ -1027,10 +1034,10 @@ onBeforeUnmount(() => {
 										<h3 class="post-title">{{ item.title }}</h3>
 									</NuxtLink>
 									<p
-										v-if="item.description"
+										v-if="getCardPreview(item)"
 										class="post-description"
 									>
-										{{ item.description }}
+										{{ getCardPreview(item) }}
 									</p>
 									<div class="post-meta-row">
 										<div class="post-meta-main">
