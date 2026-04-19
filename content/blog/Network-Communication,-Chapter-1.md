@@ -1,7 +1,7 @@
 ---
-title: Chapter 1: Network Components, Topologies, and Types
+title: Introduction to Networking Infrastructure
 date: 2026-04-09T11:56
-edited_at: 2026-04-19T03:07:35.675Z
+edited_at: 2026-04-19T03:10:50.006Z
 author: chinono
 path: /blog/Network-Communication,-Chapter-1
 ---
