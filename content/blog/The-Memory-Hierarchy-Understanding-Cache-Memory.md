@@ -1,7 +1,7 @@
 ---
 title: "The Memory Hierarchy: Understanding Cache Memory"
 date: 2026-04-19T11:34
-edited_at: 2026-04-19T16:29:30.549Z
+edited_at: 2026-04-20T10:48:16.156Z
 author: chinono
 path: /blog/The-Memory-Hierarchy-Understanding-Cache-Memory
 ---
@@ -129,10 +129,15 @@ Imagine your desk cache has only **4 lines** (numbered 0, 1, 2, and 3). The libr
 How do we assign seats? We use modulo math (`Block Number MOD Total Cache Lines`):
 
 * Block 0 goes to Line 0
+
 * Block 1 goes to Line 1
+
 * Block 2 goes to Line 2
+
 * Block 3 goes to Line 3
+
 * *Block 4 wraps around and goes to Line 0*
+
 * *Block 5 goes to Line 1...* and so on.
 
 Because of this rule, Cache Line 0 is the *only* place Blocks 0, 4, 8, and 12 can ever be stored.
@@ -148,7 +153,9 @@ Direct mapping is incredibly fast and cheap to build because the hardware never 
 But imagine your code is trying to read data from Block 0 and Block 4 back-to-back in a loop.
 
 * CPU asks for Block 0. It goes into **Line 0**.
+
 * CPU asks for Block 4. It also *must* go into **Line 0**. It kicks out Block 0.
+
 * CPU asks for Block 0 again. It kicks out Block 4.
 
 They are fighting over the exact same seat. Even if Cache Lines 1, 2, and 3 are completely empty, the cache will keep kicking out perfectly good data. This endless cycle of misses and evictions is called **thrashing**, and it forces the CPU to constantly wait on the slow main memory.
@@ -170,6 +177,38 @@ The address is split into just two fields:
 
 **Cons:** Expensive and slow for large caches because every tag must be checked in parallel.
 
+:::info
+### Explaination
+
+In a Fully Associative cache, there are no assigned seats. Any crate of books from the library (Block) can be placed into **any empty cubby (Line)** on your desk.
+
+If your desk cache has 4 lines, and you fetch Block 0, you can put it in Line 0, 1, 2, or 3. If you fetch Block 4, it can go in any of the remaining empty lines.
+
+Because of this open seating arrangement, the CPU address is sliced differently:
+
+1. **Line (Index):** *This no longer exists.* Because a block could be sitting anywhere, there is no specific line to jump to.
+2. **Tag:** "Who are you?" Because any line can hold any block, the sticky note (Tag) on the front of the cubby must be longer and much more specific to identify exactly which crate from the entire library is sitting there.
+3. **Word (Offset):** Still tells the CPU exactly which byte inside the block to read.
+
+Remember in Direct Mapping how Block 0 and Block 4 kept kicking each other out of Line 0, even when the rest of the cache was empty?
+
+Fully Associative mapping completely solves this. If you ask for Block 0, it goes in Line 0. If you ask for Block 4, it just goes into the next empty spot (Line 1). No fighting, no thrashing.
+
+### The Catch: Finding the Data (The CAM)
+
+The flexibility of open seating introduces a massive new problem: **Searching**.
+
+When the CPU asks for Block 4, it doesn't know which cubby to check. It has to look at the sticky notes (Tags) of *every single cubby* on your desk.
+
+In software, checking every item in a list takes time (a `for` loop). But a CPU cache has to be lightning fast. To solve this, engineers use special hardware called **Content-Addressable Memory (CAM)**.
+
+Imagine you have a magical assistant for your bookshelf. Instead of reading the sticky notes one by one, you shout, *"Does anyone have Block 4?!"* and the specific cubby holding Block 4 instantly lights up. The CAM hardware allows the cache to compare the requested Tag against *every single line in the cache simultaneously* in one clock cycle.
+
+**Pros:** Maximum flexibility. You will almost never get a cache miss unless the entire cache is 100% full. 
+
+**Cons:** CAM hardware is incredibly expensive, takes up a lot of physical space on the silicon chip, and consumes a lot of power. Because of this, Fully Associative caches are usually only used for very small, highly critical caches.
+:::
+
 #### Set Associative Mapping
 
 The compromise. The cache is divided into **sets**, each containing *k* lines (this is called *k-way* set associative). A block maps to a specific **set** (like direct mapping), but within that set it can go in **any** of the *k* lines (like associative mapping).
@@ -185,6 +224,35 @@ For example, in a 2-way set associative cache, each set has 2 lines. A block has
 **Cons:** Slightly more complex than direct mapping.
 
 Most modern processors use set associative caches (commonly 4-way, 8-way, or even 16-way).
+
+:::info
+### Explaination
+
+If Direct Mapping is "Assigned Seating" (you must sit in chair #3) and Fully Associative is "Open Seating" (sit anywhere), Set Associative Mapping is the **"Assigned Table"** rule.
+
+Imagine we take your 4 bookshelf cubbies and divide them into **2 distinct zones (Sets)**.
+
+* **Set 0** contains Cubby 0 and Cubby 1.
+* **Set 1** contains Cubby 2 and Cubby 3.
+
+Because each Set has exactly 2 cubbies, we call this a **2-Way Set Associative** cache.
+
+Now, when you bring a crate of books (Block) from the library, it is assigned to a specific *Set*, but it can go into *any empty cubby within that Set*.
+
+* Block 0 is assigned to **Set 0** -> It can go into Cubby 0 *or* Cubby 1.
+* Block 1 is assigned to **Set 1** -> It can go into Cubby 2 *or* Cubby 3.
+* Block 2 is assigned to **Set 0** -> It can go into Cubby 0 *or* Cubby 1.
+
+Because a block can only go to one specific Set, the cache doesn't have to search the entire bookshelf. The CPU address gives it the **Set Index**, so it instantly jumps to the correct zone. This eliminates the massive, expensive, slow hardware search of Fully Associative caches.
+
+But, because there are multiple "ways" (slots) within that Set, it drastically reduces the thrashing problem of Direct Mapping. If your code asks for Block 0, it goes to Set 0, Cubby 0. If your code immediately asks for Block 2, it also goes to Set 0, but instead of kicking out Block 0, it just slides into Cubby 1. No thrashing!
+
+The CPU slices the address like this:
+
+1. **Set (Index):** "Which zone do I check?" The cache jumps immediately to this Set.
+2. **Tag:** "Are you here?" The cache uses a small, cheap piece of CAM hardware to simultaneously check the sticky notes of *only the cubbies in this specific Set*.
+3. **Word (Offset):** The specific byte of data you want to read.
+:::
 
 ### 3. Replacement Algorithms
 
@@ -237,7 +305,7 @@ Splitting L1 into instruction and data caches is important for **pipelining**, w
 
 ## Cache Coherency
 
-Things get interesting — and complicated — when multiple processors (or cores) each have their own cache but share the same main memory. If Core A writes a new value to address X in its cache, Core B's cache might still hold the *old* value of X. This is the **cache coherency** problem.
+Things get interesting, and complicated, when multiple processors (or cores) each have their own cache but share the same main memory. If Core A writes a new value to address X in its cache, Core B's cache might still hold the *old* value of X. This is the **cache coherency** problem.
 
 Several approaches exist:
 
