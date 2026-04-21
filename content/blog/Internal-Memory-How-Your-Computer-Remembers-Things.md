@@ -1,7 +1,7 @@
 ---
 title: "Internal Memory: How Your Computer Remembers Things"
 date: 2026-04-19T11:38
-edited_at: 2026-04-20T13:43:54.932Z
+edited_at: 2026-04-21T15:24:25.103Z
 author: chinono
 path: /blog/Internal-Memory-How-Your-Computer-Remembers-Things
 ---
@@ -55,10 +55,15 @@ The two big branches are **volatile** memory (loses data without power) and **no
 ### Explaination
 
 * **RAM (Random Access Memory):** The defining example of volatile memory. It is fast, allows byte-level read/writes, and is wiped when power is lost.
+
 * **ROM (Read-Only Memory):** Hardwired at the factory. Cannot be changed.
+
 * **PROM (Programmable ROM):** Blank from the factory, but can only be written to *once* (like burning a CD-R).
+
 * **EPROM (Erasable Programmable ROM):** A massive leap forward, but it required pulling the chip out of the computer and exposing a little quartz window on it to strong UV light to erase it.
+
 * **EEPROM (Electrically Erasable Programmable ROM):** Allowed memory to be erased electrically without removing the chip, but only one byte at a time (too slow for bulk storage).
+
 * **Flash:** The defining example of modern non-volatile memory (used in SSDs, USB drives, and smartphones). You need to know that it is electrically erased at the **block-level** (which is why writing data to a nearly full SSD can slow down).
 
 Byte-Level means the computer can target a single byte of data (usually 8 bits) and change it without affecting the data sitting right next to it. It is incredibly convenient and fast for making small changes, but building the microscopic circuitry required to target every individual byte makes the physical chip more complex and expensive to manufacture.
@@ -104,6 +109,7 @@ DRAM is arranged in a massive grid, much like a spreadsheet or a city map. To re
 **The Bit Line** is the vertical wire running down a column of memory cells. If the address line opens the door, the bit line is the hallway the data travels through.
 
 * **During a Write:** The memory controller forces a high voltage (a 1) or low voltage (a 0) down the bit line. Because the address line opened the transistor door, that voltage flows from the bit line into the capacitor, charging or discharging it.
+
 * **During a Read:** The transistor door opens, and whatever tiny bit of charge is stored in the capacitor spills out onto the bit line to be read.
 
 The Sense Amplifier is a highly sensitive measuring circuit situated at the end of each bit line. The capacitor inside a DRAM cell is microscopic. When it dumps its charge onto the much larger bit line during a "read" operation, the resulting voltage change is incredibly weak—barely a whisper of a signal. The sense amplifier detects that tiny voltage shift and instantly **amplifies** it into a strong, clear digital 1 or 0 that the computer's processor can actually understand. Furthermore, because reading the capacitor drained it (destructive read), the sense amplifier immediately pushes that newly amplified strong signal *back* up the bit line to recharge the capacitor, saving the data from being lost forever.
@@ -131,6 +137,7 @@ In SRAM, these two inverters are **cross-coupled**, meaning the output of the fi
 **The Analogy:** Imagine two people, Alice and Bob, locked in a room.
 
 * Alice’s only rule is: "I must shout the exact opposite of whatever Bob shouts."
+
 * Bob’s only rule is: "I must shout the exact opposite of whatever Alice shouts."
 
 If Alice shouts "YES" (1), Bob hears it and immediately shouts "NO" (0). Alice hears Bob's "NO" and uses it to justify continuing to shout "YES".
@@ -142,6 +149,7 @@ They will hold this exact state forever, without needing any outside help, as lo
 If T₁ through T₄ are Alice and Bob locked in a room, T₅ and T₆ are two separate doors leading into that room.
 
 * They are both controlled by the **Address Line** (the horizontal wire that selects the row).
+
 * When the Address Line is activated, both doors open simultaneously.
 
 ### **3. The Pathways: The Bit Lines (B and B̄)**
@@ -149,6 +157,7 @@ If T₁ through T₄ are Alice and Bob locked in a room, T₅ and T₆ are two s
 Notice that SRAM uses *two* bit lines for a single cell: **B** and **B̄** (pronounced "B-bar" or "B-complement").
 
 * **B** carries the actual data (e.g., a 1).
+
 * **B̄** always carries the exact opposite (e.g., a 0).
 
 We use two lines because the internal loop (Alice and Bob) is very stubborn. To read or write quickly and reliably, we need to interact with both sides of the loop at the same time.
@@ -156,6 +165,7 @@ We use two lines because the internal loop (Alice and Bob) is very stubborn. To 
 ### **How Reading and Writing Works**
 
 * **Writing (Forcing a change):** Let's say the cell is currently storing a 0, but you want to write a 1. The memory controller sends a strong "1" signal down the **B** line, and a strong "0" signal down the **B̄** line. Then, it activates the Address Line, opening the doors (T₅ and T₆). The powerful signals from the outside flood into the room, overpower Alice and Bob, and force them to flip their stances. Once the doors close, the loop stabilizes in its new state.
+
 * **Reading (A non-destructive look):** The controller pre-charges both the **B** and **B̄** lines to a neutral, middle voltage. Then it activates the Address Line to open the doors (T₅ and T₆). Because the internal loop is actively powered, it pushes its internal voltages out through the doors onto the bit lines. The Sense Amplifiers at the bottom of the bit lines detect which line went slightly up and which went slightly down to figure out if it's a 1 or a 0.
 
 Most importantly: **reading does not destroy the data.** Because the flip-flop is constantly connected to the main power supply, looking at its state doesn't drain it the way reading a DRAM capacitor does.
@@ -201,6 +211,10 @@ ROM comes in several varieties, each with different trade-offs between flexibili
 
 Let's look at how a real DRAM chip is organised internally, using a **16 Mbit DRAM (4M × 4)** as an example. This chip stores 16 megabits of data, arranged as 4 million locations, each storing 4 bits.
 
+:::info
+**"4M × 4"** means there are **4 million individual lockers** (locations), and every time you open one locker, you put in or take out exactly **4 bits** of data at once.
+:::
+
 The memory array is physically laid out as a **2048 × 2048 × 4** grid. But 2048 rows × 2048 columns × 4 bits = 16,777,216 bits = 16 Mbit. To address 2048 rows, you need 11 address lines (since 2¹¹ = 2048).
 
 **The clever trick — address multiplexing:**
@@ -209,9 +223,21 @@ Instead of using 22 address pins (11 for rows + 11 for columns), DRAM chips **mu
 
 The chip also includes a **refresh counter** (to cycle through rows during refresh), a **MUX** (to select between external addresses and refresh addresses), **row and column decoders**, and **data I/O buffers**.
 
+:::info
+### Additional notes
+
+**Row and column decoders**: these are what actually *use* the latched addresses. The row decoder takes the 11-bit row number and activates one physical wire out of 2048. The column decoder does the same for columns. They're the bridge between "the chip received address bits" and "the correct cells are now connected."
+
+**Refresh counter**: this is just a simple counter that automatically cycles through row numbers (0, 1, 2, ... 2047, 0, 1, ...) so every row gets refreshed periodically. We already covered *why* refresh is needed in the DRAM section. The counter is just the mechanism that automates it.
+
+**MUX (multiplexer)**: during normal operation, the row decoder receives the external address from the CPU. During refresh, it needs the address from the refresh counter instead. The MUX is a simple switch that picks between these two sources.
+
+**Data I/O buffers**: just the circuitry that drives the data pins during a read and receives data during a write. Straightforward.
+:::
+
 ### Packaging and Chip Pinouts
 
-Memory chips come in standard packages with defined pinouts. For example, an 8 Mbit EPROM might use a 32-pin DIP (Dual In-line Package), while a 16 Mbit DRAM uses a 24-pin package. The DRAM needs fewer pins partly because of address multiplexing — a neat design win.
+Memory chips come in standard packages with defined pinouts. For example, an 8 Mbit EPROM might use a 32-pin DIP (Dual In-line Package), while a 16 Mbit DRAM uses a 24-pin package. The DRAM needs fewer pins partly because of address multiplexing, a neat design win.
 
 ### Building Bigger: Memory Modules
 
