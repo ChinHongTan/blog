@@ -1,7 +1,7 @@
 ---
 title: Artificial Neural Networks and Backpropagation
 date: 2026-04-22T19:27:42+08:00
-edited_at: 2026-04-23T16:11:02.619Z
+edited_at: 2026-04-23T17:26:37.082Z
 author: chinono
 ---
 
@@ -52,7 +52,7 @@ The artificial neuron (often called a **node**, **unit**, or **perceptron**) mir
 3. **Summation Function ($\Sigma$):** Acts as the soma, computing the weighted sum of all incoming signals.
 4. **Activation Function ($f$):** Acts as the axon, determining the final output ($Y$) based on the aggregated signal. It evaluates whether the "neuron" should fire.
 
-![0.68](https://raw.githubusercontent.com/ChinHongTan/blog/main/public/images/uploads/1776932426798-Comparison-between-biological-neuron-and-artificial-neuron-40.webp)
+![0.68](https://raw.githubusercontent.com/ChinHongTan/blog/main/public/images/uploads/1776932426798-Comparison-between-biological-neuron-and-artificial-neuron-40.webp "Biological neuron (a) vs. Artificial neuron (b)")
 
 ## 3. Neural Network Architecture and Topology
 
@@ -66,11 +66,17 @@ Networks are classified by several attributes:
 
 * **Dynamic (Recurrent/Feedback):** Network connections form directed cycles. Outputs of nodes are fed back as inputs to themselves or previous layers, allowing the network to maintain an internal state or "memory" of past inputs.
 
+![0.86](https://raw.githubusercontent.com/ChinHongTan/blog/main/public/images/uploads/1776961525934-a-Static-neuron-b-Dynamic-neuron.png "Static neural network (a) vs. Dynamic neural network (b)")
+
 ### 2. Topology
 
 * **Single-layer:** Inputs map directly to a single layer of output nodes.
 
+![0.47](https://raw.githubusercontent.com/ChinHongTan/blog/main/public/images/uploads/1776961715501-Single-layer-neural-network-22.webp)
+
 * **Multi-layer:** Contains one or more **hidden layers** between the input and output layers. This dramatically increases the representational power of the network, allowing it to learn non-linear decision boundaries.
+
+![0.63](https://raw.githubusercontent.com/ChinHongTan/blog/main/public/images/uploads/1776961728478-Multi-layer-neural-network-22.png)
 
 * **Self-organized:** Networks that autonomously organize their topology based on data patterns (often used in unsupervised learning).
 
@@ -306,8 +312,6 @@ So, if the derivative of $7y$ is $7$, then the derivative of $(3x^2)y$ is just $
 
 **Answer:** $\frac{\partial f}{\partial y} = 3x^2$
 
-<br />
-
 So the partial derivative essentially allows you to "lock" one of the axis by freezing all other variables. We can take a complex 3D graph, slice it into 2D cross-section, and do regular, easy standard derivative on that slice. A neural network can consists of billions of variables. Trying to comprehend a mathematical shape with a billion dimensions is literally impossible for a human brain.
 
 Just as an example, in a network, $\frac{\partial E}{\partial w_1}$ means: "Freeze weights 2 through 1,000,000. Only nudge weight 1. How much did the error change?"
@@ -358,6 +362,46 @@ Since $E$ depends on the output $o_k$, which depends on $net^{(2)}_k$, which in 
 $$
 \frac{\partial E}{\partial w^{(2,1)}_{k,j}} = \frac{\partial E}{\partial o_k} \cdot \frac{\partial o_k}{\partial net^{(2)}_k} \cdot \frac{\partial net^{(2)}_k}{\partial w^{(2,1)}_{k,j}}
 $$
+
+:::warning
+### Revision: Chain rule
+
+Before we proceed, I want to first make sure we know what a chain rule is, and what it does.
+
+In calculus, the Chain Rule is a formula used to find the derivative of **nested functions**, meaning a function that is sitting inside another function.
+
+A nested function looks like this: **$A( B( C(x) ) )$**
+
+* $x$ changes $C$
+* $C$ changes $B$
+* $B$ changes $A$
+
+If you want to know **"How much does** **$x$** **change** **$A$?"**, the Chain Rule says you just calculate the rate of change for each nested function individually, and then **multiply them all together.**
+:::
+
+:::info
+### Understanding the equation
+
+First, we take the weight ($w$) and multiply it by the input to calculate the **$net$** input. We are trying to find the partial derivative with respect to the **weight** (what will happen to $net$ input if we tweak weight). Thus, we freeze the input, and the $net$ input is directly affected by weight only, thus we can rewrite the function as $net(w)$.
+
+Next, we take that $net$ input and push it through the activation function to get the actual output (**$o$**). Again, the activation function is freezed here, so we can write this as $o(net)$.
+
+Finally, we compare that output ($o$) to our target to calculate the final Error (**$E$**), or $E(o)$.
+
+So, the Error is a nested function that looks like this:
+
+$$
+E\Big( o\big( net( w ) \big) \Big)
+$$
+
+If we want to know how nudging the weight ($w$) changes the Error ($E$), which is written as $\frac{\partial E}{\partial w}$, we just apply the Chain Rule! We un-nest the dolls one by one and multiply their rates of change together:
+
+1. How much does $o$ change $E$? $\rightarrow \frac{\partial E}{\partial o}$
+2. How much does $net$ change $o$? $\rightarrow \frac{\partial o}{\partial net}$
+3. How much does $w$ change $net$? $\rightarrow \frac{\partial net}{\partial w}$
+
+Multiply them together, and you get your exact blueprint equation as above.
+:::
 
 $$
 \frac{\partial E}{\partial w^{(2,1)}_{k,j}} = -2(d_k - o_k) \cdot S'\left(net^{(2)}_k\right) \cdot x^{(1)}_j
