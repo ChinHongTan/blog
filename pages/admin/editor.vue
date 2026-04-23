@@ -1,108 +1,112 @@
 <template>
 	<div class="admin-editor-page">
 		<!-- 狀態：儲存中… / 已儲存至本機 / 已同步。按鈕：儲存草稿、取消發布（僅已發布）、發布變更。 -->
-		<Teleport to="#admin-editor-nav-actions">
-			<span
-				class="admin-status-dot-wrap"
-				:class="editorStatusClass"
-				:title="editorStatusLabel"
-				aria-label="儲存狀態"
-			>
-				<Icon
-					v-if="saveStatus === 'loading' || saveStatus === 'typing'"
-					name="heroicons:arrow-path"
-					size="12"
-					class="admin-status-spinner"
-				/>
-				<span v-else class="admin-status-dot" />
-			</span>
-			<template v-if="docType === 'post'">
-				<button
-					v-if="!isPublishedPost"
-					type="button"
-					class="admin-btn admin-btn-ghost"
-					:disabled="
-						savingDraft ||
-						saving ||
-						!canEditPost ||
-						!isPostTitleValidForSave
-					"
-					:title="postTitleValidationMessage"
-					@click="saveDraftToGitHub"
+		<ClientOnly>
+			<Teleport to="#admin-editor-nav-actions">
+				<span
+					class="admin-status-dot-wrap"
+					:class="editorStatusClass"
+					:title="editorStatusLabel"
+					aria-label="儲存狀態"
 				>
-					{{ savingDraft ? "儲存中…" : "儲存草稿" }}
-				</button>
-				<button
-					v-if="isPublishedPost"
-					type="button"
-					class="admin-btn admin-btn-ghost"
-					:disabled="saving || unpublishing || !canEditPost"
-					@click="unpublish"
-				>
-					{{ unpublishing ? "處理中…" : "取消發布" }}
-				</button>
-				<button
-					v-if="showDeleteDraftButton"
-					type="button"
-					class="admin-btn admin-btn-ghost"
-					:disabled="deletingDraft || !canEditPost"
-					@click="openDeleteDraftConfirm"
-				>
-					刪除草稿
-				</button>
-				<button
-					v-if="pathQuery"
-					type="button"
-					class="admin-btn admin-btn-ghost"
-					:disabled="
-						saving ||
-						savingDraft ||
-						unpublishing ||
-						deletingDraft ||
-						revertingToGitHub ||
-						!canEditPost
-					"
-					@click="openRevertToGitHubConfirm"
-				>
-					還原 GitHub 版本
-				</button>
-				<button
-					type="button"
-					class="admin-btn admin-btn-primary"
-					:disabled="
-						saving ||
-						!canEditPost ||
-						!isPostTitleValidForSave ||
-						(isPublishedPost && !hasUnsavedChanges)
-					"
-					:title="
-						!canEditPost
-							? '您只能編輯自己的文章'
-							: postTitleValidationMessage
-					"
-					@click="publish"
-				>
-					{{ saving ? "正在同步至 GitHub…" : publishButtonLabel }}
-				</button>
-			</template>
-			<template v-else>
-				<button
-					type="button"
-					class="admin-btn admin-btn-primary"
-					:disabled="saving || !canEditPost"
-					@click="publish"
-				>
-					{{ saving ? "儲存中…" : "儲存" }}
-				</button>
-			</template>
-		</Teleport>
+					<Icon
+						v-if="saveStatus === 'loading' || saveStatus === 'typing'"
+						name="heroicons:arrow-path"
+						size="12"
+						class="admin-status-spinner"
+					/>
+					<span v-else class="admin-status-dot" />
+				</span>
+				<template v-if="docType === 'post'">
+					<button
+						v-if="!isPublishedPost"
+						type="button"
+						class="admin-btn admin-btn-ghost"
+						:disabled="
+							savingDraft ||
+							saving ||
+							!canEditPost ||
+							!isPostTitleValidForSave
+						"
+						:title="postTitleValidationMessage"
+						@click="saveDraftToGitHub"
+					>
+						{{ savingDraft ? "儲存中…" : "儲存草稿" }}
+					</button>
+					<button
+						v-if="isPublishedPost"
+						type="button"
+						class="admin-btn admin-btn-ghost"
+						:disabled="saving || unpublishing || !canEditPost"
+						@click="unpublish"
+					>
+						{{ unpublishing ? "處理中…" : "取消發布" }}
+					</button>
+					<button
+						v-if="showDeleteDraftButton"
+						type="button"
+						class="admin-btn admin-btn-ghost"
+						:disabled="deletingDraft || !canEditPost"
+						@click="openDeleteDraftConfirm"
+					>
+						刪除草稿
+					</button>
+					<button
+						v-if="pathQuery"
+						type="button"
+						class="admin-btn admin-btn-ghost"
+						:disabled="
+							saving ||
+							savingDraft ||
+							unpublishing ||
+							deletingDraft ||
+							revertingToGitHub ||
+							!canEditPost
+						"
+						@click="openRevertToGitHubConfirm"
+					>
+						還原 GitHub 版本
+					</button>
+					<button
+						type="button"
+						class="admin-btn admin-btn-primary"
+						:disabled="
+							saving ||
+							!canEditPost ||
+							!isPostTitleValidForSave ||
+							(isPublishedPost && !hasUnsavedChanges)
+						"
+						:title="
+							!canEditPost
+								? '您只能編輯自己的文章'
+								: postTitleValidationMessage
+						"
+						@click="publish"
+					>
+						{{ saving ? "正在同步至 GitHub…" : publishButtonLabel }}
+					</button>
+				</template>
+				<template v-else>
+					<button
+						type="button"
+						class="admin-btn admin-btn-primary"
+						:disabled="saving || !canEditPost"
+						@click="publish"
+					>
+						{{ saving ? "儲存中…" : "儲存" }}
+					</button>
+				</template>
+			</Teleport>
+		</ClientOnly>
 
 		<!-- Fixed toolbar in top nav (middle): icons + hover dropdowns. Only in WYSIWYG when editor ready. -->
-		<Teleport to="#admin-editor-toolbar">
-			<template v-if="showFixedToolbar">
-				<AdminEditorToolbar :api="milkdownRef" />
-			</template>
-		</Teleport>
+		<ClientOnly>
+			<Teleport to="#admin-editor-toolbar">
+				<template v-if="showFixedToolbar">
+					<AdminEditorToolbar :api="milkdownRef" />
+				</template>
+			</Teleport>
+		</ClientOnly>
 
 		<div
 			v-if="docType === 'post' && !canEditPost && pathQuery"
@@ -400,6 +404,7 @@
 								placeholder="Markdown 內容…"
 							/>
 						</div>
+						
 					</div>
 				</div>
 			</template>
@@ -547,6 +552,7 @@
 								placeholder="Markdown 內容…"
 							/>
 						</div>
+						
 					</div>
 				</div>
 			</template>
@@ -788,6 +794,7 @@ const meta = reactive({
 const body = ref("");
 const rawBody = ref("");
 const viewMode = ref<"wysiwyg" | "raw">("wysiwyg");
+
 const milkdownRef = ref<EditorToolbarApi | null>(null);
 const getMarkdownRef = ref<(() => string) | null>(null);
 /** Show fixed icon toolbar in top nav when in WYSIWYG and editor is ready. */
@@ -1900,7 +1907,9 @@ function resizeRawTextarea() {
 		);
 		const mirror = rawMirrorRef.value;
 		if (!textarea || !mirror) return;
-		mirror.style.width = `${textarea.getBoundingClientRect().width}px`;
+		const width = textarea.getBoundingClientRect().width;
+		if (width === 0) return; // Do not resize if hidden via v-show
+		mirror.style.width = `${width}px`;
 		// Trailing newline ensures a final empty line contributes height.
 		mirror.textContent = `${rawBody.value}\n`;
 		const h = Math.max(mirror.scrollHeight, 50 * 16);
@@ -2183,6 +2192,18 @@ onUnmounted(() => {
 }
 .admin-mode-btn + .admin-mode-btn {
 	border-left: 1px solid var(--color-border-light);
+}
+.admin-mode-badge {
+	display: inline-block;
+	margin-left: 4px;
+	padding: 0 6px;
+	font-size: 0.6875rem;
+	line-height: 1.5;
+	background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+	color: var(--color-primary);
+	border-radius: 999px;
+	min-width: 18px;
+	text-align: center;
 }
 .admin-properties-toggle {
 	display: flex;
@@ -3096,3 +3117,5 @@ html.dark .admin-wysiwyg-site :deep(.milkdown-table-block thead) {
 	margin-bottom: var(--space-1);
 }
 </style>
+
+

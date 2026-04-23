@@ -22,6 +22,10 @@ const rehypeSpanAttributesPlugin = new URL(
 	"./lib/markdown/rehype-span-attributes.mjs",
 	import.meta.url,
 ).href;
+const remarkCustomHtmlPlugin = new URL(
+	"./lib/markdown/remark-custom-html.mjs",
+	import.meta.url,
+).href;
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -136,6 +140,7 @@ export default defineNuxtConfig({
 					[remarkDirectiveFallbackPlugin]: {},
 					[remarkInfoBoxPlugin]: {},
 					[remarkHeadingIdPlugin]: {},
+					[remarkCustomHtmlPlugin]: {},
 					"remark-math": {},
 				},
 				rehypePlugins: {
@@ -194,12 +199,12 @@ export default defineNuxtConfig({
 			headers: {
 				"Content-Security-Policy": [
 					"default-src 'self'",
-					"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://events.vercount.one",
+					"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://events.vercount.one https://va.vercel-scripts.com",
 					"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
 					"font-src 'self' data: https://fonts.gstatic.com",
 					"img-src 'self' data: https: blob:",
 					"connect-src 'self' blob: https://waline.chinono.dev https://api.github.com https://api.iconify.design https://placehold.co https://raw.githubusercontent.com https://events.vercount.one https://unpkg.com https://vitals.vercel-insights.com",
-					"frame-src https://www.youtube.com https://www.youtube-nocookie.com",
+					"frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
 				].join("; "),
 				"X-Content-Type-Options": "nosniff",
 				"X-Frame-Options": "SAMEORIGIN",

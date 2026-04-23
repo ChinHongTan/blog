@@ -50,6 +50,11 @@ import {
   applySpanClassCommand,
   removeSpanClassCommand,
 } from "~/lib/editor/milkdown-span-class";
+import {
+  customHtmlFeature,
+  customHtmlSlashItem,
+  runInsertCustomHtml,
+} from "~/lib/editor/milkdown-custom-html";
 
 const { uploadImage } = useUploadImage();
 
@@ -85,6 +90,7 @@ export type EditorToolbarApi = {
   insertHr: () => void;
   insertCodeBlock: (language?: string) => void;
   insertMathBlock: () => void;
+  insertCustomHtmlBlock: () => void;
   applyTextColor: (className: string) => void;
   removeTextColor: (className?: string) => void;
   getActiveTextColors: () => string[];
@@ -166,6 +172,12 @@ const zhTWConfig = {
           onRun: (ctx: unknown) => item.onRun(ctx as Ctx),
         })
       );
+      const chtml = customHtmlSlashItem();
+      advanced?.addItem(chtml.id, {
+        label: chtml.label,
+        icon: chtml.icon,
+        onRun: (ctx: unknown) => chtml.onRun(ctx as Ctx),
+      });
     },
   },
 } as const;
@@ -200,6 +212,7 @@ const { loading } = useEditor((root: HTMLElement) => {
   });
   crepe.addFeature(infoBoxFeature);
   crepe.addFeature(spanClassFeature);
+  crepe.addFeature(customHtmlFeature);
   builderInstance = crepe;
   return crepe;
 });
@@ -351,6 +364,8 @@ watch(
               attrs: { language: "LaTex" },
             });
           }),
+        insertCustomHtmlBlock: () =>
+          runCommand((ctx) => runInsertCustomHtml(ctx)),
         applyTextColor: (className: string) =>
           runCommand((ctx) =>
             ctx.get(commandsCtx).call(applySpanClassCommand.key, className)

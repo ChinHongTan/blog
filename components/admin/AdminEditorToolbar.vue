@@ -122,6 +122,9 @@
         <button type="button" class="admin-toolbar-btn admin-toolbar-dropdown-icon" data-tooltip="程式碼區塊" aria-label="程式碼區塊" role="menuitem" @click="api?.insertCodeBlock?.(); openDropdown = null">
           <Icon name="heroicons:code-bracket-square" size="18" />
         </button>
+        <button type="button" class="admin-toolbar-btn admin-toolbar-dropdown-icon" data-tooltip="Custom HTML" aria-label="Custom HTML" role="menuitem" @click="api?.insertCustomHtmlBlock?.(); openDropdown = null">
+          <Icon name="heroicons:cube-transparent" size="18" />
+        </button>
         <button type="button" class="admin-toolbar-btn admin-toolbar-dropdown-icon" data-tooltip="行內程式碼" aria-label="行內程式碼" role="menuitem" @click="api?.toggleInlineCode?.(); openDropdown = null">
           <Icon name="heroicons:command-line" size="18" />
         </button>
