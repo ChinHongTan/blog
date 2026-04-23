@@ -136,21 +136,21 @@ The beauty of SRAM is that **as long as power is supplied, the flip-flop holds i
     max-width: 660px; 
     margin: 0 auto; 
     padding: 0.5rem 0; 
-    font-family: var(--font-sans, system-ui, -apple-system, sans-serif); 
+    font-family: var(--font-sans); 
   }
   .sram-nav { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
   .sram-btn { 
     padding: 6px 14px; 
-    border-radius: var(--border-radius-md, 6px); 
-    border: 1px solid var(--color-border-tertiary, #4b5563); 
+    border-radius: var(--border-radius-md); 
+    border: 1px solid var(--color-border-tertiary); 
     background: transparent; 
-    color: var(--color-text-primary, currentColor); 
+    color: var(--color-text-primary); 
     font-size: 13px; 
     cursor: pointer; 
     transition: all .2s; 
   }
   .sram-btn:hover {
-    background: var(--color-border-tertiary, #374151);
+    background: var(--color-border-tertiary);
   }
   .sram-btn.active { 
     background: #534AB7; 
@@ -160,7 +160,7 @@ The beauty of SRAM is that **as long as power is supplied, the flip-flop holds i
   .sram-desc { 
     font-size: 14px; 
     line-height: 1.65; 
-    color: var(--color-text-primary, currentColor); 
+    color: var(--color-text-primary); 
     margin-bottom: 12px; 
     min-height: 60px; 
   }
@@ -171,7 +171,7 @@ The beauty of SRAM is that **as long as power is supplied, the flip-flop holds i
   
   /* --- SVG Text Colors: Adapt to your site's Dark/Light mode! --- */
   svg text {
-    font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+    font-family: var(--font-sans);
     font-size: 12px;
   }
   .th { 
@@ -180,14 +180,14 @@ The beauty of SRAM is that **as long as power is supplied, the flip-flop holds i
   }
   .ts { 
     /* Use a solid secondary color! Do NOT use opacity here or it breaks the cutout line hiding trick! */
-    fill: var(--color-text-secondary, #9ca3af); 
+    fill: var(--color-text-secondary); 
   }
 
   /* --- The "Arrow Cutout" Trick --- */
   .bg-cutout {
     paint-order: stroke fill;
     /* Use the site's primary background color to act as an eraser */
-    stroke: var(--color-bg-primary, #0f172a); 
+    stroke: var(--color-bg-primary); 
     stroke-width: 6px;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -252,23 +252,23 @@ The beauty of SRAM is that **as long as power is supplied, the flip-flop holds i
     <text class="ts bg-cutout" x="340" y="166" text-anchor="middle" id="c2-label">C2</text>
 
     <text class="ts bg-cutout" x="250" y="290" text-anchor="middle">VDD (power)</text>
-    <line x1="250" y1="260" x2="250" y2="298" stroke="var(--color-text-tertiary, #6b7280)" stroke-width="1" stroke-dasharray="3 3"/>
+    <line x1="250" y1="260" x2="250" y2="298" stroke="var(--color-text-tertiary)" stroke-width="1" stroke-dasharray="3 3"/>
     <text class="ts bg-cutout" x="430" y="290" text-anchor="middle">VDD (power)</text>
-    <line x1="430" y1="260" x2="430" y2="298" stroke="var(--color-text-tertiary, #6b7280)" stroke-width="1" stroke-dasharray="3 3"/>
+    <line x1="430" y1="260" x2="430" y2="298" stroke="var(--color-text-tertiary)" stroke-width="1" stroke-dasharray="3 3"/>
 
     <rect id="sense-body" x="220" y="360" width="240" height="44" rx="8" stroke-width="0.5" class="node-fill"/>
     <text class="ts txt-anim" x="340" y="382" text-anchor="middle" dominant-baseline="central" id="sense-txt">Sense amplifier</text>
 
-    <line x1="108" y1="382" x2="218" y2="382" stroke="var(--color-border-secondary, #6b7280)" stroke-width="1" stroke-dasharray="3 3"/>
-    <line x1="572" y1="382" x2="462" y2="382" stroke="var(--color-border-secondary, #6b7280)" stroke-width="1" stroke-dasharray="3 3"/>
+    <line x1="108" y1="382" x2="218" y2="382" stroke="var(--color-border-secondary)" stroke-width="1" stroke-dasharray="3 3"/>
+    <line x1="572" y1="382" x2="462" y2="382" stroke="var(--color-border-secondary)" stroke-width="1" stroke-dasharray="3 3"/>
   </svg>
 </div>
 <script>
-const H = '#EF9F27', L = '#378ADD', G = 'var(--color-border-secondary, #6b7280)', OFF_FILL = 'var(--color-background-secondary, transparent)', OFF_STROKE = 'var(--color-border-tertiary, #4b5563)';
+const H = '#EF9F27', L = '#378ADD', G = 'var(--color-border-secondary)', OFF_FILL = 'var(--color-background-secondary)', OFF_STROKE = 'var(--color-border-tertiary)';
 const AMBER_FILL = '#FAEEDA', AMBER_STROKE = '#BA7517', AMBER_TXT = '#633806';
 const BLUE_FILL = '#E6F1FB', BLUE_STROKE = '#185FA5', BLUE_TXT = '#0C447C';
 const PURPLE_FILL = '#EEEDFE', PURPLE_STROKE = '#534AB7', PURPLE_TXT = '#3C3489';
-const GRAY_FILL = 'var(--color-background-secondary, transparent)', GRAY_STROKE = 'var(--color-border-secondary, #4b5563)', GRAY_TXT = 'currentColor';
+const GRAY_FILL = 'var(--color-background-secondary)', GRAY_STROKE = 'var(--color-border-secondary)', GRAY_TXT = 'currentColor';
 const TEAL_FILL = '#E1F5EE', TEAL_STROKE = '#0F6E56', TEAL_TXT = '#085041';
 
 const steps = [
@@ -465,25 +465,25 @@ Instead of using 22 address pins (11 for rows + 11 for columns), DRAM chips **mu
     max-width: 640px; 
     margin: 0 auto; 
     padding: 1rem 0; 
-    font-family: var(--font-sans, system-ui, -apple-system, sans-serif); 
+    font-family: var(--font-sans); 
   }
   .step-nav { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
   .step-btn { 
     padding: 6px 14px; 
-    border-radius: var(--border-radius-md, 6px); 
-    border: 1px solid var(--color-border-tertiary, #374151); 
-    background: var(--color-background-secondary, transparent); 
-    color: var(--color-text-secondary, #9ca3af); 
+    border-radius: var(--border-radius-md); 
+    border: 1px solid var(--color-border-tertiary); 
+    background: var(--color-background-secondary); 
+    color: var(--color-text-secondary); 
     font-size: 13px; 
     cursor: pointer; 
     transition: all .2s; 
   }
-  .step-btn:hover { background: var(--color-border-tertiary, #374151); }
+  .step-btn:hover { background: var(--color-border-tertiary); }
   .step-btn.active { background: #534AB7; color: #fff; border-color: #534AB7; }
   .step-desc { 
     font-size: 15px; 
     line-height: 1.65; 
-    color: var(--color-text-primary, currentColor); 
+    color: var(--color-text-primary); 
     margin-bottom: 16px; 
     min-height: 80px; 
   }
@@ -492,14 +492,14 @@ Instead of using 22 address pins (11 for rows + 11 for columns), DRAM chips **mu
     align-items: center; 
     gap: 8px; 
     margin: 6px 0; 
-    font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace); 
+    font-family: var(--font-mono); 
     font-size: 13px; 
   }
   .signal-label { 
     width: 110px; 
     text-align: right; 
-    color: var(--color-text-secondary, #9ca3af); 
-    font-family: var(--font-sans, system-ui, -apple-system, sans-serif); 
+    color: var(--color-text-secondary); 
+    font-family: var(--font-sans); 
     font-size: 13px; 
   }
   .pin-group { display: flex; gap: 3px; }
@@ -515,8 +515,8 @@ Instead of using 22 address pins (11 for rows + 11 for columns), DRAM chips **mu
     transition: all .3s; 
   }
   .pin-off { 
-    background: var(--color-background-tertiary, #1f2937); 
-    color: var(--color-text-tertiary, #6b7280); 
+    background: var(--color-background-tertiary); 
+    color: var(--color-text-tertiary); 
   }
   .pin-row { background: #7F77DD; color: #fff; }
   .pin-col { background: #1D9E75; color: #fff; }
@@ -535,30 +535,30 @@ Instead of using 22 address pins (11 for rows + 11 for columns), DRAM chips **mu
     transition: all .3s; 
   }
   .sig-high { 
-    background: var(--color-background-tertiary, #1f2937); 
-    color: var(--color-text-tertiary, #6b7280); 
+    background: var(--color-background-tertiary); 
+    color: var(--color-text-tertiary); 
   }
   .sig-low { background: #534AB7; color: #fff; }
   .sig-label { 
     font-size: 11px; 
-    color: var(--color-text-tertiary, #6b7280); 
+    color: var(--color-text-tertiary); 
   }
   .chip-state { 
     margin-top: 16px; 
     padding: 12px 16px; 
-    border-radius: var(--border-radius-lg, 8px); 
-    background: var(--color-background-secondary, transparent); 
-    border: 1px solid var(--color-border-tertiary, #374151); 
+    border-radius: var(--border-radius-lg); 
+    background: var(--color-background-secondary); 
+    border: 1px solid var(--color-border-tertiary); 
   }
   .chip-title { 
     font-size: 13px; 
     font-weight: 500; 
-    color: var(--color-text-secondary, #9ca3af); 
+    color: var(--color-text-secondary); 
     margin-bottom: 8px; 
   }
   .chip-detail { 
     font-size: 14px; 
-    color: var(--color-text-primary, currentColor); 
+    color: var(--color-text-primary); 
     line-height: 1.6; 
   }
   .highlight { font-weight: 500; }
@@ -734,26 +734,26 @@ A DIP (Dual In-line Package) is the physical chip you'd see on a circuit board â
 <style>
   /* Added fallbacks for Claude CSS Variables */
   .chip { display: inline-flex; flex-direction: column; align-items: center; }
-  .chip-body { position: relative; border: 1.5px solid var(--color-text-primary, currentColor); border-radius: 4px; display: flex; }
+  .chip-body { position: relative; border: 1.5px solid var(--color-text-primary); border-radius: 4px; display: flex; }
   .pin-col { display: flex; flex-direction: column; gap: 2px; padding: 4px 0; }
-  .pin { height: 14px; width: 38px; display: flex; align-items: center; font-size: 11px; font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace); }
-  .pin-l { justify-content: flex-end; padding-right: 4px; border-right: 1.5px solid var(--color-text-primary, currentColor); }
-  .pin-r { justify-content: flex-start; padding-left: 4px; border-left: 1.5px solid var(--color-text-primary, currentColor); }
+  .pin { height: 14px; width: 38px; display: flex; align-items: center; font-size: 11px; font-family: var(--font-mono); }
+  .pin-l { justify-content: flex-end; padding-right: 4px; border-right: 1.5px solid var(--color-text-primary); }
+  .pin-r { justify-content: flex-start; padding-left: 4px; border-left: 1.5px solid var(--color-text-primary); }
   .pin-addr { color: #534AB7; }
   .pin-data { color: #D85A30; }
   .pin-ctrl { color: #1D9E75; }
-  .pin-pwr { color: var(--color-text-tertiary, #6b7280); }
-  .notch { width: 20px; height: 10px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; border-bottom: 1.5px solid var(--color-text-primary, currentColor); border-left: 1.5px solid var(--color-text-primary, currentColor); border-right: 1.5px solid var(--color-text-primary, currentColor); margin: 0 auto; position: relative; top: -1px; }
-  .chip-label { font-size: 11px; color: var(--color-text-secondary, #9ca3af); writing-mode: vertical-rl; text-orientation: mixed; padding: 0 6px; display: flex; align-items: center; justify-content: center; letter-spacing: 1px; }
+  .pin-pwr { color: var(--color-text-tertiary); }
+  .notch { width: 20px; height: 10px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; border-bottom: 1.5px solid var(--color-text-primary); border-left: 1.5px solid var(--color-text-primary); border-right: 1.5px solid var(--color-text-primary); margin: 0 auto; position: relative; top: -1px; }
+  .chip-label { font-size: 11px; color: var(--color-text-secondary); writing-mode: vertical-rl; text-orientation: mixed; padding: 0 6px; display: flex; align-items: center; justify-content: center; letter-spacing: 1px; }
   .compare { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; padding: 0.5rem 0; }
   .section { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-  .section-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary, currentColor); }
-  .section-sub { font-size: 12px; color: var(--color-text-secondary, #9ca3af); text-align: center; }
+  .section-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+  .section-sub { font-size: 12px; color: var(--color-text-secondary); text-align: center; }
   .legend { display: flex; gap: 16px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
-  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--color-text-secondary, #9ca3af); }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--color-text-secondary); }
   .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
-  .tally { margin-top: 12px; padding: 10px 14px; border-radius: var(--border-radius-md, 6px); background: var(--color-background-secondary, transparent); border: 1px solid var(--color-border-tertiary, #374151); font-size: 13px; color: var(--color-text-secondary, #9ca3af); line-height: 1.6; width: 100%; max-width: 220px; }
-  .tally strong { color: var(--color-text-primary, currentColor); font-weight: 500; }
+  .tally { margin-top: 12px; padding: 10px 14px; border-radius: var(--border-radius-md); background: var(--color-background-secondary); border: 1px solid var(--color-border-tertiary); font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; width: 100%; max-width: 220px; }
+  .tally strong { color: var(--color-text-primary); font-weight: 500; }
 </style>
 <div class="compare">
   <div class="section">
@@ -860,7 +860,7 @@ A DIP (Dual In-line Package) is the physical chip you'd see on a circuit board â
   <div class="legend-item"><div class="legend-dot" style="background:#534AB7"></div>Address</div>
   <div class="legend-item"><div class="legend-dot" style="background:#D85A30"></div>Data</div>
   <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div>Control</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--color-text-tertiary, #6b7280)"></div>Power / unused</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--color-text-tertiary)"></div>Power / unused</div>
 </div>
 ```
 
@@ -880,15 +880,15 @@ For example, to build a **256 kByte module**, you can combine **eight** 1-bit RA
 <style>
   /* --- CSS to style the colored chips (MAR, Chips 0-7, MBR) --- */
   svg text {
-    font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+    font-family: var(--font-sans);
   }
   
   .th { font-weight: 500; font-size: 14px; }
-  .ts { font-size: 12px; fill: var(--color-text-secondary, #9ca3af); }
+  .ts { font-size: 12px; fill: var(--color-text-secondary); }
 
   /* Purple Box (MAR) */
   .c-purple rect { 
-    fill: var(--color-purple-bg, #3a3273); /* Dark purple */
+    fill: var(--color-purple-bg); /* Dark purple */
     stroke: #534AB7; 
     stroke-width: 1.5; 
   }
@@ -897,7 +897,7 @@ For example, to build a **256 kByte module**, you can combine **eight** 1-bit RA
 
   /* Teal Boxes (Chips 0-7) */
   .c-teal rect { 
-    fill: var(--color-teal-bg, #135d45); /* Dark teal */
+    fill: var(--color-teal-bg); /* Dark teal */
     stroke: #1D9E75; 
     stroke-width: 1.5; 
   }
@@ -906,7 +906,7 @@ For example, to build a **256 kByte module**, you can combine **eight** 1-bit RA
 
   /* Coral Box (MBR) */
   .c-coral rect { 
-    fill: var(--color-coral-bg, #8a3415); /* Dark coral */
+    fill: var(--color-coral-bg); /* Dark coral */
     stroke: #D85A30; 
     stroke-width: 1.5; 
   }

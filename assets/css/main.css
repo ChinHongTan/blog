@@ -1,3 +1,17 @@
+/* Claude Artifacts Compatibility Layer */
+:root {
+  --color-background-primary: var(--color-bg-primary);
+  --color-background-secondary: var(--color-bg-secondary);
+  --color-background-tertiary: var(--color-bg-tertiary);
+  --color-border-primary: var(--color-border-medium);
+  --color-border-secondary: var(--color-border-light);
+  --color-border-tertiary: color-mix(in srgb, var(--color-border-light) 70%, transparent);
+  --border-radius-sm: 4px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 8px;
+  --font-sans: system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
 /* Google Fonts loaded via nuxt.config.ts app.head.link for non-blocking performance */
 
 /* CSS Variables for Light Theme */
