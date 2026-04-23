@@ -1,7 +1,7 @@
 ---
 title: "Internal Memory: How Your Computer Remembers Things"
 date: 2026-04-19T11:38
-edited_at: 2026-04-21T15:24:25.103Z
+edited_at: 2026-04-23T03:18:23.357Z
 author: chinono
 path: /blog/Internal-Memory-How-Your-Computer-Remembers-Things
 ---
@@ -128,47 +128,281 @@ The beauty of SRAM is that **as long as power is supplied, the flip-flop holds i
 :::info
 ### Additional Explaination
 
-### **1. The Core: The Flip-Flop (T₁, T₂, T₃, T₄)**
+```custom-html
+<h2 class="sr-only">Interactive SRAM cell showing how cross-coupled inverters store a bit, with step-through for idle, write, and read operations.</h2>
+<style>
+  /* Base wrapper styles */
+  .sram-wrap { 
+    max-width: 660px; 
+    margin: 0 auto; 
+    padding: 0.5rem 0; 
+    font-family: var(--font-sans, system-ui, -apple-system, sans-serif); 
+  }
+  .sram-nav { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .sram-btn { 
+    padding: 6px 14px; 
+    border-radius: var(--border-radius-md, 6px); 
+    border: 1px solid var(--color-border-tertiary, #4b5563); 
+    background: transparent; 
+    color: var(--color-text-primary, currentColor); 
+    font-size: 13px; 
+    cursor: pointer; 
+    transition: all .2s; 
+  }
+  .sram-btn:hover {
+    background: var(--color-border-tertiary, #374151);
+  }
+  .sram-btn.active { 
+    background: #534AB7; 
+    color: #fff; 
+    border-color: #534AB7; 
+  }
+  .sram-desc { 
+    font-size: 14px; 
+    line-height: 1.65; 
+    color: var(--color-text-primary, currentColor); 
+    margin-bottom: 12px; 
+    min-height: 60px; 
+  }
 
-This is where the data actually lives. These four transistors are wired together to create two "inverters." An inverter is a simple logic gate: whatever signal goes in, the exact opposite comes out (a 1 becomes a 0, and a 0 becomes a 1).
+  .wire { transition: stroke .4s, opacity .4s; }
+  .node-fill { transition: fill .4s; }
+  .txt-anim { transition: fill .4s; }
+  
+  /* --- SVG Text Colors: Adapt to your site's Dark/Light mode! --- */
+  svg text {
+    font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+    font-size: 12px;
+  }
+  .th { 
+    font-weight: bold; 
+    fill: currentColor; 
+  }
+  .ts { 
+    /* Use a solid secondary color! Do NOT use opacity here or it breaks the cutout line hiding trick! */
+    fill: var(--color-text-secondary, #9ca3af); 
+  }
 
-In SRAM, these two inverters are **cross-coupled**, meaning the output of the first is plugged into the input of the second, and the output of the second is plugged into the input of the first.
+  /* --- The "Arrow Cutout" Trick --- */
+  .bg-cutout {
+    paint-order: stroke fill;
+    /* Use the site's primary background color to act as an eraser */
+    stroke: var(--color-bg-primary, #0f172a); 
+    stroke-width: 6px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 1 !important; /* Ensure it stays completely opaque */
+  }
+  
+  @media (prefers-reduced-motion: reduce) { 
+    .wire, .node-fill, .txt-anim { transition: none; } 
+  }
+</style>
+<div class="sram-wrap">
+  <div class="sram-nav" id="nav"></div>
+  <div class="sram-desc" id="desc"></div>
+  <svg width="100%" viewBox="0 0 680 420" role="img">
+    <title>SRAM cell circuit</title>
+    <desc>Cross-coupled inverters with access transistors and bit lines</desc>
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
 
-**The Analogy:** Imagine two people, Alice and Bob, locked in a room.
+    <text class="ts" x="340" y="24" text-anchor="middle" id="addr-label">Address line</text>
+    <line id="addr-line" x1="40" y1="40" x2="640" y2="40" stroke-width="2.5" stroke-linecap="round" class="wire"/>
 
-* Alice’s only rule is: "I must shout the exact opposite of whatever Bob shouts."
+    <text class="ts" x="108" y="18" text-anchor="middle">Bit line B</text>
+    <line id="bl-top" x1="108" y1="28" x2="108" y2="72" stroke-width="2" stroke-linecap="round" class="wire"/>
+    <line id="bl-bot" x1="108" y1="120" x2="108" y2="400" stroke-width="2" stroke-linecap="round" class="wire"/>
 
-* Bob’s only rule is: "I must shout the exact opposite of whatever Alice shouts."
+    <text class="ts" x="572" y="18" text-anchor="middle">Bit line B-bar</text>
+    <line id="br-top" x1="572" y1="28" x2="572" y2="72" stroke-width="2" stroke-linecap="round" class="wire"/>
+    <line id="br-bot" x1="572" y1="120" x2="572" y2="400" stroke-width="2" stroke-linecap="round" class="wire"/>
 
-If Alice shouts "YES" (1), Bob hears it and immediately shouts "NO" (0). Alice hears Bob's "NO" and uses it to justify continuing to shout "YES".
+    <rect id="t5-body" x="80" y="72" width="56" height="48" rx="6" stroke-width="0.5" class="node-fill"/>
+    <text class="ts txt-anim" x="108" y="92" text-anchor="middle" dominant-baseline="central" id="t5-txt">T5</text>
+    <text class="ts" x="108" y="108" text-anchor="middle" dominant-baseline="central" id="t5-state"></text>
 
-They will hold this exact state forever, without needing any outside help, as long as they are awake (connected to power). This self-reinforcing loop is what makes SRAM **static**. It does not need to be refreshed because the circuit actively holds itself in place. Points **C₁** and **C₂** from your text represent what Alice and Bob are currently shouting.
+    <rect id="t6-body" x="544" y="72" width="56" height="48" rx="6" stroke-width="0.5" class="node-fill"/>
+    <text class="ts txt-anim" x="572" y="92" text-anchor="middle" dominant-baseline="central" id="t6-txt">T6</text>
+    <text class="ts" x="572" y="108" text-anchor="middle" dominant-baseline="central" id="t6-state"></text>
 
-### **2. The Doors: The Access Transistors (T₅ and T₆)**
+    <line id="t5-to-inv1" x1="108" y1="120" x2="108" y2="180" stroke-width="1.5" stroke-linecap="round" class="wire"/>
+    <path d="M108 180 L220 180" fill="none" stroke-width="1.5" stroke-linecap="round" class="wire" id="t5-conn"/>
 
-If T₁ through T₄ are Alice and Bob locked in a room, T₅ and T₆ are two separate doors leading into that room.
+    <line id="t6-to-inv2" x1="572" y1="120" x2="572" y2="180" stroke-width="1.5" stroke-linecap="round" class="wire"/>
+    <path d="M572 180 L460 180" fill="none" stroke-width="1.5" stroke-linecap="round" class="wire" id="t6-conn"/>
 
-* They are both controlled by the **Address Line** (the horizontal wire that selects the row).
+    <rect id="inv1-body" x="190" y="160" width="120" height="100" rx="10" stroke-width="0.5" class="node-fill"/>
+    <text class="th txt-anim" x="250" y="195" text-anchor="middle" dominant-baseline="central" id="inv1-title">Inverter A</text>
+    <text class="ts txt-anim" x="250" y="215" text-anchor="middle" dominant-baseline="central" id="inv1-sub">(T1 + T3)</text>
+    <text class="th txt-anim" x="250" y="245" text-anchor="middle" dominant-baseline="central" id="inv1-out"></text>
 
-* When the Address Line is activated, both doors open simultaneously.
+    <rect id="inv2-body" x="370" y="160" width="120" height="100" rx="10" stroke-width="0.5" class="node-fill"/>
+    <text class="th txt-anim" x="430" y="195" text-anchor="middle" dominant-baseline="central" id="inv2-title">Inverter B</text>
+    <text class="ts txt-anim" x="430" y="215" text-anchor="middle" dominant-baseline="central" id="inv2-sub">(T2 + T4)</text>
+    <text class="th txt-anim" x="430" y="245" text-anchor="middle" dominant-baseline="central" id="inv2-out"></text>
 
-### **3. The Pathways: The Bit Lines (B and B̄)**
+    <path id="cross1" d="M310 200 C340 200, 340 230, 370 230" fill="none" stroke-width="1.5" marker-end="url(#arrow)" class="wire"/>
+    <text class="ts bg-cutout" x="340" y="190" text-anchor="middle" id="c1-label">C1</text>
 
-Notice that SRAM uses *two* bit lines for a single cell: **B** and **B̄** (pronounced "B-bar" or "B-complement").
+    <path id="cross2" d="M370 200 C340 200, 340 170, 310 170" fill="none" stroke-width="1.5" marker-end="url(#arrow)" class="wire"/>
+    <text class="ts bg-cutout" x="340" y="166" text-anchor="middle" id="c2-label">C2</text>
 
-* **B** carries the actual data (e.g., a 1).
+    <text class="ts bg-cutout" x="250" y="290" text-anchor="middle">VDD (power)</text>
+    <line x1="250" y1="260" x2="250" y2="298" stroke="var(--color-text-tertiary, #6b7280)" stroke-width="1" stroke-dasharray="3 3"/>
+    <text class="ts bg-cutout" x="430" y="290" text-anchor="middle">VDD (power)</text>
+    <line x1="430" y1="260" x2="430" y2="298" stroke="var(--color-text-tertiary, #6b7280)" stroke-width="1" stroke-dasharray="3 3"/>
 
-* **B̄** always carries the exact opposite (e.g., a 0).
+    <rect id="sense-body" x="220" y="360" width="240" height="44" rx="8" stroke-width="0.5" class="node-fill"/>
+    <text class="ts txt-anim" x="340" y="382" text-anchor="middle" dominant-baseline="central" id="sense-txt">Sense amplifier</text>
 
-We use two lines because the internal loop (Alice and Bob) is very stubborn. To read or write quickly and reliably, we need to interact with both sides of the loop at the same time.
+    <line x1="108" y1="382" x2="218" y2="382" stroke="var(--color-border-secondary, #6b7280)" stroke-width="1" stroke-dasharray="3 3"/>
+    <line x1="572" y1="382" x2="462" y2="382" stroke="var(--color-border-secondary, #6b7280)" stroke-width="1" stroke-dasharray="3 3"/>
+  </svg>
+</div>
+<script>
+const H = '#EF9F27', L = '#378ADD', G = 'var(--color-border-secondary, #6b7280)', OFF_FILL = 'var(--color-background-secondary, transparent)', OFF_STROKE = 'var(--color-border-tertiary, #4b5563)';
+const AMBER_FILL = '#FAEEDA', AMBER_STROKE = '#BA7517', AMBER_TXT = '#633806';
+const BLUE_FILL = '#E6F1FB', BLUE_STROKE = '#185FA5', BLUE_TXT = '#0C447C';
+const PURPLE_FILL = '#EEEDFE', PURPLE_STROKE = '#534AB7', PURPLE_TXT = '#3C3489';
+const GRAY_FILL = 'var(--color-background-secondary, transparent)', GRAY_STROKE = 'var(--color-border-secondary, #4b5563)', GRAY_TXT = 'currentColor';
+const TEAL_FILL = '#E1F5EE', TEAL_STROKE = '#0F6E56', TEAL_TXT = '#085041';
 
-### **How Reading and Writing Works**
+const steps = [
+  {
+    title: "Storing a 1",
+    desc: "The cell is holding a <strong>1</strong>. Inverter A outputs HIGH (C1 = 1), which feeds into Inverter B. Inverter B does its job — inverts it — and outputs LOW (C2 = 0). That LOW feeds back into Inverter A, which inverts it to HIGH. The loop sustains itself forever, no refresh needed. The access transistors (T5, T6) are closed — the address line is off, so the cell is isolated from the bit lines.",
+    addr: G, addrW: 1.5,
+    bl: G, br: G,
+    t5: { fill: GRAY_FILL, stroke: GRAY_STROKE, txt: GRAY_TXT, label: 'T5', state: 'closed' },
+    t6: { fill: GRAY_FILL, stroke: GRAY_STROKE, txt: GRAY_TXT, label: 'T6', state: 'closed' },
+    inv1: { fill: AMBER_FILL, stroke: AMBER_STROKE, txt: AMBER_TXT, out: 'OUT: 1 (HIGH)' },
+    inv2: { fill: BLUE_FILL, stroke: BLUE_STROKE, txt: BLUE_TXT, out: 'OUT: 0 (LOW)' },
+    cross1: H, cross2: L,
+    t5conn: G, t6conn: G,
+    sense: { fill: GRAY_FILL, stroke: GRAY_STROKE, txt: GRAY_TXT, label: 'Sense amplifier (idle)' }
+  },
+  {
+    title: "Storing a 0",
+    desc: "Now the cell holds a <strong>0</strong>. Everything flips: Inverter A outputs LOW (C1 = 0), Inverter B outputs HIGH (C2 = 1). The feedback loop holds this state just as stubbornly. Same circuit, opposite stable state. Still no refresh needed — the cross-coupled inverters actively hold the value.",
+    addr: G, addrW: 1.5,
+    bl: G, br: G,
+    t5: { fill: GRAY_FILL, stroke: GRAY_STROKE, txt: GRAY_TXT, label: 'T5', state: 'closed' },
+    t6: { fill: GRAY_FILL, stroke: GRAY_STROKE, txt: GRAY_TXT, label: 'T6', state: 'closed' },
+    inv1: { fill: BLUE_FILL, stroke: BLUE_STROKE, txt: BLUE_TXT, out: 'OUT: 0 (LOW)' },
+    inv2: { fill: AMBER_FILL, stroke: AMBER_STROKE, txt: AMBER_TXT, out: 'OUT: 1 (HIGH)' },
+    cross1: L, cross2: H,
+    t5conn: G, t6conn: G,
+    sense: { fill: GRAY_FILL, stroke: GRAY_STROKE, txt: GRAY_TXT, label: 'Sense amplifier (idle)' }
+  },
+  {
+    title: "Writing a 1",
+    desc: "To write a <strong>1</strong>, the controller forces bit line B to HIGH and B-bar to LOW, then activates the address line. This opens both doors (T5 and T6). The strong external signals flood into the inverters and overpower whatever state they were in, forcing C1 = HIGH and C2 = LOW. When the address line deactivates, the doors close — and the loop now holds the new value on its own.",
+    addr: PURPLE_STROKE, addrW: 3,
+    bl: H, br: L,
+    t5: { fill: PURPLE_FILL, stroke: PURPLE_STROKE, txt: PURPLE_TXT, label: 'T5', state: 'OPEN' },
+    t6: { fill: PURPLE_FILL, stroke: PURPLE_STROKE, txt: PURPLE_TXT, label: 'T6', state: 'OPEN' },
+    inv1: { fill: AMBER_FILL, stroke: AMBER_STROKE, txt: AMBER_TXT, out: 'OUT: 1 (HIGH)' },
+    inv2: { fill: BLUE_FILL, stroke: BLUE_STROKE, txt: BLUE_TXT, out: 'OUT: 0 (LOW)' },
+    cross1: H, cross2: L,
+    t5conn: H, t6conn: L,
+    sense: { fill: GRAY_FILL, stroke: GRAY_STROKE, txt: GRAY_TXT, label: 'Sense amplifier (idle)' }
+  },
+  {
+    title: "Reading",
+    desc: "To read, both bit lines are pre-charged to a neutral voltage. Then the address line activates, opening T5 and T6. The powered flip-flop pushes its internal voltages outward — B gets pulled slightly toward C1's value, B-bar toward C2's. The sense amplifier detects which line went up and which went down. <strong>Reading is non-destructive</strong> — the flip-flop keeps driving its state the whole time, unlike DRAM where reading drains the capacitor.",
+    addr: PURPLE_STROKE, addrW: 3,
+    bl: H, br: L,
+    t5: { fill: PURPLE_FILL, stroke: PURPLE_STROKE, txt: PURPLE_TXT, label: 'T5', state: 'OPEN' },
+    t6: { fill: PURPLE_FILL, stroke: PURPLE_STROKE, txt: PURPLE_TXT, label: 'T6', state: 'OPEN' },
+    inv1: { fill: AMBER_FILL, stroke: AMBER_STROKE, txt: AMBER_TXT, out: 'OUT: 1 (HIGH)' },
+    inv2: { fill: BLUE_FILL, stroke: BLUE_STROKE, txt: BLUE_TXT, out: 'OUT: 0 (LOW)' },
+    cross1: H, cross2: L,
+    t5conn: H, t6conn: L,
+    sense: { fill: TEAL_FILL, stroke: TEAL_STROKE, txt: TEAL_TXT, label: 'Detected: 1' }
+  }
+];
 
-* **Writing (Forcing a change):** Let's say the cell is currently storing a 0, but you want to write a 1. The memory controller sends a strong "1" signal down the **B** line, and a strong "0" signal down the **B̄** line. Then, it activates the Address Line, opening the doors (T₅ and T₆). The powerful signals from the outside flood into the room, overpower Alice and Bob, and force them to flip their stances. Once the doors close, the loop stabilizes in its new state.
+const nav = document.getElementById('nav');
+const desc = document.getElementById('desc');
 
-* **Reading (A non-destructive look):** The controller pre-charges both the **B** and **B̄** lines to a neutral, middle voltage. Then it activates the Address Line to open the doors (T₅ and T₆). Because the internal loop is actively powered, it pushes its internal voltages out through the doors onto the bit lines. The Sense Amplifiers at the bottom of the bit lines detect which line went slightly up and which went slightly down to figure out if it's a 1 or a 0.
+steps.forEach((s, i) => {
+  const b = document.createElement('button');
+  b.className = 'sram-btn';
+  b.textContent = s.title;
+  b.onclick = () => show(i);
+  nav.appendChild(b);
+});
 
-Most importantly: **reading does not destroy the data.** Because the flip-flop is constantly connected to the main power supply, looking at its state doesn't drain it the way reading a DRAM capacitor does.
+function setFill(id, fill, stroke) {
+  const el = document.getElementById(id);
+  el.style.fill = fill;
+  el.style.stroke = stroke;
+}
+function setStroke(id, color) {
+  document.getElementById(id).style.stroke = color;
+}
+function setTxt(id, val, color) {
+  const el = document.getElementById(id);
+  if (val) el.textContent = val;
+  if (color) el.style.fill = color;
+}
+
+function show(i) {
+  const s = steps[i];
+  nav.querySelectorAll('.sram-btn').forEach((b,j) => b.classList.toggle('active', j===i));
+  desc.innerHTML = s.desc;
+
+  setStroke('addr-line', s.addr);
+  document.getElementById('addr-line').style.strokeWidth = s.addrW + 'px';
+
+  setStroke('bl-top', s.bl); setStroke('bl-bot', s.bl);
+  setStroke('br-top', s.br); setStroke('br-bot', s.br);
+
+  setFill('t5-body', s.t5.fill, s.t5.stroke);
+  setTxt('t5-txt', s.t5.label, s.t5.txt);
+  setTxt('t5-state', s.t5.state, s.t5.txt);
+  setFill('t6-body', s.t6.fill, s.t6.stroke);
+  setTxt('t6-txt', s.t6.label, s.t6.txt);
+  setTxt('t6-state', s.t6.state, s.t6.txt);
+
+  setFill('inv1-body', s.inv1.fill, s.inv1.stroke);
+  setTxt('inv1-title', 'Inverter A', s.inv1.txt);
+  
+  // Dynamically color the subtitles so they pop off their backgrounds!
+  setTxt('inv1-sub', '(T1 + T3)', s.inv1.txt);
+  document.getElementById('inv1-sub').style.opacity = '0.65'; 
+  setTxt('inv1-out', s.inv1.out, s.inv1.txt);
+  
+  setFill('inv2-body', s.inv2.fill, s.inv2.stroke);
+  setTxt('inv2-title', 'Inverter B', s.inv2.txt);
+  
+  // Dynamically color the subtitles so they pop off their backgrounds!
+  setTxt('inv2-sub', '(T2 + T4)', s.inv2.txt);
+  document.getElementById('inv2-sub').style.opacity = '0.65';
+  setTxt('inv2-out', s.inv2.out, s.inv2.txt);
+
+  setStroke('cross1', s.cross1);
+  setStroke('cross2', s.cross2);
+  setStroke('t5-conn', s.t5conn);
+  setStroke('t5-to-inv1', s.t5conn);
+  setStroke('t6-conn', s.t6conn);
+  setStroke('t6-to-inv2', s.t6conn);
+
+  setFill('sense-body', s.sense.fill, s.sense.stroke);
+  setTxt('sense-txt', s.sense.label, s.sense.txt);
+}
+
+show(0);
+</script>
+```
+
+The core insight is that the two inverters create a self-sustaining loop. Each one's output justifies the other's output, so the state holds itself in place with zero outside help. That's the entire reason SRAM doesn't need refresh. DRAM stores a charge on a passive capacitor that slowly leaks. SRAM stores a logical state in an active circuit that continuously reinforces itself.
+
+The price you pay is those 6 transistors per bit (versus DRAM's 1 transistor + 1 capacitor). That's why SRAM is faster but far more expensive per bit — and why it's reserved for small, speed-critical caches while DRAM handles the bulk storage.
 :::
 
 ### SRAM vs. DRAM — A Quick Comparison
