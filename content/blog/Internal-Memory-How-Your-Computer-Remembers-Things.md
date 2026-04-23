@@ -1,7 +1,7 @@
 ---
 title: "Internal Memory: How Your Computer Remembers Things"
 date: 2026-04-19T11:38
-edited_at: 2026-04-23T03:18:23.357Z
+edited_at: 2026-04-23T03:51:56.979Z
 author: chinono
 path: /blog/Internal-Memory-How-Your-Computer-Remembers-Things
 ---
@@ -126,7 +126,7 @@ SRAM takes a completely different approach. Instead of a capacitor, it stores ea
 The beauty of SRAM is that **as long as power is supplied, the flip-flop holds its state indefinitely** — no refresh needed. To write, you apply the desired value to bit line B and its complement to B̄, then activate the address line. To read, the value simply appears on bit line B when the address line is activated.
 
 :::info
-### Additional Explaination
+### Visualisation
 
 ```custom-html
 <h2 class="sr-only">Interactive SRAM cell showing how cross-coupled inverters store a bit, with step-through for idle, write, and read operations.</h2>
@@ -449,11 +449,262 @@ Let's look at how a real DRAM chip is organised internally, using a **16 Mbit DR
 **"4M × 4"** means there are **4 million individual lockers** (locations), and every time you open one locker, you put in or take out exactly **4 bits** of data at once.
 :::
 
-The memory array is physically laid out as a **2048 × 2048 × 4** grid. But 2048 rows × 2048 columns × 4 bits = 16,777,216 bits = 16 Mbit. To address 2048 rows, you need 11 address lines (since 2¹¹ = 2048).
+The memory array is physically laid out as a **2048 × 2048 × 4** grid. But 2048 rows × 2048 columns × 4 bits = 16,777,216 bits = 16 Mbit. To address 2048 rows, you need 11 address lines (since $2¹¹$ = 2048).
 
 **The clever trick — address multiplexing:**
 
 Instead of using 22 address pins (11 for rows + 11 for columns), DRAM chips **multiplex** the address: they send the row address and column address *over the same pins at different times*. First, the row address is sent and latched with the **RAS (Row Address Strobe)** signal. Then the column address is sent and latched with the **CAS (Column Address Strobe)** signal. This cuts the pin count roughly in half — a huge deal for chip packaging.
+
+:::info
+### Visualisation
+
+```custom-html
+<style>
+  /* Added fallbacks for Claude CSS Variables */
+  .step-container { 
+    max-width: 640px; 
+    margin: 0 auto; 
+    padding: 1rem 0; 
+    font-family: var(--font-sans, system-ui, -apple-system, sans-serif); 
+  }
+  .step-nav { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .step-btn { 
+    padding: 6px 14px; 
+    border-radius: var(--border-radius-md, 6px); 
+    border: 1px solid var(--color-border-tertiary, #374151); 
+    background: var(--color-background-secondary, transparent); 
+    color: var(--color-text-secondary, #9ca3af); 
+    font-size: 13px; 
+    cursor: pointer; 
+    transition: all .2s; 
+  }
+  .step-btn:hover { background: var(--color-border-tertiary, #374151); }
+  .step-btn.active { background: #534AB7; color: #fff; border-color: #534AB7; }
+  .step-desc { 
+    font-size: 15px; 
+    line-height: 1.65; 
+    color: var(--color-text-primary, currentColor); 
+    margin-bottom: 16px; 
+    min-height: 80px; 
+  }
+  .signal-row { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    margin: 6px 0; 
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace); 
+    font-size: 13px; 
+  }
+  .signal-label { 
+    width: 110px; 
+    text-align: right; 
+    color: var(--color-text-secondary, #9ca3af); 
+    font-family: var(--font-sans, system-ui, -apple-system, sans-serif); 
+    font-size: 13px; 
+  }
+  .pin-group { display: flex; gap: 3px; }
+  .pin { 
+    width: 22px; 
+    height: 26px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    border-radius: 4px; 
+    font-size: 12px; 
+    font-weight: 500; 
+    transition: all .3s; 
+  }
+  .pin-off { 
+    background: var(--color-background-tertiary, #1f2937); 
+    color: var(--color-text-tertiary, #6b7280); 
+  }
+  .pin-row { background: #7F77DD; color: #fff; }
+  .pin-col { background: #1D9E75; color: #fff; }
+  .pin-data { background: #D85A30; color: #fff; }
+  .signal-line { display: flex; align-items: center; gap: 4px; }
+  .sig-block { 
+    height: 24px; 
+    border-radius: 3px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 11px; 
+    font-weight: 500; 
+    min-width: 60px; 
+    padding: 0 8px; 
+    transition: all .3s; 
+  }
+  .sig-high { 
+    background: var(--color-background-tertiary, #1f2937); 
+    color: var(--color-text-tertiary, #6b7280); 
+  }
+  .sig-low { background: #534AB7; color: #fff; }
+  .sig-label { 
+    font-size: 11px; 
+    color: var(--color-text-tertiary, #6b7280); 
+  }
+  .chip-state { 
+    margin-top: 16px; 
+    padding: 12px 16px; 
+    border-radius: var(--border-radius-lg, 8px); 
+    background: var(--color-background-secondary, transparent); 
+    border: 1px solid var(--color-border-tertiary, #374151); 
+  }
+  .chip-title { 
+    font-size: 13px; 
+    font-weight: 500; 
+    color: var(--color-text-secondary, #9ca3af); 
+    margin-bottom: 8px; 
+  }
+  .chip-detail { 
+    font-size: 14px; 
+    color: var(--color-text-primary, currentColor); 
+    line-height: 1.6; 
+  }
+  .highlight { font-weight: 500; }
+  .h-purple { color: #7F77DD; }
+  .h-teal { color: #1D9E75; }
+  .h-coral { color: #D85A30; }
+</style>
+
+<div class="step-container">
+  <div class="step-nav" id="nav"></div>
+  <div class="step-desc" id="desc"></div>
+  <div id="signals"></div>
+  <div class="chip-state">
+    <div class="chip-title">Inside the chip</div>
+    <div class="chip-detail" id="chip"></div>
+  </div>
+</div>
+<script>
+const steps = [
+  {
+    title: "1. Idle",
+    desc: "Nothing is happening. The 11 address pins are idle. RAS and CAS are both HIGH (inactive — they're active-low signals, meaning they trigger when pulled LOW). The data pins are floating.",
+    pins: [0,0,0,0,0,0,0,0,0,0,0],
+    pinStyle: "off",
+    ras: "high", cas: "high",
+    chip: "All row and column decoders are inactive. The memory array is dormant, waiting for a command."
+  },
+  {
+    title: "2. Row address placed",
+    desc: "The memory controller puts the <span class='h-purple highlight'>row address</span> (e.g. row 1042 = 10000010010 in binary) onto the 11 address pins. The pins now carry the binary digits of the row number. But the chip hasn't read them yet — it's waiting for the signal.",
+    pins: [1,0,0,0,0,0,1,0,0,1,0],
+    pinStyle: "row",
+    ras: "high", cas: "high",
+    chip: "The address pins have voltages on them representing row 1042, but the chip's row latch hasn't captured them yet. Think of it like someone holding up a sign — the chip hasn't looked yet."
+  },
+  {
+    title: "3. RAS goes LOW",
+    desc: "The memory controller pulls <span class='h-purple highlight'>RAS low</span>. This is the \"look now!\" signal. The chip reads the 11 address pins and <strong>latches</strong> (saves internally) the value as the row address. The row decoder activates row 1042, connecting all 2048 cells in that row to the sense amplifiers.",
+    pins: [1,0,0,0,0,0,1,0,0,1,0],
+    pinStyle: "row",
+    ras: "low", cas: "high",
+    chip: "Row latch captured: <span class='h-purple'>row 1042</span>. The entire row of 2048 capacitors is now dumping their tiny charges into the sense amplifiers, which boost them to readable voltage levels. This takes time — it's the biggest delay in a DRAM read."
+  },
+  {
+    title: "4. Column address placed",
+    desc: "Now the memory controller <strong>changes</strong> the values on the <em>same 11 pins</em> to the <span class='h-teal highlight'>column address</span> (e.g. column 817 = 01100110001). The row address is safe — it was already latched inside the chip in step 3.",
+    pins: [0,1,1,0,0,1,1,0,0,0,1],
+    pinStyle: "col",
+    ras: "low", cas: "high",
+    chip: "Row 1042 is still active (held by the latch). All 2048 cells in that row have been amplified. The address pins now show a new number, but the chip hasn't read it yet."
+  },
+  {
+    title: "5. CAS goes LOW",
+    desc: "The memory controller pulls <span class='h-teal highlight'>CAS low</span> — \"read the column now!\" The chip latches the column address, and the column decoder selects column 817 from the already-active row. The 4 bits at [row 1042, col 817] are routed to the output buffers.",
+    pins: [0,1,1,0,0,1,1,0,0,0,1],
+    pinStyle: "col",
+    ras: "low", cas: "low",
+    chip: "Column latch captured: <span class='h-teal'>column 817</span>. The column decoder picks 4 bits from the 2048 amplified cells. Those 4 bits are driven onto the data output pins."
+  },
+  {
+    title: "6. Data appears",
+    desc: "The 4 data bits (e.g. <span class='h-coral highlight'>1011</span>) appear on the data output pins. The memory controller reads them. The full read is complete — the CPU gets its 4 bits of data.",
+    pins: [0,1,1,0,0,1,1,0,0,0,1],
+    pinStyle: "col",
+    ras: "low", cas: "low",
+    data: [1,0,1,1],
+    chip: "Data output buffers are driving <span class='h-coral'>1011</span> onto the 4 data pins. The memory controller captures these bits and forwards them to the CPU. Total time: ~60–70 nanoseconds for older DRAM."
+  },
+  {
+    title: "7. Precharge",
+    desc: "RAS and CAS return HIGH. The chip deactivates the row, recharges the sense amplifiers, and gets ready for the next access. Reading a capacitor is destructive — the charge leaked out during sensing — so the sense amplifiers also <strong>write the data back</strong> into the row.",
+    pins: [0,0,0,0,0,0,0,0,0,0,0],
+    pinStyle: "off",
+    ras: "high", cas: "high",
+    chip: "The sense amplifiers restore the charge in all 2048 cells of row 1042 (read is destructive, so this is essential). The chip returns to idle, ready for the next row+column cycle."
+  }
+];
+
+const nav = document.getElementById('nav');
+const desc = document.getElementById('desc');
+const signals = document.getElementById('signals');
+const chip = document.getElementById('chip');
+let current = 0;
+
+steps.forEach((s, i) => {
+  const b = document.createElement('button');
+  b.className = 'step-btn';
+  b.textContent = s.title;
+  b.onclick = () => show(i);
+  nav.appendChild(b);
+});
+
+function show(i) {
+  current = i;
+  const s = steps[i];
+  nav.querySelectorAll('.step-btn').forEach((b,j) => b.classList.toggle('active', j===i));
+  desc.innerHTML = s.desc;
+  chip.innerHTML = s.chip;
+
+  let html = '';
+  html += '<div class="signal-row"><span class="signal-label">Address pins</span><div class="pin-group">';
+  s.pins.forEach((v,j) => {
+    const cls = s.pinStyle === 'off' ? 'pin-off' : s.pinStyle === 'row' ? 'pin-row' : 'pin-col';
+    html += `<div class="pin ${cls}">${s.pinStyle==='off'?'—':v}</div>`;
+  });
+  html += '</div></div>';
+
+  html += '<div class="signal-row"><span class="signal-label">RAS signal</span>';
+  html += `<div class="sig-block ${s.ras==='high'?'sig-high':'sig-low'}">${s.ras==='high'?'HIGH (idle)':'LOW (active!)'}</div>`;
+  html += '</div>';
+
+  html += '<div class="signal-row"><span class="signal-label">CAS signal</span>';
+  html += `<div class="sig-block ${s.cas==='high'?'sig-high':'sig-low'}">${s.cas==='high'?'HIGH (idle)':'LOW (active!)'}</div>`;
+  html += '</div>';
+
+  if (s.data) {
+    html += '<div class="signal-row"><span class="signal-label">Data out</span><div class="pin-group">';
+    s.data.forEach(v => { html += `<div class="pin pin-data">${v}</div>`; });
+    html += '</div></div>';
+  }
+
+  signals.innerHTML = html;
+}
+
+show(0);
+</script>
+```
+
+**What multiplexing actually does**
+
+Instead of 22 pins carrying row and column simultaneously, you use just 11 pins and send the address in two steps over those same wires. It's like having a single mailbox slot: first you slide in a card that says "row 1,042", then you slide in a second card that says "column 817." The chip remembers the first card while reading the second.
+
+**What RAS and CAS actually are**
+
+The chip needs to know *when* each card arrives. That's what RAS and CAS signals do — they're timing signals (active-low pulses on dedicated pins) that say "read the address pins NOW."
+
+RAS (Row Address Strobe): "The number on the address pins right now is the **row** address — latch it." The chip captures those 11 bits and stores them in an internal register.
+
+CAS (Column Address Strobe): "The number on the address pins right now is the **column** address — latch it." The chip captures those 11 bits into a second register.
+
+So RAS and CAS are just "now!" signals that tell the chip which half of the address it's looking at. They're two additional pins, but you saved 11 address pins, so it's a huge net win (13 pins instead of 22).
+
+<br />
+
+The grid cells themselves don't "remember" any signal from the CPU. Each cell is just a tiny capacitor holding a charge (1) or not (0). All the intelligence — decoding addresses, timing the read, amplifying the faint charges — lives in the circuitry *surrounding* the grid. The capacitors are passive storage; everything else is active logic that interprets the CPU's requests and routes data to the right place.
+:::
 
 The chip also includes a **refresh counter** (to cycle through rows during refresh), a **MUX** (to select between external addresses and refresh addresses), **row and column decoders**, and **data I/O buffers**.
 
@@ -473,13 +724,302 @@ The chip also includes a **refresh counter** (to cycle through rows during refre
 
 Memory chips come in standard packages with defined pinouts. For example, an 8 Mbit EPROM might use a 32-pin DIP (Dual In-line Package), while a 16 Mbit DRAM uses a 24-pin package. The DRAM needs fewer pins partly because of address multiplexing, a neat design win.
 
+:::info
+### Visualisation
+
+A DIP (Dual In-line Package) is the physical chip you'd see on a circuit board — a rectangular plastic or ceramic body with metal pins sticking out in two parallel rows along the sides. Every pin has a specific job. For a memory chip, the pins fall into a few categories: address pins (to specify which location), data pins (to carry the bits in/out), control pins (like chip enable, read/write select, and for DRAM, RAS/CAS), and power pins (VCC and ground).
+
+```custom-html
+<h2 class="sr-only">Side-by-side comparison of 8 Mbit EPROM (32 pins) versus 16 Mbit DRAM (24 pins) showing how address multiplexing reduces pin count.</h2>
+<style>
+  /* Added fallbacks for Claude CSS Variables */
+  .chip { display: inline-flex; flex-direction: column; align-items: center; }
+  .chip-body { position: relative; border: 1.5px solid var(--color-text-primary, currentColor); border-radius: 4px; display: flex; }
+  .pin-col { display: flex; flex-direction: column; gap: 2px; padding: 4px 0; }
+  .pin { height: 14px; width: 38px; display: flex; align-items: center; font-size: 11px; font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace); }
+  .pin-l { justify-content: flex-end; padding-right: 4px; border-right: 1.5px solid var(--color-text-primary, currentColor); }
+  .pin-r { justify-content: flex-start; padding-left: 4px; border-left: 1.5px solid var(--color-text-primary, currentColor); }
+  .pin-addr { color: #534AB7; }
+  .pin-data { color: #D85A30; }
+  .pin-ctrl { color: #1D9E75; }
+  .pin-pwr { color: var(--color-text-tertiary, #6b7280); }
+  .notch { width: 20px; height: 10px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; border-bottom: 1.5px solid var(--color-text-primary, currentColor); border-left: 1.5px solid var(--color-text-primary, currentColor); border-right: 1.5px solid var(--color-text-primary, currentColor); margin: 0 auto; position: relative; top: -1px; }
+  .chip-label { font-size: 11px; color: var(--color-text-secondary, #9ca3af); writing-mode: vertical-rl; text-orientation: mixed; padding: 0 6px; display: flex; align-items: center; justify-content: center; letter-spacing: 1px; }
+  .compare { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; padding: 0.5rem 0; }
+  .section { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .section-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary, currentColor); }
+  .section-sub { font-size: 12px; color: var(--color-text-secondary, #9ca3af); text-align: center; }
+  .legend { display: flex; gap: 16px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--color-text-secondary, #9ca3af); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .tally { margin-top: 12px; padding: 10px 14px; border-radius: var(--border-radius-md, 6px); background: var(--color-background-secondary, transparent); border: 1px solid var(--color-border-tertiary, #374151); font-size: 13px; color: var(--color-text-secondary, #9ca3af); line-height: 1.6; width: 100%; max-width: 220px; }
+  .tally strong { color: var(--color-text-primary, currentColor); font-weight: 500; }
+</style>
+<div class="compare">
+  <div class="section">
+    <div class="section-title">8 Mbit EPROM</div>
+    <div class="section-sub">1M locations x 8 bits</div>
+    <div class="chip">
+      <div class="notch"></div>
+      <div class="chip-body">
+        <div class="pin-col">
+          <div class="pin pin-l pin-addr">A19</div>
+          <div class="pin pin-l pin-addr">A16</div>
+          <div class="pin pin-l pin-addr">A15</div>
+          <div class="pin pin-l pin-addr">A12</div>
+          <div class="pin pin-l pin-addr">A7</div>
+          <div class="pin pin-l pin-addr">A6</div>
+          <div class="pin pin-l pin-addr">A5</div>
+          <div class="pin pin-l pin-addr">A4</div>
+          <div class="pin pin-l pin-addr">A3</div>
+          <div class="pin pin-l pin-addr">A2</div>
+          <div class="pin pin-l pin-addr">A1</div>
+          <div class="pin pin-l pin-addr">A0</div>
+          <div class="pin pin-l pin-data">D0</div>
+          <div class="pin pin-l pin-data">D1</div>
+          <div class="pin pin-l pin-data">D2</div>
+          <div class="pin pin-l pin-pwr">GND</div>
+        </div>
+        <div class="chip-label">EPROM</div>
+        <div class="pin-col">
+          <div class="pin pin-r pin-pwr">VCC</div>
+          <div class="pin pin-r pin-addr">A18</div>
+          <div class="pin pin-r pin-addr">A17</div>
+          <div class="pin pin-r pin-addr">A14</div>
+          <div class="pin pin-r pin-addr">A13</div>
+          <div class="pin pin-r pin-addr">A8</div>
+          <div class="pin pin-r pin-addr">A9</div>
+          <div class="pin pin-r pin-addr">A11</div>
+          <div class="pin pin-r pin-ctrl">OE</div>
+          <div class="pin pin-r pin-addr">A10</div>
+          <div class="pin pin-r pin-ctrl">CE</div>
+          <div class="pin pin-r pin-data">D7</div>
+          <div class="pin pin-r pin-data">D6</div>
+          <div class="pin pin-r pin-data">D5</div>
+          <div class="pin pin-r pin-data">D4</div>
+          <div class="pin pin-r pin-data">D3</div>
+        </div>
+      </div>
+    </div>
+    <div class="tally">
+      <span class="pin-addr">20 address pins</span><br>
+      <span class="pin-data">8 data pins</span><br>
+      <span class="pin-ctrl">2 control pins</span><br>
+      <span class="pin-pwr">2 power pins</span><br>
+      <strong>= 32 pins total</strong>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">16 Mbit DRAM</div>
+    <div class="section-sub">4M locations x 4 bits</div>
+    <div class="chip">
+      <div class="notch"></div>
+      <div class="chip-body">
+        <div class="pin-col">
+          <div class="pin pin-l pin-addr">A0</div>
+          <div class="pin pin-l pin-addr">A1</div>
+          <div class="pin pin-l pin-addr">A2</div>
+          <div class="pin pin-l pin-addr">A3</div>
+          <div class="pin pin-l pin-data">DQ1</div>
+          <div class="pin pin-l pin-addr">A4</div>
+          <div class="pin pin-l pin-addr">A5</div>
+          <div class="pin pin-l pin-addr">A6</div>
+          <div class="pin pin-l pin-addr">A7</div>
+          <div class="pin pin-l pin-data">DQ2</div>
+          <div class="pin pin-l pin-addr">A8</div>
+          <div class="pin pin-l pin-pwr">VSS</div>
+        </div>
+        <div class="chip-label">DRAM</div>
+        <div class="pin-col">
+          <div class="pin pin-r pin-pwr">VCC</div>
+          <div class="pin pin-r pin-addr">A10</div>
+          <div class="pin pin-r pin-addr">A9</div>
+          <div class="pin pin-r pin-ctrl">RAS</div>
+          <div class="pin pin-r pin-data">DQ4</div>
+          <div class="pin pin-r pin-ctrl">CAS</div>
+          <div class="pin pin-r pin-ctrl">WE</div>
+          <div class="pin pin-r pin-ctrl">OE</div>
+          <div class="pin pin-r pin-data">DQ3</div>
+          <div class="pin pin-r pin-pwr">NC</div>
+          <div class="pin pin-r pin-pwr">NC</div>
+          <div class="pin pin-r pin-pwr">VSS</div>
+        </div>
+      </div>
+    </div>
+    <div class="tally">
+      <span class="pin-addr">11 address pins</span> (multiplexed!)<br>
+      <span class="pin-data">4 data pins</span><br>
+      <span class="pin-ctrl">4 control pins</span> (RAS, CAS, WE, OE)<br>
+      <span class="pin-pwr">3 power + 2 NC</span><br>
+      <strong>= 24 pins total</strong>
+    </div>
+  </div>
+</div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#534AB7"></div>Address</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#D85A30"></div>Data</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div>Control</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--color-text-tertiary, #6b7280)"></div>Power / unused</div>
+</div>
+```
+
+The DRAM stores **twice as much data** (16 Mbit vs 8 Mbit) yet uses **fewer pins** (24 vs 32). That's almost entirely because of address multiplexing.
+
+The EPROM needs 20 address pins because it has 1M locations ($2²⁰$ = 1,048,576) and sends the full address all at once — no multiplexing. The DRAM needs to address 2048 rows and 2048 columns (22 address bits total), but because it sends them at different times over the same wires, it only needs 11 address pins. It trades two extra control pins (RAS and CAS) for saving 11 address pins
+:::
+
 ### Building Bigger: Memory Modules
 
 A single chip usually stores one bit (or a few bits) per address. To build a full **byte-wide** memory system, you combine multiple chips into a **module**.
 
 For example, to build a **256 kByte module**, you can combine **eight** 1-bit RAM chips, each with 256k locations. All eight chips share the same address bus, and each chip contributes one bit to form an 8-bit (1-byte) data word. The Memory Address Register (MAR) feeds the address to all chips simultaneously, and the Memory Buffer Register (MBR) collects the 8 bits.
 
-A **1 MByte module** scales this up further by grouping chips into four groups (A, B, C, D), with a chip-group-enable signal selecting which group is active. This approach lets you increase capacity by adding more chip groups without redesigning the chip itself.
+```custom-html
+<h2 class="sr-only">Diagram showing 8 single-bit RAM chips wired together to form one byte-wide memory module, sharing an address bus.</h2>
+<style>
+  /* --- CSS to style the colored chips (MAR, Chips 0-7, MBR) --- */
+  svg text {
+    font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+  }
+  
+  .th { font-weight: 500; font-size: 14px; }
+  .ts { font-size: 12px; fill: var(--color-text-secondary, #9ca3af); }
+
+  /* Purple Box (MAR) */
+  .c-purple rect { 
+    fill: var(--color-purple-bg, #3a3273); /* Dark purple */
+    stroke: #534AB7; 
+    stroke-width: 1.5; 
+  }
+  .c-purple .th { fill: #ffffff; }
+  .c-purple .ts { fill: #c8c4f0; } /* Light purple text */
+
+  /* Teal Boxes (Chips 0-7) */
+  .c-teal rect { 
+    fill: var(--color-teal-bg, #135d45); /* Dark teal */
+    stroke: #1D9E75; 
+    stroke-width: 1.5; 
+  }
+  .c-teal .th { fill: #ffffff; }
+  .c-teal .ts { fill: #a5d8c7; } /* Light teal text */
+
+  /* Coral Box (MBR) */
+  .c-coral rect { 
+    fill: var(--color-coral-bg, #8a3415); /* Dark coral */
+    stroke: #D85A30; 
+    stroke-width: 1.5; 
+  }
+  .c-coral .th { fill: #ffffff; }
+  .c-coral .ts { fill: #f3bda8; } /* Light coral text */
+</style>
+<svg width="100%" viewBox="0 0 680 520" role="img">
+  <title>256 kByte memory module from eight 1-bit chips</title>
+  <desc>Eight chips share one address bus from the MAR, each contributing one bit to form an 8-bit word collected by the MBR.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <g class="c-purple">
+    <rect x="240" y="30" width="200" height="44" rx="8" stroke-width="0.5"/>
+    <text class="th" x="340" y="46" text-anchor="middle" dominant-baseline="central">MAR</text>
+    <text class="ts" x="340" y="62" text-anchor="middle" dominant-baseline="central">Address: row 7, col 42</text>
+  </g>
+
+  <line x1="340" y1="74" x2="340" y2="110" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <line x1="80" y1="120" x2="600" y2="120" stroke="#534AB7" stroke-width="2.5" stroke-linecap="round"/>
+  <text class="ts" x="614" y="124" text-anchor="start" style="fill:#534AB7">Address bus</text>
+  <text class="ts" x="614" y="138" text-anchor="start" style="fill:#534AB7">(shared)</text>
+
+  <line x1="109" y1="120" x2="109" y2="160" stroke="#534AB7" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="179" y1="120" x2="179" y2="160" stroke="#534AB7" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="249" y1="120" x2="249" y2="160" stroke="#534AB7" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="319" y1="120" x2="319" y2="160" stroke="#534AB7" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="389" y1="120" x2="389" y2="160" stroke="#534AB7" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="459" y1="120" x2="459" y2="160" stroke="#534AB7" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="529" y1="120" x2="529" y2="160" stroke="#534AB7" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="599" y1="120" x2="599" y2="160" stroke="#534AB7" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <g class="c-teal"><rect x="80"  y="164" width="58" height="140" rx="6" stroke-width="0.5"/>
+    <text class="th" x="109" y="200" text-anchor="middle" dominant-baseline="central" style="font-size:12px">Chip 0</text>
+    <text class="ts" x="109" y="220" text-anchor="middle" dominant-baseline="central">256K</text>
+    <text class="ts" x="109" y="236" text-anchor="middle" dominant-baseline="central">x 1</text>
+    <text class="ts" x="109" y="280" text-anchor="middle" dominant-baseline="central">bit 0</text></g>
+
+  <g class="c-teal"><rect x="150" y="164" width="58" height="140" rx="6" stroke-width="0.5"/>
+    <text class="th" x="179" y="200" text-anchor="middle" dominant-baseline="central" style="font-size:12px">Chip 1</text>
+    <text class="ts" x="179" y="220" text-anchor="middle" dominant-baseline="central">256K</text>
+    <text class="ts" x="179" y="236" text-anchor="middle" dominant-baseline="central">x 1</text>
+    <text class="ts" x="179" y="280" text-anchor="middle" dominant-baseline="central">bit 1</text></g>
+
+  <g class="c-teal"><rect x="220" y="164" width="58" height="140" rx="6" stroke-width="0.5"/>
+    <text class="th" x="249" y="200" text-anchor="middle" dominant-baseline="central" style="font-size:12px">Chip 2</text>
+    <text class="ts" x="249" y="220" text-anchor="middle" dominant-baseline="central">256K</text>
+    <text class="ts" x="249" y="236" text-anchor="middle" dominant-baseline="central">x 1</text>
+    <text class="ts" x="249" y="280" text-anchor="middle" dominant-baseline="central">bit 2</text></g>
+
+  <g class="c-teal"><rect x="290" y="164" width="58" height="140" rx="6" stroke-width="0.5"/>
+    <text class="th" x="319" y="200" text-anchor="middle" dominant-baseline="central" style="font-size:12px">Chip 3</text>
+    <text class="ts" x="319" y="220" text-anchor="middle" dominant-baseline="central">256K</text>
+    <text class="ts" x="319" y="236" text-anchor="middle" dominant-baseline="central">x 1</text>
+    <text class="ts" x="319" y="280" text-anchor="middle" dominant-baseline="central">bit 3</text></g>
+
+  <g class="c-teal"><rect x="360" y="164" width="58" height="140" rx="6" stroke-width="0.5"/>
+    <text class="th" x="389" y="200" text-anchor="middle" dominant-baseline="central" style="font-size:12px">Chip 4</text>
+    <text class="ts" x="389" y="220" text-anchor="middle" dominant-baseline="central">256K</text>
+    <text class="ts" x="389" y="236" text-anchor="middle" dominant-baseline="central">x 1</text>
+    <text class="ts" x="389" y="280" text-anchor="middle" dominant-baseline="central">bit 4</text></g>
+
+  <g class="c-teal"><rect x="430" y="164" width="58" height="140" rx="6" stroke-width="0.5"/>
+    <text class="th" x="459" y="200" text-anchor="middle" dominant-baseline="central" style="font-size:12px">Chip 5</text>
+    <text class="ts" x="459" y="220" text-anchor="middle" dominant-baseline="central">256K</text>
+    <text class="ts" x="459" y="236" text-anchor="middle" dominant-baseline="central">x 1</text>
+    <text class="ts" x="459" y="280" text-anchor="middle" dominant-baseline="central">bit 5</text></g>
+
+  <g class="c-teal"><rect x="500" y="164" width="58" height="140" rx="6" stroke-width="0.5"/>
+    <text class="th" x="529" y="200" text-anchor="middle" dominant-baseline="central" style="font-size:12px">Chip 6</text>
+    <text class="ts" x="529" y="220" text-anchor="middle" dominant-baseline="central">256K</text>
+    <text class="ts" x="529" y="236" text-anchor="middle" dominant-baseline="central">x 1</text>
+    <text class="ts" x="529" y="280" text-anchor="middle" dominant-baseline="central">bit 6</text></g>
+
+  <g class="c-teal"><rect x="570" y="164" width="58" height="140" rx="6" stroke-width="0.5"/>
+    <text class="th" x="599" y="200" text-anchor="middle" dominant-baseline="central" style="font-size:12px">Chip 7</text>
+    <text class="ts" x="599" y="220" text-anchor="middle" dominant-baseline="central">256K</text>
+    <text class="ts" x="599" y="236" text-anchor="middle" dominant-baseline="central">x 1</text>
+    <text class="ts" x="599" y="280" text-anchor="middle" dominant-baseline="central">bit 7</text></g>
+
+  <line x1="109" y1="304" x2="109" y2="340" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="179" y1="304" x2="179" y2="340" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="249" y1="304" x2="249" y2="340" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="319" y1="304" x2="319" y2="340" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="389" y1="304" x2="389" y2="340" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="459" y1="304" x2="459" y2="340" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="529" y1="304" x2="529" y2="340" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="599" y1="304" x2="599" y2="340" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <text class="ts" x="48" y="352" text-anchor="end" style="fill:#D85A30">1 bit each</text>
+
+  <line x1="80" y1="350" x2="628" y2="350" stroke="#D85A30" stroke-width="2.5" stroke-linecap="round"/>
+
+  <line x1="340" y1="350" x2="340" y2="390" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <g class="c-coral">
+    <rect x="220" y="396" width="240" height="44" rx="8" stroke-width="0.5"/>
+    <text class="th" x="340" y="412" text-anchor="middle" dominant-baseline="central">MBR</text>
+    <text class="ts" x="340" y="428" text-anchor="middle" dominant-baseline="central">Collected: 10110011</text>
+  </g>
+
+  <line x1="340" y1="440" x2="340" y2="480" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text class="ts" x="340" y="500" text-anchor="middle">1 full byte to CPU</text>
+</svg>
+```
+
+Now suppose you want more capacity. You could use bigger chips, but that's expensive. Instead, you duplicate the whole 8-chip module multiple times and add a selection mechanism. A 1 MByte module groups chips into four groups (A, B, C, D), each being a 256 kByte module like the one above. A "chip-group-enable" signal works like a master switch, it tells one group "you're active, respond to this address" while the other three stay silent.
+
+Think of it like four filing cabinets side by side, each with identical drawer numbering (addresses 0 through 256K). The address tells you *which drawer*, and the group-enable tells you *which cabinet*. Together they select one unique byte out of the full 1 MByte. This way you can keep adding cabinets (groups) to grow capacity without needing to redesign the individual chips or the addressing scheme within each group.
 
 ## Error Correction: Because Bits Flip
 
