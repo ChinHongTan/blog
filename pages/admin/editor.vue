@@ -131,7 +131,7 @@
 						type="text"
 						class="admin-inline-title"
 						placeholder="文章標題…"
-					>
+					/>
 					<small
 						v-if="!isPostTitleValidForSave"
 						class="admin-inline-title-warning"
@@ -186,7 +186,11 @@
 							<div class="admin-properties-table">
 								<div class="admin-property-tr">
 									<span class="admin-property-name">
-										<Icon name="heroicons:document-text" size="14" class="admin-property-icon" />
+										<Icon
+											name="heroicons:document-text"
+											size="14"
+											class="admin-property-icon"
+										/>
 										簡述
 									</span>
 									<input
@@ -194,13 +198,17 @@
 										type="text"
 										class="admin-property-cell"
 										placeholder="輸入簡述…"
-									>
+									/>
 								</div>
 								<div
 									class="admin-property-tr admin-property-tr-tags"
 								>
 									<span class="admin-property-name">
-										<Icon name="heroicons:tag" size="14" class="admin-property-icon" />
+										<Icon
+											name="heroicons:tag"
+											size="14"
+											class="admin-property-icon"
+										/>
 										標籤
 									</span>
 									<div
@@ -232,7 +240,7 @@
 											@keydown.enter.prevent="addTag"
 											@focus="onTagInputFocus"
 											@blur="onTagInputBlur"
-										>
+										/>
 										<div
 											v-if="
 												showTagSuggestions &&
@@ -268,14 +276,22 @@
 									</div>
 								</div>
 								<!-- 更多選項 -->
-								<div class="admin-property-tr admin-property-tr-more">
+								<div
+									class="admin-property-tr admin-property-tr-more"
+								>
 									<button
 										type="button"
 										class="admin-more-toggle"
-										@click="moreOptionsOpen = !moreOptionsOpen"
+										@click="
+											moreOptionsOpen = !moreOptionsOpen
+										"
 									>
 										<Icon
-											:name="moreOptionsOpen ? 'heroicons:chevron-down' : 'heroicons:chevron-right'"
+											:name="
+												moreOptionsOpen
+													? 'heroicons:chevron-down'
+													: 'heroicons:chevron-right'
+											"
 											size="14"
 											class="admin-property-icon"
 										/>
@@ -287,7 +303,11 @@
 										class="admin-property-tr admin-property-tr-pinned"
 									>
 										<span class="admin-property-name">
-											<Icon name="heroicons:bookmark" size="14" class="admin-property-icon" />
+											<Icon
+												name="heroicons:bookmark"
+												size="14"
+												class="admin-property-icon"
+											/>
 											置頂
 										</span>
 										<div class="admin-property-field">
@@ -297,9 +317,13 @@
 													type="checkbox"
 													:disabled="!canEditPost"
 													aria-label="置頂"
+												/>
+												<span
+													class="admin-toggle-track"
 												>
-												<span class="admin-toggle-track">
-													<span class="admin-toggle-thumb" />
+													<span
+														class="admin-toggle-thumb"
+													/>
 												</span>
 											</label>
 										</div>
@@ -309,7 +333,11 @@
 										class="admin-property-tr"
 									>
 										<span class="admin-property-name">
-											<Icon name="heroicons:clock" size="14" class="admin-property-icon" />
+											<Icon
+												name="heroicons:clock"
+												size="14"
+												class="admin-property-icon"
+											/>
 											最後編輯
 										</span>
 										<span
@@ -343,14 +371,14 @@
 						accept="image/*"
 						class="admin-hero-file-input"
 						@change="onFeaturedFileChange"
-					>
+					/>
 					<template v-if="meta.featured_image">
 						<img
 							:src="featuredImagePreviewUrl"
 							:alt="meta.title || '精選圖片'"
 							loading="lazy"
 							decoding="async"
-						>
+						/>
 						<div class="admin-hero-title-wrap">
 							<h2 class="admin-hero-title">
 								{{ meta.title || "未命名" }}
@@ -411,7 +439,10 @@
 
 			<!-- Author: mode toggle + meta + editor -->
 			<template v-else-if="docType === 'author'">
-				<div class="admin-properties-header" style="padding-left: 120px; margin-bottom: 0.5rem;">
+				<div
+					class="admin-properties-header"
+					style="padding-left: 120px; margin-bottom: 0.5rem"
+				>
 					<div class="admin-header-mode-toggle">
 						<button
 							type="button"
@@ -440,7 +471,7 @@
 								type="text"
 								class="admin-input"
 								placeholder="顯示名稱"
-							>
+							/>
 						</div>
 						<div class="admin-form-row">
 							<label>簡介</label>
@@ -449,7 +480,7 @@
 								type="text"
 								class="admin-input"
 								placeholder="一行簡介"
-							>
+							/>
 						</div>
 						<div class="admin-form-row">
 							<label>頭像</label>
@@ -459,14 +490,14 @@
 									type="text"
 									class="admin-input"
 									placeholder="/images/uploads/avatar.png"
-								>
+								/>
 								<input
 									ref="authorAvatarFileInput"
 									type="file"
 									accept="image/*"
 									class="admin-upload-hidden"
 									@change="onAuthorAvatarFileChange"
-								>
+								/>
 								<button
 									type="button"
 									class="admin-btn admin-btn-sm"
@@ -485,14 +516,14 @@
 									type="text"
 									class="admin-input"
 									placeholder="/images/uploads/banner.jpg"
-								>
+								/>
 								<input
 									ref="authorBannerFileInput"
 									type="file"
 									accept="image/*"
 									class="admin-upload-hidden"
 									@change="onAuthorBannerFileChange"
-								>
+								/>
 								<button
 									type="button"
 									class="admin-btn admin-btn-sm"
@@ -510,7 +541,7 @@
 								type="url"
 								class="admin-input"
 								placeholder="https://github.com/..."
-							>
+							/>
 						</div>
 						<div class="admin-form-row">
 							<label>網站</label>
@@ -519,7 +550,7 @@
 								type="url"
 								class="admin-input"
 								placeholder="https://..."
-							>
+							/>
 						</div>
 					</div>
 					<div class="admin-wysiwyg-site admin-editor-main">
@@ -601,36 +632,48 @@
 			role="alertdialog"
 			@update:model-value="onVersionChoiceModalVisibilityChange"
 		>
-			<div
-				v-if="versionChoiceDiffSummary"
-				class="version-choice-details"
-			>
+			<div v-if="versionChoiceDiffSummary" class="version-choice-details">
 				<div class="version-choice-timestamps">
 					<div class="version-choice-row">
 						<span class="version-choice-label">GitHub 版本</span>
 						<span class="version-choice-time">{{
 							versionChoiceServerModified
-								? new Date(versionChoiceServerModified).toLocaleString()
-								: '未知'
+								? new Date(
+										versionChoiceServerModified,
+									).toLocaleString()
+								: "未知"
 						}}</span>
 					</div>
 					<div class="version-choice-row">
 						<span class="version-choice-label">本機版本</span>
 						<span class="version-choice-time">{{
 							versionChoiceLocalSavedAt
-								? new Date(versionChoiceLocalSavedAt).toLocaleString()
-								: '未知'
+								? new Date(
+										versionChoiceLocalSavedAt,
+									).toLocaleString()
+								: "未知"
 						}}</span>
 					</div>
 				</div>
 				<ul class="version-choice-diff-list">
 					<li v-if="versionChoiceDiffSummary.titleChanged">
-						標題不同：「{{ versionChoiceDiffSummary.serverTitle || '(無)' }}」→「{{ versionChoiceDiffSummary.localTitle || '(無)' }}」
+						標題不同：「{{
+							versionChoiceDiffSummary.serverTitle || "(無)"
+						}}」→「{{
+							versionChoiceDiffSummary.localTitle || "(無)"
+						}}」
 					</li>
 					<li v-if="!versionChoiceDiffSummary.bodyIdentical">
-						內文不同（GitHub {{ versionChoiceDiffSummary.serverWordCount }} 字 / 本機 {{ versionChoiceDiffSummary.localWordCount }} 字）
+						內文不同（GitHub
+						{{ versionChoiceDiffSummary.serverWordCount }} 字 / 本機
+						{{ versionChoiceDiffSummary.localWordCount }} 字）
 					</li>
-					<li v-if="!versionChoiceDiffSummary.metaIdentical && !versionChoiceDiffSummary.titleChanged">
+					<li
+						v-if="
+							!versionChoiceDiffSummary.metaIdentical &&
+							!versionChoiceDiffSummary.titleChanged
+						"
+					>
 						標籤或分類等設定不同
 					</li>
 					<li
@@ -1396,6 +1439,24 @@ async function confirmRevertToGitHubVersion() {
 	contentReady.value = false;
 	try {
 		await loadFromApi();
+		// Only check localStorage for drafts on client-side *after* initial hydration
+		if (typeof window !== "undefined") {
+			nextTick(() => {
+				const cache = localStorage.getItem(
+					`blog-draft-${filePath.value ?? "new"}`,
+				);
+				if (cache) {
+					try {
+						const { rawBody: cachedBody } = JSON.parse(cache);
+						if (cachedBody !== rawBody.value) {
+							showRecoveryBar.value = true;
+						}
+					} catch (e) {
+						console.error("Failed to parse cached draft", e);
+					}
+				}
+			});
+		}
 	} finally {
 		contentReady.value = true;
 		isHydratingFromRemote.value = false;
@@ -1472,8 +1533,7 @@ function loadFromApi(): Promise<void> {
 						(pathQuery.value.startsWith("content/blog/") ||
 							pathQuery.value.startsWith("content/drafts/"))
 					) {
-						const identical =
-							computeVersionChoiceDiff(rawDraft);
+						const identical = computeVersionChoiceDiff(rawDraft);
 						if (identical) {
 							// Local draft is identical to server — silently discard it
 							versionChoicePending.value = false;
@@ -1534,8 +1594,7 @@ function loadFromApi(): Promise<void> {
 		.catch(() => {
 			serverBaselineSnapshot.value = null;
 			loadDraft();
-			if (docType.value === "post")
-				meta.date = getLocalDateTimeString();
+			if (docType.value === "post") meta.date = getLocalDateTimeString();
 			contentReady.value = true;
 			isHydratingFromRemote.value = false;
 		});
@@ -1901,6 +1960,7 @@ const rawMirrorRef = ref<HTMLDivElement | null>(null);
  * Measures via a hidden mirror div so the textarea never collapses mid-edit,
  * which would otherwise cause the browser to scroll to keep the caret visible. */
 function resizeRawTextarea() {
+	if (viewMode.value !== "raw") return;
 	nextTick(() => {
 		const textarea = document.querySelector<HTMLTextAreaElement>(
 			".admin-textarea:not(.admin-textarea-mirror)",
@@ -2179,7 +2239,9 @@ onUnmounted(() => {
 	background: transparent;
 	color: var(--color-text-secondary);
 	cursor: pointer;
-	transition: background 0.15s, color 0.15s;
+	transition:
+		background 0.15s,
+		color 0.15s;
 	line-height: 1.5;
 }
 .admin-mode-btn:hover {
@@ -2331,7 +2393,9 @@ onUnmounted(() => {
 	background: var(--color-bg-tertiary);
 	border: 1px solid var(--color-border-light);
 	border-radius: var(--radius-pill);
-	transition: background 0.2s, border-color 0.2s;
+	transition:
+		background 0.2s,
+		border-color 0.2s;
 }
 .admin-toggle-thumb {
 	position: absolute;
@@ -2341,7 +2405,9 @@ onUnmounted(() => {
 	height: 0.75rem;
 	background: var(--color-text-tertiary);
 	border-radius: 50%;
-	transition: transform 0.2s, background 0.2s;
+	transition:
+		transform 0.2s,
+		background 0.2s;
 }
 .admin-toggle-switch input:checked + .admin-toggle-track {
 	background: color-mix(in srgb, var(--color-primary) 20%, transparent);
@@ -2812,6 +2878,7 @@ onUnmounted(() => {
 .admin-wysiwyg-site :deep(.milkdown .ProseMirror) {
 	overflow: visible !important;
 	min-height: 50vh;
+	padding: 8px 0.25rem !important;
 }
 /* Match blog .post-content typography inside the WYSIWYG editor (override Crepe theme) */
 .admin-wysiwyg-site :deep(.milkdown) {

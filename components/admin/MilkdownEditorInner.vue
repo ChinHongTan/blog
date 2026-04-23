@@ -37,7 +37,7 @@ import { createTable, strikethroughSchema, toggleStrikethroughCommand } from "@m
 import { replaceAll } from "@milkdown/kit/utils";
 import type { NodeType, Attrs } from "@milkdown/prose/model";
 import { liftTarget } from "@milkdown/prose/transform";
-import { watch, onBeforeUnmount } from "vue";
+import { watch } from "vue";
 import {
   infoBoxFeature,
   infoBoxSchema,
@@ -416,9 +416,8 @@ watch(
   { immediate: true }
 );
 
-onBeforeUnmount(() => {
-  builderInstance?.destroy().catch(console.error);
-});
+// Note: do not call builderInstance.destroy() here —
+// useGetEditor's onUnmounted already handles editor cleanup.
 
 defineExpose({
   getMarkdown: () => builderInstance?.getMarkdown() ?? "",

@@ -1,7 +1,7 @@
 ---
 title: "Internal Memory: How Your Computer Remembers Things"
 date: 2026-04-19T11:38
-edited_at: 2026-04-19T03:45:21.780Z
+edited_at: 2026-04-21T15:24:25.103Z
 author: chinono
 path: /blog/Internal-Memory-How-Your-Computer-Remembers-Things
 ---
@@ -51,6 +51,26 @@ Before we dive deep, here's a roadmap of the main memory types and how they rela
 
 The two big branches are **volatile** memory (loses data without power) and **nonvolatile** memory (retains data even when powered off). Let's explore each.
 
+:::info
+### Explaination
+
+* **RAM (Random Access Memory):** The defining example of volatile memory. It is fast, allows byte-level read/writes, and is wiped when power is lost.
+
+* **ROM (Read-Only Memory):** Hardwired at the factory. Cannot be changed.
+
+* **PROM (Programmable ROM):** Blank from the factory, but can only be written to *once* (like burning a CD-R).
+
+* **EPROM (Erasable Programmable ROM):** A massive leap forward, but it required pulling the chip out of the computer and exposing a little quartz window on it to strong UV light to erase it.
+
+* **EEPROM (Electrically Erasable Programmable ROM):** Allowed memory to be erased electrically without removing the chip, but only one byte at a time (too slow for bulk storage).
+
+* **Flash:** The defining example of modern non-volatile memory (used in SSDs, USB drives, and smartphones). You need to know that it is electrically erased at the **block-level** (which is why writing data to a nearly full SSD can slow down).
+
+Byte-Level means the computer can target a single byte of data (usually 8 bits) and change it without affecting the data sitting right next to it. It is incredibly convenient and fast for making small changes, but building the microscopic circuitry required to target every individual byte makes the physical chip more complex and expensive to manufacture.
+
+Block-level means the memory is divided into larger chunks called "blocks" (often thousands of bytes large). To change even a single byte of data, the computer must erase the *entire* block first, and then rewrite the whole block with the new change included. By giving up byte-level precision, engineers were able to drastically simplify the wiring inside the chip. This is exactly why Flash memory became so cheap and can hold massive amounts of data. However, it requires clever software controllers to manage the constant copying and erasing of blocks so the drive does not wear out too quickly.
+:::
+
 ## RAM: The Workhorse
 
 **RAM** (Random Access Memory) is the memory your computer uses for active work. It's called "random access" because any byte can be read or written in roughly the same amount of time, regardless of its location. The key characteristics:
@@ -79,6 +99,22 @@ But there's a catch: capacitors *leak*. The charge slowly drains away over time,
 
 A dedicated refresh circuit is built into the chip. It temporarily disables normal access, steps through each row, reads the data, and writes it back. This takes time and slightly reduces the apparent performance of the chip. Every few milliseconds, the entire memory array must be refreshed.
 
+:::info
+### Additional Explaination
+
+DRAM is arranged in a massive grid, much like a spreadsheet or a city map. To read or write data, the memory controller needs a way to target specific "coordinates" on that grid.
+
+**The Address Line** is the horizontal wire running across a row of memory cells. Think of the transistor in the DRAM cell as a door blocking access to the capacitor (where the data lives). The address line controls that door. When the memory controller sends a high voltage down the address line, it "opens the door" (turns on the transistor) for every single cell in that specific row, connecting their capacitors to the rest of the circuit.
+
+**The Bit Line** is the vertical wire running down a column of memory cells. If the address line opens the door, the bit line is the hallway the data travels through.
+
+* **During a Write:** The memory controller forces a high voltage (a 1) or low voltage (a 0) down the bit line. Because the address line opened the transistor door, that voltage flows from the bit line into the capacitor, charging or discharging it.
+
+* **During a Read:** The transistor door opens, and whatever tiny bit of charge is stored in the capacitor spills out onto the bit line to be read.
+
+The Sense Amplifier is a highly sensitive measuring circuit situated at the end of each bit line. The capacitor inside a DRAM cell is microscopic. When it dumps its charge onto the much larger bit line during a "read" operation, the resulting voltage change is incredibly weak—barely a whisper of a signal. The sense amplifier detects that tiny voltage shift and instantly **amplifies** it into a strong, clear digital 1 or 0 that the computer's processor can actually understand. Furthermore, because reading the capacitor drained it (destructive read), the sense amplifier immediately pushes that newly amplified strong signal *back* up the bit line to recharge the capacitor, saving the data from being lost forever.
+:::
+
 ### SRAM (Static RAM) — The Fast One
 
 SRAM takes a completely different approach. Instead of a capacitor, it stores each bit using a **flip-flop** circuit — a configuration of **six transistors** (typically labeled T₁ through T₆). Two pairs of transistors form cross-coupled inverters (T₁/T₃ and T₂/T₄), creating two stable states. The other two transistors (T₅ and T₆) connect the cell to the bit lines and are controlled by the address line.
@@ -88,6 +124,52 @@ SRAM takes a completely different approach. Instead of a capacitor, it stores ea
 * **State 0:** Point C₂ is high, C₁ is low. Transistors T₂ and T₃ are off, T₁ and T₄ are on.
 
 The beauty of SRAM is that **as long as power is supplied, the flip-flop holds its state indefinitely** — no refresh needed. To write, you apply the desired value to bit line B and its complement to B̄, then activate the address line. To read, the value simply appears on bit line B when the address line is activated.
+
+:::info
+### Additional Explaination
+
+### **1. The Core: The Flip-Flop (T₁, T₂, T₃, T₄)**
+
+This is where the data actually lives. These four transistors are wired together to create two "inverters." An inverter is a simple logic gate: whatever signal goes in, the exact opposite comes out (a 1 becomes a 0, and a 0 becomes a 1).
+
+In SRAM, these two inverters are **cross-coupled**, meaning the output of the first is plugged into the input of the second, and the output of the second is plugged into the input of the first.
+
+**The Analogy:** Imagine two people, Alice and Bob, locked in a room.
+
+* Alice’s only rule is: "I must shout the exact opposite of whatever Bob shouts."
+
+* Bob’s only rule is: "I must shout the exact opposite of whatever Alice shouts."
+
+If Alice shouts "YES" (1), Bob hears it and immediately shouts "NO" (0). Alice hears Bob's "NO" and uses it to justify continuing to shout "YES".
+
+They will hold this exact state forever, without needing any outside help, as long as they are awake (connected to power). This self-reinforcing loop is what makes SRAM **static**. It does not need to be refreshed because the circuit actively holds itself in place. Points **C₁** and **C₂** from your text represent what Alice and Bob are currently shouting.
+
+### **2. The Doors: The Access Transistors (T₅ and T₆)**
+
+If T₁ through T₄ are Alice and Bob locked in a room, T₅ and T₆ are two separate doors leading into that room.
+
+* They are both controlled by the **Address Line** (the horizontal wire that selects the row).
+
+* When the Address Line is activated, both doors open simultaneously.
+
+### **3. The Pathways: The Bit Lines (B and B̄)**
+
+Notice that SRAM uses *two* bit lines for a single cell: **B** and **B̄** (pronounced "B-bar" or "B-complement").
+
+* **B** carries the actual data (e.g., a 1).
+
+* **B̄** always carries the exact opposite (e.g., a 0).
+
+We use two lines because the internal loop (Alice and Bob) is very stubborn. To read or write quickly and reliably, we need to interact with both sides of the loop at the same time.
+
+### **How Reading and Writing Works**
+
+* **Writing (Forcing a change):** Let's say the cell is currently storing a 0, but you want to write a 1. The memory controller sends a strong "1" signal down the **B** line, and a strong "0" signal down the **B̄** line. Then, it activates the Address Line, opening the doors (T₅ and T₆). The powerful signals from the outside flood into the room, overpower Alice and Bob, and force them to flip their stances. Once the doors close, the loop stabilizes in its new state.
+
+* **Reading (A non-destructive look):** The controller pre-charges both the **B** and **B̄** lines to a neutral, middle voltage. Then it activates the Address Line to open the doors (T₅ and T₆). Because the internal loop is actively powered, it pushes its internal voltages out through the doors onto the bit lines. The Sense Amplifiers at the bottom of the bit lines detect which line went slightly up and which went slightly down to figure out if it's a 1 or a 0.
+
+Most importantly: **reading does not destroy the data.** Because the flip-flop is constantly connected to the main power supply, looking at its state doesn't drain it the way reading a DRAM capacitor does.
+:::
 
 ### SRAM vs. DRAM — A Quick Comparison
 
@@ -129,6 +211,10 @@ ROM comes in several varieties, each with different trade-offs between flexibili
 
 Let's look at how a real DRAM chip is organised internally, using a **16 Mbit DRAM (4M × 4)** as an example. This chip stores 16 megabits of data, arranged as 4 million locations, each storing 4 bits.
 
+:::info
+**"4M × 4"** means there are **4 million individual lockers** (locations), and every time you open one locker, you put in or take out exactly **4 bits** of data at once.
+:::
+
 The memory array is physically laid out as a **2048 × 2048 × 4** grid. But 2048 rows × 2048 columns × 4 bits = 16,777,216 bits = 16 Mbit. To address 2048 rows, you need 11 address lines (since 2¹¹ = 2048).
 
 **The clever trick — address multiplexing:**
@@ -137,9 +223,21 @@ Instead of using 22 address pins (11 for rows + 11 for columns), DRAM chips **mu
 
 The chip also includes a **refresh counter** (to cycle through rows during refresh), a **MUX** (to select between external addresses and refresh addresses), **row and column decoders**, and **data I/O buffers**.
 
+:::info
+### Additional notes
+
+**Row and column decoders**: these are what actually *use* the latched addresses. The row decoder takes the 11-bit row number and activates one physical wire out of 2048. The column decoder does the same for columns. They're the bridge between "the chip received address bits" and "the correct cells are now connected."
+
+**Refresh counter**: this is just a simple counter that automatically cycles through row numbers (0, 1, 2, ... 2047, 0, 1, ...) so every row gets refreshed periodically. We already covered *why* refresh is needed in the DRAM section. The counter is just the mechanism that automates it.
+
+**MUX (multiplexer)**: during normal operation, the row decoder receives the external address from the CPU. During refresh, it needs the address from the refresh counter instead. The MUX is a simple switch that picks between these two sources.
+
+**Data I/O buffers**: just the circuitry that drives the data pins during a read and receives data during a write. Straightforward.
+:::
+
 ### Packaging and Chip Pinouts
 
-Memory chips come in standard packages with defined pinouts. For example, an 8 Mbit EPROM might use a 32-pin DIP (Dual In-line Package), while a 16 Mbit DRAM uses a 24-pin package. The DRAM needs fewer pins partly because of address multiplexing — a neat design win.
+Memory chips come in standard packages with defined pinouts. For example, an 8 Mbit EPROM might use a 32-pin DIP (Dual In-line Package), while a 16 Mbit DRAM uses a 24-pin package. The DRAM needs fewer pins partly because of address multiplexing, a neat design win.
 
 ### Building Bigger: Memory Modules
 
