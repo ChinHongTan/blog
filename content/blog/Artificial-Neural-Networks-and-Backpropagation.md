@@ -1,7 +1,7 @@
 ---
 title: Artificial Neural Networks and Backpropagation
 date: 2026-04-22T19:27:42+08:00
-edited_at: 2026-04-24T05:40:00.995Z
+edited_at: 2026-04-24T08:06:05.595Z
 author: chinono
 ---
 
@@ -231,16 +231,10 @@ If the net input $|net|$ becomes exceptionally large (positive or negative), the
 
 We must update the weights to minimize the error $E$. We do this using **Gradient Descent**, updating each weight by an amount proportional to the negative gradient of the error with respect to that weight.
 
-#### Updating Output Layer Weights ($w^{(2,1)}$)
-
-Applying the chain rule to find how an output weight affects the total error:
-
-$$
-\Delta w^{(2,1)}_{k,j} \propto -\frac{\partial E}{\partial w^{(2,1)}_{k,j}}
-$$
+Before diving into the neural network math, let's do a quick recap on the calculus tools we need: Partial Derivatives and the Chain Rule. You can freely jump to the next section if you are already familiar with them.
 
 :::warning
-### What's a partial derivative ($\partial$)?
+### Partial Derivative ($\partial$)
 
 Before anything else, I think it is worth understanding how partial derivative works. We will skip the boring analogy and jump right into the math.
 
@@ -319,7 +313,31 @@ Just as an example, in a network, $\frac{\partial E}{\partial w_1}$ means: "Free
 Then the network calculates $\frac{\partial E}{\partial w_2}$: "Okay, freeze weight 1, and freeze weights 3 through 1,000,000. Only nudge weight 2. How much did the error change?"
 
 It does this for every single weight. Once it knows the "partial" blame for every individual weight, it adjusts them all at once, and the network learns!
+
+***
+
+### The Chain rule
+
+In calculus, the Chain Rule is a formula used to find the derivative of **nested functions**, meaning a function that is sitting inside another function.
+
+A nested function looks like this: **$A( B( C(x) ) )$**
+
+* $x$ changes $C$
+
+* $C$ changes $B$
+
+* $B$ changes $A$
+
+If you want to know **"How much does** **$x$** **change** **$A$?"**, the Chain Rule says you just calculate the rate of change for each nested function individually, and then **multiply them all together.**
 :::
+
+#### Updating Output Layer Weights ($w^{(2,1)}$)
+
+Applying the chain rule to find how an output weight affects the total error:
+
+$$
+\Delta w^{(2,1)}_{k,j} \propto -\frac{\partial E}{\partial w^{(2,1)}_{k,j}}
+$$
 
 :::info
 ### Formula Explanation
@@ -363,24 +381,6 @@ $$
 \frac{\partial E}{\partial w^{(2,1)}_{k,j}} = \frac{\partial E}{\partial o_k} \cdot \frac{\partial o_k}{\partial net^{(2)}_k} \cdot \frac{\partial net^{(2)}_k}{\partial w^{(2,1)}_{k,j}}
 $$
 
-:::warning
-### Revision: Chain rule
-
-Before we proceed, I want to first make sure we know what a chain rule is, and what it does.
-
-In calculus, the Chain Rule is a formula used to find the derivative of **nested functions**, meaning a function that is sitting inside another function.
-
-A nested function looks like this: **$A( B( C(x) ) )$**
-
-* $x$ changes $C$
-
-* $C$ changes $B$
-
-* $B$ changes $A$
-
-If you want to know **"How much does** **$x$** **change** **$A$?"**, the Chain Rule says you just calculate the rate of change for each nested function individually, and then **multiply them all together.**
-:::
-
 :::info
 ### Understanding the equation
 
@@ -392,27 +392,31 @@ And we have the output of the neural network. It has a huge error ($E$). We don'
 
 However, we also know that we can't directly calculate it, because the Error ($E$) formula doesn't have a $w$ in it! The Error formula is $E = (d - o)^2$. There is no $w$ to take a derivative of.
 
-<br />
-
 So, how do we connect $w$ to $E$? We can ask ourselves, "If I tweak the weight ($w$), what is the very next thing that happens?"
 
-We know the weight is multiplied by the incoming signal to create the net input for the output node. $net = w \cdot x$
+We know the weight is multiplied by the incoming signal to create the net input for the output node. $net = w \cdot x$(or $net(w, x) = w \cdot x$)
+
+However, we do care about the weight here. So we will fix the $x$ in place, treating it as a dumb number, essentially turning the equation into $net(w) = w \cdot x$, where $x$ is a constant.
 
 Thus, a change in $w$ causes a direct change in $net$: **$\frac{\partial net}{\partial w}$**
 
-Does the $net$ input directly change the Error? No. First, it has to pass through the activation function to become the final output. $o = S(net)$
+Does the $net$ input directly change the Error? No. First, it has to pass through the activation function to become the final output. $o = S(net)$(or you can write it as $S(o) = S(net)$.
+
+This is essentially just standard derivative, since we don't have a second variable.
 
 A change in $net$ causes a direct change in $o$: **$\frac{\partial o}{\partial net}$**
 
-Finally, the output ($o$) is the number that gets compared to the target ($d$) to calculate the Error. $E = (d - o)^2$
+Finally, the output ($o$) is the number that gets compared to the target ($d$) to calculate the Error. $E = (d - o)^2$.
+
+Here, it gets a little tricky. If your network has 3 output nodes, the original Error equation depends on all three of those changing outputs. $E(o_1, o_2, o_3) = (d_1 - o_1)^2 + (d_2 - o_2)^2 + (d_3 - o_3)^2$ (Remember: $d$ is your dataset label, like "100% Cat". It is a hardcoded constant, never a variable). We want the partial derivative for just the first node ($o_1$). So, we lock $o_2$ and $o_3$ into place, treating them as constants.
+
+This changed the function to $f(o_1) = (d_1 - o_1)^2 + C$, where $C$ is a constant.
 
 A change in $o$ causes a direct change in $E$: **$\frac{\partial E}{\partial o}$**
 
 We've just mapped out a composite function: $E$ depends on $o$, which depends on $net$, which depends on $w$.
 
 Multiply them together, and you get your exact blueprint equation as above.
-
-<br />
 
 The numbers and letters are just coordinate labels to tell you exactly where you are in the network.
 
@@ -433,7 +437,9 @@ $$
 Remember that we have the blueprint equation above? Partial derivatives doesn't work well against computers, so we need to further derive the equation. So, from the steps above, we already knows these 3 formulas:
 
 * **The Error Formula:** $E = \sum (d_k - o_k)^2$
+
 * **The Output Formula:** $o_k = S(net^{(2)}_k)$
+
 * **The Net Input Formula:** $net^{(2)}_k = \sum (w^{(2,1)}_{k,j} \cdot x^{(1)}_j)$
 
 ### Step 1: Solve $\frac{\partial E}{\partial o_k}$
