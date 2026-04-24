@@ -1,7 +1,7 @@
 ---
 title: Artificial Neural Networks and Backpropagation
 date: 2026-04-22T19:27:42+08:00
-edited_at: 2026-04-24T08:06:05.595Z
+edited_at: 2026-04-24T14:34:27.329Z
 author: chinono
 ---
 
@@ -186,13 +186,13 @@ $$
 :::info
 ### Formula explanation
 
-The Inputs ($x_i$): These are the numbers you are feeding into the network (like the house size or number of bedrooms we talked about earlier).
+**The Inputs** ($x_i$): These are the numbers you are feeding into the network (like the house size or number of bedrooms we talked about earlier).
 
-The Weights ($w_{j,i}$): Think of weights as "importance dials." The network multiplies each input by its specific weight to decide how much that input matters.
+**The Weights** ($w_{j,i}$): Think of weights as "importance dials." The network multiplies each input by its specific weight to decide how much that input matters.
 
-The Multiply and Add ($\sum w \cdot x$): The network takes Input 1, multiplies it by Weight 1. Then Input 2 times Weight 2. It does this for all inputs and adds them all together into one single number. This is called the "net input" ($net^{(1)}_j$).
+**The Multiply and Add** ($\sum w \cdot x$): The network takes Input 1, multiplies it by Weight 1. Then Input 2 times Weight 2. It does this for all inputs and adds them all together into one single number. This is called the "net input" ($net^{(1)}_j$).
 
-The Activation Function ($S$): The network doesn't just pass that raw sum to the next layer. It passes it through a mathematical filter called an Activation Function (represented by the $S$). This function "squishes" the number into a specific range (often between 0 and 1, or -1 and 1). This is crucial because it allows the network to learn complex, non-linear patterns rather than just drawing straight lines.The Result ($x^{(1)}_j$): This is the final, squished number that spits out of hidden node $j$.
+**The Activation Function** ($S$): The network doesn't just pass that raw sum to the next layer. It passes it through a mathematical filter called an Activation Function (represented by the $S$). This function "squishes" the number into a specific range (often between 0 and 1, or -1 and 1). This is crucial because it allows the network to learn complex, non-linear patterns rather than just drawing straight lines.The Result ($x^{(1)}_j$): This is the final, squished number that spits out of hidden node $j$.
 :::
 
 **Output Layer Calculation:** The hidden layer's output becomes the input for the output layer.
@@ -234,6 +234,8 @@ We must update the weights to minimize the error $E$. We do this using **Gradien
 Before diving into the neural network math, let's do a quick recap on the calculus tools we need: Partial Derivatives and the Chain Rule. You can freely jump to the next section if you are already familiar with them.
 
 :::warning
+## Prerequisite: Partial Derivatives & The Chain Rule
+
 ### Partial Derivative ($\partial$)
 
 Before anything else, I think it is worth understanding how partial derivative works. We will skip the boring analogy and jump right into the math.
@@ -333,14 +335,14 @@ If you want to know **"How much does** **$x$** **change** **$A$?"**, the Chain R
 
 #### Updating Output Layer Weights ($w^{(2,1)}$)
 
-Applying the chain rule to find how an output weight affects the total error:
+To update a specific weight, we use this formula:
 
 $$
 \Delta w^{(2,1)}_{k,j} \propto -\frac{\partial E}{\partial w^{(2,1)}_{k,j}}
 $$
 
 :::info
-### Formula Explanation
+### Breaking down the Update Rule
 
 Since I'm having trouble understanding the formula, so here's a very very detailed explanation:
 
@@ -375,56 +377,50 @@ This is the most important part, and it has two pieces: the fraction and the neg
   * If turning the weight up makes the error go down ($-5$), the negative sign flips it to $+5$. The network says, "Great! I will turn the weight UP even more."
 :::
 
-Since $E$ depends on the output $o_k$, which depends on $net^{(2)}_k$, which in turn depends on the weight $w^{(2,1)}_{k,j}$:
+However, we cannot directly calculate $\frac{\partial E}{\partial w}$ because the Error formula $E = (d - o)^2$ does not have a $w$ in it.
+
+To bridge this gap, we use the **Chain Rule**. We map out the exact sequence of events that happen when a weight is tweaked: a change in the weight alters the **Net Input**, which alters the **Output**, which alters the **Error**.
+
+Mathematically, we chain these three partial derivatives together:
 
 $$
 \frac{\partial E}{\partial w^{(2,1)}_{k,j}} = \frac{\partial E}{\partial o_k} \cdot \frac{\partial o_k}{\partial net^{(2)}_k} \cdot \frac{\partial net^{(2)}_k}{\partial w^{(2,1)}_{k,j}}
 $$
 
 :::info
-### Understanding the equation
+### Concept: Mapping out the Chain Rule
 
-Let's imagine that we are a mathematician ourselves. Given all the previous knowledge, how do we find out the equation ourselves?
+Let's imagine we are mathematicians trying to figure out this equation ourselves.
 
-We know that a neural network consists of an input layer, several hidden layers, and an output layer. Each layer has several nodes, and weights connecting them to the next layer.
+We have a neural network with a huge Error ($E$). We don't want that. We need to figure out: **If we tweak a specific weight ($w$), what happens to the Error ($E$)?** In calculus terms, our goal is to find $\frac{\partial E}{\partial w}$.
 
-And we have the output of the neural network. It has a huge error ($E$). We don't want that. Now we need to figure out what will happen to the error$E$, if we tweak a specific weight, $w$? In other words, our goal is to find $\frac{\partial E}{\partial w}$.
+However, we can't directly calculate this because the Error formula $E = (d - o)^2$ doesn't have a $w$ in it! There is no $w$ to take a derivative of.
 
-However, we also know that we can't directly calculate it, because the Error ($E$) formula doesn't have a $w$ in it! The Error formula is $E = (d - o)^2$. There is no $w$ to take a derivative of.
+To connect $w$ to $E$, we must map out the "domino effect" of the network. We ask ourselves: *"If I tweak the weight, what is the very next thing that happens?"*
 
-So, how do we connect $w$ to $E$? We can ask ourselves, "If I tweak the weight ($w$), what is the very next thing that happens?"
+* **Domino 1: The Weight changes the Net Input.**
+  The weight ($w$) is multiplied by the incoming signal to create the net input ($net$). Thus, a change in $w$ causes a direct change in $net$.
+  This gives us our first piece: **$\frac{\partial net}{\partial w}$**
 
-We know the weight is multiplied by the incoming signal to create the net input for the output node. $net = w \cdot x$(or $net(w, x) = w \cdot x$)
+* **Domino 2: The Net Input changes the Output.**
+  Does the $net$ directly change the Error? No. First, it has to pass through the activation function ($S$) to become the final output ($o$). A change in $net$ causes a direct change in $o$.
+  This gives us our second piece: **$\frac{\partial o}{\partial net}$**
 
-However, we do care about the weight here. So we will fix the $x$ in place, treating it as a dumb number, essentially turning the equation into $net(w) = w \cdot x$, where $x$ is a constant.
+* **Domino 3: The Output changes the Error.**
+  Finally, the output ($o$) is compared to our dataset target ($d$) to calculate the final Error. A change in $o$ causes a direct change in $E$.
+  This gives us our final piece: **$\frac{\partial E}{\partial o}$**
 
-Thus, a change in $w$ causes a direct change in $net$: **$\frac{\partial net}{\partial w}$**
+We've just mapped out a composite function: $E$ depends on $o$, which depends on $net$, which depends on $w$. **Multiply them together, and you get your exact blueprint equation!**
 
-Does the $net$ input directly change the Error? No. First, it has to pass through the activation function to become the final output. $o = S(net)$(or you can write it as $S(o) = S(net)$.
-
-This is essentially just standard derivative, since we don't have a second variable.
-
-A change in $net$ causes a direct change in $o$: **$\frac{\partial o}{\partial net}$**
-
-Finally, the output ($o$) is the number that gets compared to the target ($d$) to calculate the Error. $E = (d - o)^2$.
-
-Here, it gets a little tricky. If your network has 3 output nodes, the original Error equation depends on all three of those changing outputs. $E(o_1, o_2, o_3) = (d_1 - o_1)^2 + (d_2 - o_2)^2 + (d_3 - o_3)^2$ (Remember: $d$ is your dataset label, like "100% Cat". It is a hardcoded constant, never a variable). We want the partial derivative for just the first node ($o_1$). So, we lock $o_2$ and $o_3$ into place, treating them as constants.
-
-This changed the function to $f(o_1) = (d_1 - o_1)^2 + C$, where $C$ is a constant.
-
-A change in $o$ causes a direct change in $E$: **$\frac{\partial E}{\partial o}$**
-
-We've just mapped out a composite function: $E$ depends on $o$, which depends on $net$, which depends on $w$.
-
-Multiply them together, and you get your exact blueprint equation as above.
+#### Decoding the Labels
 
 The numbers and letters are just coordinate labels to tell you exactly where you are in the network.
 
-**The Superscript** **$(2,1)$:** This tells you which layers the weight is bridging. It means this weight connects **Layer 1** (the hidden layer) to **Layer 2** (the output layer). *(Note: It is conventionally written backward as (Target, Source), so (2,1) means "going to 2, from 1").*
+* **The Superscript** **$(2,1)$:** This tells you which layers the weight is bridging. It means this weight connects **Layer 1** (hidden) to **Layer 2** (output). *(Note: It is conventionally written backward as Target, Source).*
 
-**The Subscript** **$k,j$:** This tells you the specific nodes. It means this weight connects node **$j$** (in the hidden layer) to node **$k$** (in the output layer).
+* **The Subscript** **$k,j$:** This tells you the specific nodes. It connects node **$j$** (in the hidden layer) to node **$k$** (in the output layer).
 
-So, $\frac{\partial E}{\partial w^{(2,1)}_{k,j}}$ simply means: **"How much does the total Error change if I tweak this one specific wire connecting hidden node** **$j$** **to output node** **$k$?"**
+So, $\frac{\partial E}{\partial w^{(2,1)}_{k,j}}$ simply means: *"How much does the total Error change if I tweak this one specific wire connecting hidden node* *$j$* *to output node* *$k$?"*
 :::
 
 $$
@@ -432,7 +428,7 @@ $$
 $$
 
 :::info
-### Understanding the formula
+### Math: Solving the 3 parts of the Chain Rule
 
 Remember that we have the blueprint equation above? Partial derivatives doesn't work well against computers, so we need to further derive the equation. So, from the steps above, we already knows these 3 formulas:
 
@@ -448,8 +444,10 @@ We want to find the derivative of the Error with respect to a specific output no
 
 **The formula:** $E = \sum (d_k - o_k)^2$
 
-1. **Freeze the other nodes:** Because of the $\sum$ symbol, the total Error $E$ is just a long addition problem: $(d_1 - o_1)^2 + (d_2 - o_2)^2 + \dots$
-2. Since we are only looking for the partial derivative for a specific node $k$, we freeze all the other nodes. Their derivatives become $0$. We are left looking only at:
+1. **Freeze the other nodes:** The original Error equation depends on ALL changing outputs. If your network has 3 output nodes, the formula looks like this:
+   $E = (d_1 - o_1)^2 + (d_2 - o_2)^2 + (d_3 - o_3)^2$
+   We only want the partial derivative for the first node ($o_1$). So, we lock $o_2$ and $o_3$ into place, treating them as constants. This changes the function to $f(o_1) = (d_1 - o_1)^2 + C$.
+2. Because the derivatives of those frozen constants become $0$, we are left looking only at:
 
    $f(o_k) = (d_k - o_k)^2$
 3. **Apply the Power Rule:** To take the derivative of something squared, we bring the $2$ down to the front:
@@ -510,7 +508,46 @@ $$
 
 The blueprint equation we just built above is only the simplest case. It only calculates the blame for the very last set of weights in the network (the ones touching the final Output). What if we want to calculate the blame for a weight deeper inside the network? Say, between the input layer and a hidden layer. We can apply the same logic, but we will run into two new challanges, longer chains and fork roads.
 
-If you are tweaking a weight deeper in the network (w^{(1,0)}), that tweak has to travel further to reach the final Error.
+#### 1. Longer Chains
+
+If you are tweaking a weight deeper in the network ($w^{(1,0)}$), that tweak has to travel further to reach the final Error.
+
+Instead of a 3-step chain, you now have a 5-step chain. If you tweak a deep weight, the ripple effect looks like this:
+
+1. The Deep Weight changes the **Deep Net Input**.
+2. The Deep Net Input changes the **Deep Output** (the Hidden Node's signal).
+3. The Hidden Node's signal travels forward and changes the **Final Net Input**.
+4. The Final Net Input changes the **Final Output**.
+5. The Final Output changes the **Error**.
+
+If it was just a straight line, your blueprint would just be those 5 derivatives multiplied together:
+
+$$
+\frac{\partial E}{\partial o} \cdot \frac{\partial o}{\partial net_{final}} \cdot \frac{\partial net_{final}}{\partial o_{hidden}} \cdot \frac{\partial o_{hidden}}{\partial net_{deep}} \cdot \frac{\partial net_{deep}}{\partial w}
+$$
+
+#### 2. The Fork in the Road (Why we need the $\Sigma$)
+
+But in neural network's context, the chain is almost never a straight line.
+
+If you are trying to trace the Error backward to hidden node's weight, you hit a fork in the road. Which node's Error do you trace?
+
+Of course you have to look at all of them.
+
+If a hidden node $j$ connects to three different outputs ($k=1, k=2, k=3$), then hidden node $j$ is partially responsible for the errors of all three. To find the total blame for the hidden node's weight, you have to:
+
+1. Trace the 5-step chain back from output node 1.
+2. Trace the 5-step chain back from output node 2.
+3. Trace the 5-step chain back from output node 3.
+4. **Add them all together.**
+
+Now, look at the formula again. It is just the 5-step chain rule we deduced above, wrapped inside a giant Summation ($\Sigma$) symbol to add up the blame from every node in the next layer ($k$):
+
+$$
+\frac{\partial E}{\partial w^{(1,0)}_{j,i}} = \sum_{k=1}^{K} \left( \frac{\partial E}{\partial o_k} \cdot \frac{\partial o_k}{\partial net^{(2)}_k} \cdot \frac{\partial net^{(2)}_k}{\partial x^{(1)}_j} \cdot \frac{\partial x^{(1)}_j}{\partial net^{(1)}_j} \cdot \frac{\partial net^{(1)}_j}{\partial w^{(1,0)}_{j,i}} \right)
+$$
+
+*(Note: In the notes, the deep output* *$o_{hidden}$* *is written as* *$x^{(1)}_j$* *because the output of the hidden layer becomes the input* *$x$* *for the next layer!)*
 :::
 
 Expanding this partial derivative mathematically:
