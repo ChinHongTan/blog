@@ -1,7 +1,7 @@
 ---
 title: Artificial Neural Networks and Backpropagation
 date: 2026-04-22T19:27:42+08:00
-edited_at: 2026-04-23T17:26:37.082Z
+edited_at: 2026-04-24T05:40:00.995Z
 author: chinono
 ---
 
@@ -373,7 +373,9 @@ In calculus, the Chain Rule is a formula used to find the derivative of **nested
 A nested function looks like this: **$A( B( C(x) ) )$**
 
 * $x$ changes $C$
+
 * $C$ changes $B$
+
 * $B$ changes $A$
 
 If you want to know **"How much does** **$x$** **change** **$A$?"**, the Chain Rule says you just calculate the rate of change for each nested function individually, and then **multiply them all together.**
@@ -382,30 +384,112 @@ If you want to know **"How much does** **$x$** **change** **$A$?"**, the Chain R
 :::info
 ### Understanding the equation
 
-First, we take the weight ($w$) and multiply it by the input to calculate the **$net$** input. We are trying to find the partial derivative with respect to the **weight** (what will happen to $net$ input if we tweak weight). Thus, we freeze the input, and the $net$ input is directly affected by weight only, thus we can rewrite the function as $net(w)$.
+Let's imagine that we are a mathematician ourselves. Given all the previous knowledge, how do we find out the equation ourselves?
 
-Next, we take that $net$ input and push it through the activation function to get the actual output (**$o$**). Again, the activation function is freezed here, so we can write this as $o(net)$.
+We know that a neural network consists of an input layer, several hidden layers, and an output layer. Each layer has several nodes, and weights connecting them to the next layer.
 
-Finally, we compare that output ($o$) to our target to calculate the final Error (**$E$**), or $E(o)$.
+And we have the output of the neural network. It has a huge error ($E$). We don't want that. Now we need to figure out what will happen to the error$E$, if we tweak a specific weight, $w$? In other words, our goal is to find $\frac{\partial E}{\partial w}$.
 
-So, the Error is a nested function that looks like this:
+However, we also know that we can't directly calculate it, because the Error ($E$) formula doesn't have a $w$ in it! The Error formula is $E = (d - o)^2$. There is no $w$ to take a derivative of.
 
-$$
-E\Big( o\big( net( w ) \big) \Big)
-$$
+<br />
 
-If we want to know how nudging the weight ($w$) changes the Error ($E$), which is written as $\frac{\partial E}{\partial w}$, we just apply the Chain Rule! We un-nest the dolls one by one and multiply their rates of change together:
+So, how do we connect $w$ to $E$? We can ask ourselves, "If I tweak the weight ($w$), what is the very next thing that happens?"
 
-1. How much does $o$ change $E$? $\rightarrow \frac{\partial E}{\partial o}$
-2. How much does $net$ change $o$? $\rightarrow \frac{\partial o}{\partial net}$
-3. How much does $w$ change $net$? $\rightarrow \frac{\partial net}{\partial w}$
+We know the weight is multiplied by the incoming signal to create the net input for the output node. $net = w \cdot x$
+
+Thus, a change in $w$ causes a direct change in $net$: **$\frac{\partial net}{\partial w}$**
+
+Does the $net$ input directly change the Error? No. First, it has to pass through the activation function to become the final output. $o = S(net)$
+
+A change in $net$ causes a direct change in $o$: **$\frac{\partial o}{\partial net}$**
+
+Finally, the output ($o$) is the number that gets compared to the target ($d$) to calculate the Error. $E = (d - o)^2$
+
+A change in $o$ causes a direct change in $E$: **$\frac{\partial E}{\partial o}$**
+
+We've just mapped out a composite function: $E$ depends on $o$, which depends on $net$, which depends on $w$.
 
 Multiply them together, and you get your exact blueprint equation as above.
+
+<br />
+
+The numbers and letters are just coordinate labels to tell you exactly where you are in the network.
+
+**The Superscript** **$(2,1)$:** This tells you which layers the weight is bridging. It means this weight connects **Layer 1** (the hidden layer) to **Layer 2** (the output layer). *(Note: It is conventionally written backward as (Target, Source), so (2,1) means "going to 2, from 1").*
+
+**The Subscript** **$k,j$:** This tells you the specific nodes. It means this weight connects node **$j$** (in the hidden layer) to node **$k$** (in the output layer).
+
+So, $\frac{\partial E}{\partial w^{(2,1)}_{k,j}}$ simply means: **"How much does the total Error change if I tweak this one specific wire connecting hidden node** **$j$** **to output node** **$k$?"**
 :::
 
 $$
 \frac{\partial E}{\partial w^{(2,1)}_{k,j}} = -2(d_k - o_k) \cdot S'\left(net^{(2)}_k\right) \cdot x^{(1)}_j
 $$
+
+:::info
+### Understanding the formula
+
+Remember that we have the blueprint equation above? Partial derivatives doesn't work well against computers, so we need to further derive the equation. So, from the steps above, we already knows these 3 formulas:
+
+* **The Error Formula:** $E = \sum (d_k - o_k)^2$
+* **The Output Formula:** $o_k = S(net^{(2)}_k)$
+* **The Net Input Formula:** $net^{(2)}_k = \sum (w^{(2,1)}_{k,j} \cdot x^{(1)}_j)$
+
+### Step 1: Solve $\frac{\partial E}{\partial o_k}$
+
+We want to find the derivative of the Error with respect to a specific output node $o_k$.
+
+**The formula:** $E = \sum (d_k - o_k)^2$
+
+1. **Freeze the other nodes:** Because of the $\sum$ symbol, the total Error $E$ is just a long addition problem: $(d_1 - o_1)^2 + (d_2 - o_2)^2 + \dots$
+2. Since we are only looking for the partial derivative for a specific node $k$, we freeze all the other nodes. Their derivatives become $0$. We are left looking only at:
+
+   $f(o_k) = (d_k - o_k)^2$
+3. **Apply the Power Rule:** To take the derivative of something squared, we bring the $2$ down to the front:
+
+   $2(d_k - o_k)$
+4. **The Inner Chain Rule:** In calculus, if you take the derivative of the outside (the square), you must multiply it by the derivative of the inside. The derivative of $d_k$ (a frozen target number) is $0$. The derivative of $-o_k$ is $-1$.
+5. Multiply the result by $-1$:
+
+   **Answer 1:** $-2(d_k - o_k)$
+
+> ### Why is $d_k$ frozen?
+>
+> Remember what $d_k$ actually is in the real world: it is your **D**esired target. It is the "ground truth" label from your dataset.
+>
+> If you feed the network a picture of a dog, and the label for dog is `1`, then $d_k = 1$.
+>
+> The output ($o_k$) is going to change constantly as the network learns and tweaks its weights. But the picture is *always* going to be a dog. The target $d_k$ never changes; it is a permanent, hardcoded number for that specific training sample.
+>
+> Because $d_k$ is just a plain, unchanging number, the rules of calculus say that its derivative is exactly $0$.
+
+### Step 2: Solve $\frac{\partial o_k}{\partial net^{(2)}_k}$
+
+We want to find the derivative of the Output with respect to the Net Input.
+
+**The formula:** $o_k = S(net^{(2)}_k)$
+
+1. This one requires almost no math! $S$ just represents the activation function.
+2. In calculus, the universal shorthand for "the derivative of function $S$" is simply writing it with a prime symbol: $S'$.
+3. **Answer 2:** $S'\left(net^{(2)}_k\right)$
+
+### Step 3: Solve $\frac{\partial net^{(2)}_k}{\partial w^{(2,1)}_{k,j}}$
+
+We want to find the derivative of the Net Input with respect to one specific weight.
+
+**The formula:** $net^{(2)}_k = \sum (w^{(2,1)}_{k,j} \cdot x^{(1)}_j)$
+
+1. **Freeze the other connections:** The Net Input is calculated by adding up all the incoming signals: $(w_1 \cdot x_1) + (w_2 \cdot x_2) + \dots$
+2. Because we are taking a partial derivative for one specific weight ($w_j$), we freeze all the other weights. They turn into normal numbers without slopes, so their derivatives become $0$.
+3. We are left looking only at the specific piece of the formula connected to our weight:
+
+   $f(w) = w^{(2,1)}_{k,j} \cdot x^{(1)}_j$
+4. **The Sticky Constant:** Remember the rule for multiplying variables! We pretend the input ($x^{(1)}_j$) is a boring, frozen number like $10$.
+5. The derivative of $10w$ is just $10$. Therefore, the derivative of $x \cdot w$ is just $x$.
+
+   **Answer 3:** $x^{(1)}_j$
+:::
 
 #### Updating Hidden Layer Weights ($w^{(1,0)}$)
 
@@ -414,6 +498,14 @@ This is the core of backpropagation. A hidden node $j$ connects to *multiple* ou
 $$
 \frac{\partial E}{\partial w^{(1,0)}_{j,i}} = \sum_{k=1}^{K} \left( \frac{\partial E}{\partial o_k} \cdot \frac{\partial o_k}{\partial net^{(2)}_k} \cdot \frac{\partial net^{(2)}_k}{\partial x^{(1)}_j} \cdot \frac{\partial x^{(1)}_j}{\partial net^{(1)}_j} \cdot \frac{\partial net^{(1)}_j}{\partial w^{(1,0)}_{j,i}} \right)
 $$
+
+:::info
+### The Hidden Layer
+
+The blueprint equation we just built above is only the simplest case. It only calculates the blame for the very last set of weights in the network (the ones touching the final Output). What if we want to calculate the blame for a weight deeper inside the network? Say, between the input layer and a hidden layer. We can apply the same logic, but we will run into two new challanges, longer chains and fork roads.
+
+If you are tweaking a weight deeper in the network (w^{(1,0)}), that tweak has to travel further to reach the final Error.
+:::
 
 Expanding this partial derivative mathematically:
 
