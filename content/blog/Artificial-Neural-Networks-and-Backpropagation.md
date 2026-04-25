@@ -1,7 +1,7 @@
 ---
 title: Artificial Neural Networks and Backpropagation
 date: 2026-04-22T19:27:42+08:00
-edited_at: 2026-04-25T04:50:48.818Z
+edited_at: 2026-04-25T05:11:35.842Z
 author: chinono
 ---
 
@@ -259,7 +259,7 @@ $$
 The first factor is just $S(x)$. For the second factor, notice that:
 
 $$
-\frac{e^{-x}}{1 + e^{-x}} = \frac{1 + e^{-x} - 1}{1 + e^{-x}} = \frac{1+e^{-x}}{1+e^-x} - \frac{1}{1+e^{-x}} = 1 - S(x)
+\frac{e^{-x}}{1 + e^{-x}} = \frac{1 + e^{-x} - 1}{1 + e^{-x}} = \frac{1+e^{-x}}{1+e^{-x}} - \frac{1}{1+e^{-x}} = 1 - S(x)
 $$
 
 Therefore:
@@ -528,6 +528,8 @@ We want to find the derivative of the Error with respect to a specific output no
 
    **Answer 1:** $-2(d_k - o_k)$
 
+Some textbooks will drop the 2 in front, as it won't affect the final target (we still want error to be 0), and the 2 is absorbed into the learning rate anyways, which we will talk about later.
+
 > ### Why is $d_k$ frozen?
 >
 > Remember what $d_k$ actually is in the real world: it is your **D**esired target. It is the "ground truth" label from your dataset.
@@ -781,7 +783,7 @@ The computer never has to calculate a 100-link equation. It just plays a game of
 :::info
 ### Deriving the formula
 
-Remember the partial derivative we calculated earlier? Let's say we did all the chain rule math, and we found out that for one specific weight ($w$), the slope (the derivative $\frac{\partial E}{\partial w}$) is **$5$**. 
+Remember the partial derivative we calculated earlier? Let's say we did all the chain rule math, and we found out that for one specific weight ($w$), the slope (the derivative $\frac{\partial E}{\partial w}$) is **$5$**.
 
 What does a positive slope of $5$ mean mathematically? It means if we *increase* the weight, the Error will *increase* by 5 times as much.
 
