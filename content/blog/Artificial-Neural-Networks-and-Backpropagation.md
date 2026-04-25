@@ -1,7 +1,7 @@
 ---
 title: Artificial Neural Networks and Backpropagation
 date: 2026-04-22T19:27:42+08:00
-edited_at: 2026-04-24T14:34:27.329Z
+edited_at: 2026-04-25T04:50:48.818Z
 author: chinono
 ---
 
@@ -29,6 +29,20 @@ The fundamental difference between biological brains and traditional computers l
 | **Memory Access**     | Sequential access via explicit physical addresses.                                        | Content-addressable recall (retrieval by association).                                                        |
 | **Knowledge Storage** | Knowledge and problem-solving logic are explicitly separated from the computing hardware. | Knowledge is distributed and physically resides in the synaptic connectivity between neurons.                 |
 | **Adaptability**      | Hard-coded and rigid; highly susceptible to catastrophic failure if hardware is damaged.  | Highly adaptive; learns by altering network connectivity. Exhibits graceful degradation if partially damaged. |
+
+### BNN vs. ANN
+
+While ANNs are inspired by biological brains, the practical engineered version is a tiny, brittle imitation of the real thing. The slides include this distinct comparison:
+
+| Feature                 | Biological Neural Network (BNN)                           | Artificial Neural Network (ANN)                                     |
+| :---------------------- | :-------------------------------------------------------- | :------------------------------------------------------------------ |
+| **Parallelism**         | Massively parallel, slow per neuron, but superior overall | Massively parallel, fast per node, but inferior overall             |
+| **Scale**               | \~$10^{11}$ neurons, \~$10^{15}$ interconnections         | Typically $10^2$ to $10^4$ nodes; depends on application and design |
+| **Ambiguity**           | Tolerates ambiguity natively                              | Requires precise, structured, formatted data to handle ambiguity    |
+| **Fault tolerance**     | Performance degrades gracefully under partial damage      | Robust performance is possible but not automatic                    |
+| **Information storage** | Stored in the synapses (the connections themselves)       | Stored in continuous memory locations                               |
+
+The takeaway: ANNs borrow the *idea* of distributed parallel computation, but they're orders of magnitude smaller and far less robust than the biological systems that inspired them.
 
 ## 2. From Biological to Artificial Neurons
 
@@ -146,7 +160,7 @@ Let's say you are training an AI to predict a house's price. Your input vector f
 
 The output is a vector because the output might be more than one number. For example, an AI that's trained to classify animals as Dog, Cat, or Bird, the output layer will contain 3 nodes, `[0, 1, 0]` (0% Dog, 100% Cat, 0% Bird).
 
-The Simple Error for One Node
+#### The Simple Error for One Node
 
 $$
 l_{p,j} = d_{p,j} - y_{p,j}
@@ -158,7 +172,7 @@ $y_{p,j}$ is your actual output (Y) for node $j$.
 
 This formula just says: Error = (What we wanted) - (What the network actually guessed). If the target was $1$ and the network guessed $0.8$, the error for that specific node is $0.2$.
 
-The Big Objective Function (Sum Squared Error):
+#### The Big Objective Function (Sum Squared Error):
 
 $$
 E = \sum_{p=1}^{P} \sum_{k=1}^{K} (d_{p,k} - o_{p,k})^2
@@ -222,7 +236,41 @@ S'(x) = S(x)(1 - S(x))
 $$
 
 :::info
-### Note on Saturation
+### Deriving S'(x) step by step
+
+We treat $S(x) = (1 + e^{-x})^{-1}$ and apply the chain rule:
+
+$$
+S'(x) = -1 \cdot (1 + e^{-x})^{-2} \cdot \frac{d}{dx}(1 + e^{-x})
+$$
+
+The derivative of $(1 + e^{-x})$ is $-e^{-x}$ (the $1$ vanishes; the $e^{-x}$ keeps its form but picks up a $-1$ from the inner $-x$):
+
+$$
+S'(x) = -\frac{1}{(1 + e^{-x})^2} \cdot (-e^{-x}) = \frac{e^{-x}}{(1 + e^{-x})^2}
+$$
+
+Now split the fraction into a product:
+
+$$
+S'(x) = \frac{1}{1 + e^{-x}} \cdot \frac{e^{-x}}{1 + e^{-x}}
+$$
+
+The first factor is just $S(x)$. For the second factor, notice that:
+
+$$
+\frac{e^{-x}}{1 + e^{-x}} = \frac{1 + e^{-x} - 1}{1 + e^{-x}} = \frac{1+e^{-x}}{1+e^-x} - \frac{1}{1+e^{-x}} = 1 - S(x)
+$$
+
+Therefore:
+
+$$
+S'(x) = S(x)(1 - S(x))
+$$
+
+This is the magic property that makes sigmoid so practical: once you've computed $S(x)$ during the forward pass, you get its derivative essentially for free during the backward pass — just multiply $S(x)$ by $(1 - S(x))$, no exponentials needed.
+
+#### Note on Saturation
 
 If the net input $|net|$ becomes exceptionally large (positive or negative), the sigmoid function enters a "saturation region" where the curve flattens out. In these regions, the derivative approaches zero, behaving like a hard step function. This can cause a problem known as "vanishing gradients," where the network stops learning.
 :::
@@ -342,6 +390,28 @@ $$
 $$
 
 :::info
+### The Learning Rate η
+
+The proportionality $\Delta w \propto -\frac{\partial E}{\partial w}$ becomes a usable equation by introducing a small constant $\eta$ (eta), called the **learning rate**:
+
+$$
+\Delta w = -\eta \cdot \frac{\partial E}{\partial w}
+$$
+
+$\eta$ is typically a small positive number (0.001 to 0.5). It controls how big each weight update step is:
+
+* **Too small** → learning crawls; the network needs millions of epochs to converge.
+
+* **Too large** → the optimizer overshoots minima, oscillates, or diverges entirely.
+
+In code, every backprop weight update has this form:
+
+$$
+w'_{(x_i)j} = w_{(x_i)j} + \eta \cdot \delta_j \cdot f'_j(e) \cdot x_i
+$$
+
+where $\delta_j$ is the local error signal at node $j$, $f'_j(e)$ is the derivative of that node's activation function, and $x_i$ is the incoming signal on the wire being updated.
+
 ### Breaking down the Update Rule
 
 Since I'm having trouble understanding the formula, so here's a very very detailed explanation:
@@ -558,15 +628,229 @@ $$
 
 This formula elegantly demonstrates how the error $(d_k - o_k)$ is "back-propagated" through the weights $w^{(2,1)}_{k,j}$ to adjust the deeper hidden weights $w^{(1,0)}_{j,i}$.
 
+:::info
+### Deriving the formula
+
+Let's look at the 5-link chain rule we built earlier:
+
+$$
+\frac{\partial E}{\partial w} = \sum \left( \text{Link 1} \cdot \text{Link 2} \cdot \text{Link 3} \cdot \text{Link 4} \cdot \text{Link 5} \right)
+$$
+
+Because the error has to travel backward from the end of the network, the first two links of the chain are exactly the same as the output layer.
+
+* **Link 1 ($\frac{\partial E}{\partial o_k}$):** $-2(d_k - o_k)$
+
+* **Link 2 ($\frac{\partial o_k}{\partial net^{(2)}_k}$):** $S'\left(net^{(2)}_k\right)$
+
+***
+
+#### Solve Link 3: $\frac{\partial net^{(2)}_k}{\partial x^{(1)}_j}$
+
+* **The Goal:** How does the Final Net Input ($net^{(2)}_k$) react if the hidden node's output signal ($x^{(1)}_j$) changes?
+
+* **The Formula:** $net^{(2)}_k = w^{(2,1)}_{k,j} \cdot x^{(1)}_j$
+
+* Look at the bottom of our fraction. Our active variable is $x^{(1)}_j$. This means we must freeze the weight!
+
+* Let's pretend the frozen weight is $10$. Your equation becomes $f(x) = 10x$. The derivative of $10x$ is just $10$.
+
+* Therefore, the derivative of $w \cdot x$ (when $x$ is the variable) is just the $w$!
+
+* **Answer 3:** $w^{(2,1)}_{k,j}$
+
+***
+
+#### Solve Link 4: $\frac{\partial x^{(1)}_j}{\partial net^{(1)}_j}$
+
+* **The Goal:** How does the hidden node's output signal ($x^{(1)}_j$) react if their own Net Input ($net^{(1)}_j$) changes?
+
+* **The Formula:** $x^{(1)}_j = S\left(net^{(1)}_j\right)$
+
+* This is the same as Link 2, just happening one layer deeper. It is a 1D equation, so we just take the standard derivative of the activation function.
+
+* **Answer 4:** $S'\left(net^{(1)}_j\right)$
+
+***
+
+#### Solve Link 5: $\frac{\partial net^{(1)}_j}{\partial w^{(1,0)}_{j,i}}$
+
+* **The Goal:** How does the hidden node's Net Input ($net^{(1)}_j$) react if we tweak the deep weight ($w^{(1,0)}_{j,i}$)?
+
+* **The Formula:** $net^{(1)}_j = w^{(1,0)}_{j,i} \cdot x_i$
+
+* Look at the bottom of the fraction. Our active variable is the weight ($w$). This means we must freeze the raw input data ($x_i$).
+
+* Just like we did for the output layer, if we freeze $x$ to be $10$, the equation is $f(w) = 10w$. The derivative is $10$. So, the derivative of $x \cdot w$ is just $x$.
+
+* **Answer 5:** $x_i$
+:::
+
+### A More Intuitive View: The δ Recursion
+
+The chain-rule derivations above are mathematically complete, but they hide a beautiful pattern. Once we group terms, backpropagation collapses into a simple recursive rule. Define a **local error signal** $\delta_n$ at every node $n$:
+
+* **At the output node:** $\delta = z - y$, the raw difference between target and actual output.
+
+* **At any hidden node** **$j$:** $\delta_j$ is the sum of incoming $\delta$s from every node it feeds, each weighted by the connecting weight.
+
+  $$
+  \delta_j = \sum_{k} (w_{k,j} \cdot \delta_k)
+  $$
+
+For the 2-3-2-1 network in the lecture (3 nodes in the first hidden layer, 2 in the second, 1 output), this gives:
+
+![0.70](https://raw.githubusercontent.com/ChinHongTan/blog/main/public/images/uploads/1777088385327-Screenshot_2026-04-25_at_11.39.18_AM.png)
+
+$$
+\delta_4 = w_{46} \cdot \delta, \quad \delta_5 = w_{56} \cdot \delta
+$$
+
+$$
+\delta_1 = w_{14} \cdot \delta_4 + w_{15} \cdot \delta_5
+$$
+
+$$
+\delta_2 = w_{24} \cdot \delta_4 + w_{25} \cdot \delta_5
+$$
+
+$$
+\delta_3 = w_{34} \cdot \delta_4 + w_{35} \cdot \delta_5
+$$
+
+Notice the pattern: **the same weights used in the forward pass are reused, but the signal flows the opposite direction.** The forward pass sends $y$-values left-to-right through the weights; the backward pass sends $\delta$-values right-to-left through those *same* weights. This is why the algorithm is called "back" propagation — and why training is computationally cheap relative to its expressive power.
+
+:::warning
+In neural network terminology, **"Source" (src)** and **"Destination" (dst)** are *always* defined by the direction of the **Forward Pass** (from left to right).
+:::
+
+Once every node has its $\delta$, every weight gets the same update rule:
+
+$$
+w'_{(\text{src})(\text{dst})} = w_{(\text{src})(\text{dst})} + \eta \cdot \delta_{\text{dst}} \cdot f'_{\text{dst}}(e) \cdot \text{output of src}
+$$
+
+or using the math notation earlier,
+
+$$
+w' = w + \eta \cdot \delta_{dst} \cdot S'(net_{dst}) \cdot x_{src}
+$$
+
+*(Note:* *$\eta$* *is just the "learning rate," a tiny number we use to make sure the network takes small steps instead of giant leaps).*
+
+That single line summarizes all of backpropagation. Everything earlier in this document is the proof that this rule actually decreases the error.
+
+:::info
+### Wait, what is $\delta$ actually doing?
+
+The chain-rule math above is the *proof* that backpropagation works, but it is not how a computer actually *runs* the code.
+
+If a neural network is 100 layers deep, calculating the chain-rule equation for the very first layer would require an impossibly long equation. The computer would end up recalculating the exact same math millions of times.
+
+**The Solution ($\delta$** **Recursion):** Instead of looking at the whole giant equation at once, we chop the "Blame" up into a neat little package called $\delta$ (Delta).
+
+Think of $\delta$ as a "Box of Blame."
+Every single node in the network calculates its own personal Box of Blame.
+
+Here is how the algorithm flows:
+
+**1. The Output Layer (The Final Inspector)**
+
+* The output node calculates its raw error: $(Target - Output)$.
+
+* It puts this into its Box of Blame and calls it $\delta$.
+
+**2. The Hidden Layers (Passing the Buck)**
+
+* A hidden node doesn't calculate an error from scratch.
+
+* Instead, it just looks at the node in front of it and says: *"Give me your Box of Blame ($\delta$). Multiply it by the Weight connecting us, and hand it backward to me."*
+
+* The hidden node takes that package, adds its own flexibility (activation derivative), and says: *"Great, this is my new Box of Blame!"*
+
+**3. The Fork in the Road (Summing)**
+
+* If a hidden node sent its signal to *three* different output nodes, it simply collects the Boxes of Blame ($\delta$) from all three of them, multiplies them by their respective weights, and adds them together.
+
+Notice that during the **Forward Pass**, the network pushes the raw data ($x$) left-to-right, multiplying it by the weights.
+During the **Backward Pass**, the network takes the Error packages ($\delta$) and pushes them right-to-left, multiplying them by the *exact same weights*.
+
+The computer never has to calculate a 100-link equation. It just plays a game of hot potato, handing the $\delta$ packages backward one step at a time!
+:::
+
+:::info
+### Deriving the formula
+
+Remember the partial derivative we calculated earlier? Let's say we did all the chain rule math, and we found out that for one specific weight ($w$), the slope (the derivative $\frac{\partial E}{\partial w}$) is **$5$**. 
+
+What does a positive slope of $5$ mean mathematically? It means if we *increase* the weight, the Error will *increase* by 5 times as much.
+
+But our goal is to make the Error go **down** to zero! If increasing the weight makes the error go up, what should we do? **We do the exact opposite of the slope.** We need to subtract the slope from our current weight. This is called the **Gradient Descent**.
+
+Gradient Descent looks like this:
+
+$$
+w_{new} = w_{old} - (\text{Learning Rate} \cdot \text{Slope})
+$$
+
+The learning rate is there so that we don't take steps that are too big, to the point that we cross the entire valley.
+
+In math, it looks like this:
+
+$$
+w_{new} = w_{old} - \eta \frac{\partial E}{\partial w}
+$$
+
+Remember our chain rule equation we derived earlier:
+
+$$
+\frac{\partial E}{\partial w} = - (d - o) \cdot S'(net) \cdot x
+$$
+
+Let's plug that slope into our Gradient Descent equation:
+
+$$
+w_{new} = w_{old} - \eta \Big( - (d - o) \cdot S'(net) \cdot x \Big)
+$$
+
+Look closely at what happens to the negative signs. You are subtracting a negative number. Those two minus signs cancel each other out and become a plus!
+
+Also, remember that $(d - o)$ is what we call $\delta$ (the blame).
+
+So with some clean up, we get this:
+
+$$
+w_{new} = w_{old} + \eta \cdot \delta \cdot S'(net) \cdot x
+$$
+
+Which, you may have noticed, is our weight update rule.
+
+$S'(net)$ here acts as a volume dial. If the node is in the flat zone, the little slope ($S'$) is $0$. It multiplies the whole weight update by $0$, canceling it out. The network realizes: *"Changing this weight won't affect the error right now, so don't bother moving it."*
+
+If the node is in the steep middle zone, the little slope (\$S'\$) is high, and the weight is allowed to update normally.
+:::
+
 ### Enhancing Backpropagation
 
-Standard Backpropagation can be slow. Several techniques are utilized to speed up the learning process:
+Vanilla gradient descent with a fixed learning rate is slow and gets trapped in shallow valleys of the error surface. Three classical refinements address this:
 
-* **Momentum Terms:** Adds a fraction of the previous weight update to the current one, preventing the algorithm from getting stuck in shallow local minima and smoothing out oscillations in the gradient.
+**Momentum.** A fraction of the previous weight update is added to the current one:
 
-* **Adaptive Learning Rates (Delta-Bar-Delta):** Adjusts the step size dynamically. If the error is decreasing consistently, the learning rate increases; if the error oscillates, the rate decreases.
+$$
+\Delta w_t = -\eta \cdot \frac{\partial E}{\partial w} + \alpha \cdot \Delta w_{t-1}
+$$
 
-* **Quickprop:** A second-order optimization method that uses a mathematical trick (assuming the error surface is a parabola) to jump directly to the minimum.
+where $\alpha$ (typically 0.9) is the momentum coefficient. Intuitively, the optimizer behaves like a ball rolling down a hill: it accumulates velocity in directions of consistent descent and damps oscillations in directions where the gradient keeps flipping sign. This both speeds up convergence on flat plateaus and helps escape shallow local minima.
+
+**Adaptive Learning Rates (Delta-Bar-Delta).** Rather than picking one $\eta$ for the whole network, give every weight its own $\eta_{ij}$ that adjusts dynamically:
+
+* If a weight's gradient direction is consistent across recent updates, *increase* its learning rate (we're confident, take bigger steps).
+
+* If a weight's gradient keeps oscillating, *decrease* its learning rate (we're overshooting, slow down).
+
+Modern variants of this idea (Adam, RMSProp) are still the default in deep learning today.
+
+**Quickprop.** A second-order method that approximates the error surface near the current point as a parabola in each weight, then jumps directly to the parabola's minimum. When the assumption holds, Quickprop converges in dramatically fewer epochs than vanilla gradient descent.
 
 ## 6. Applications of Neural Networks
 
@@ -642,6 +926,4 @@ While Multi-Layer Perceptrons trained with Backpropagation are exceptionally pow
 * **Trial-and-Error Architecture:** Selecting the optimal learning rate, momentum, number of hidden layers, and nodes is still largely an empirical art rather than an exact science.
 
 * **Catastrophic Forgetting (Non-incremental Learning):** Standard BP networks cannot easily learn "new" data on the fly. To incorporate new samples without forgetting old patterns, the network usually must be entirely retrained on the combined dataset.
-
-* <br />
 
