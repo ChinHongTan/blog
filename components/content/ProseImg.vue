@@ -15,7 +15,7 @@ const props = withDefaults(
 		title: undefined,
 		width: undefined,
 		height: undefined,
-	}
+	},
 );
 
 const parsedAlt = computed(() => {
@@ -37,7 +37,10 @@ const imageStyle = computed(() => {
 	return {
 		display: "block",
 		margin: "2rem auto",
-		width: parsedAlt.value.scale !== 1 ? `${parsedAlt.value.scale * 100}%` : "auto",
+		width:
+			parsedAlt.value.scale !== 1
+				? `${parsedAlt.value.scale * 100}%`
+				: "auto",
 		maxWidth: "100%",
 		height: "auto",
 	};
