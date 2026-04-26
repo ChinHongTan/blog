@@ -1,7 +1,7 @@
 ---
 title: Artificial Neural Networks and Backpropagation
 date: 2026-04-22T19:27:42+08:00
-edited_at: 2026-04-25T05:11:35.842Z
+edited_at: 2026-04-26T09:58:35.417Z
 author: chinono
 ---
 
@@ -342,7 +342,7 @@ Now, let's swap the $10$ back out for the $y$. The $3$ and the $y$ just act as "
 
 **Answer:** $\frac{\partial f}{\partial x} = 6xy$
 
-### **Find the partial derivative with respect to** **$y$** **($\frac{\partial f}{\partial y}$):**
+#### **Find the partial derivative with respect to** **$y$** **($\frac{\partial f}{\partial y}$):**
 
 Pretend $x$ is the constant.
 
@@ -412,7 +412,7 @@ $$
 
 where $\delta_j$ is the local error signal at node $j$, $f'_j(e)$ is the derivative of that node's activation function, and $x_i$ is the incoming signal on the wire being updated.
 
-### Breaking down the Update Rule
+#### Breaking down the Update Rule
 
 Since I'm having trouble understanding the formula, so here's a very very detailed explanation:
 
@@ -508,7 +508,7 @@ Remember that we have the blueprint equation above? Partial derivatives doesn't 
 
 * **The Net Input Formula:** $net^{(2)}_k = \sum (w^{(2,1)}_{k,j} \cdot x^{(1)}_j)$
 
-### Step 1: Solve $\frac{\partial E}{\partial o_k}$
+#### Step 1: Solve $\frac{\partial E}{\partial o_k}$
 
 We want to find the derivative of the Error with respect to a specific output node $o_k$.
 
@@ -530,7 +530,7 @@ We want to find the derivative of the Error with respect to a specific output no
 
 Some textbooks will drop the 2 in front, as it won't affect the final target (we still want error to be 0), and the 2 is absorbed into the learning rate anyways, which we will talk about later.
 
-> ### Why is $d_k$ frozen?
+> #### Why is $d_k$ frozen?
 >
 > Remember what $d_k$ actually is in the real world: it is your **D**esired target. It is the "ground truth" label from your dataset.
 >
@@ -540,7 +540,7 @@ Some textbooks will drop the 2 in front, as it won't affect the final target (we
 >
 > Because $d_k$ is just a plain, unchanging number, the rules of calculus say that its derivative is exactly $0$.
 
-### Step 2: Solve $\frac{\partial o_k}{\partial net^{(2)}_k}$
+#### Step 2: Solve $\frac{\partial o_k}{\partial net^{(2)}_k}$
 
 We want to find the derivative of the Output with respect to the Net Input.
 
@@ -550,7 +550,7 @@ We want to find the derivative of the Output with respect to the Net Input.
 2. In calculus, the universal shorthand for "the derivative of function $S$" is simply writing it with a prime symbol: $S'$.
 3. **Answer 2:** $S'\left(net^{(2)}_k\right)$
 
-### Step 3: Solve $\frac{\partial net^{(2)}_k}{\partial w^{(2,1)}_{k,j}}$
+#### Step 3: Solve $\frac{\partial net^{(2)}_k}{\partial w^{(2,1)}_{k,j}}$
 
 We want to find the derivative of the Net Input with respect to one specific weight.
 
