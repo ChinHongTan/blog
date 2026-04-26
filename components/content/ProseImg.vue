@@ -37,10 +37,7 @@ const imageStyle = computed(() => {
 	return {
 		display: "block",
 		margin: "2rem auto",
-		width:
-			parsedAlt.value.scale !== 1
-				? `${parsedAlt.value.scale * 100}%`
-				: "auto",
+		zoom: parsedAlt.value.scale !== 1 ? parsedAlt.value.scale : undefined,
 		maxWidth: "100%",
 		height: "auto",
 	};
