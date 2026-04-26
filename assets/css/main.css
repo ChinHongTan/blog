@@ -368,6 +368,14 @@ p {
     margin-bottom: 1rem;
 }
 
+hr {
+    border: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-border-medium), transparent);
+    margin: 3rem auto;
+    width: 80%;
+}
+
 a {
     color: var(--color-primary-dark);
     text-decoration: none;

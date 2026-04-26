@@ -1,3 +1,5 @@
+exclude_paths:
+    - '**/*.md'
 runtimes:
     - java@17.0.10
     - node@22.2.0
@@ -8,5 +10,3 @@ tools:
     - opengrep@1.17.0
     - pmd@6.55.0
     - trivy@0.69.3
-exclude_paths:
-    - "**/*.md"
