@@ -1,7 +1,7 @@
 ---
 title: Data Preprocessing & Regression Analysis
 date: 2026-04-27T10:40:07+08:00
-edited_at: 2026-04-27T15:04:34.378Z
+edited_at: 2026-04-28T05:02:22.943Z
 author: chinono
 path: /blog/Data-Preprocessing-&-Regression-Analysis
 ---
@@ -141,7 +141,7 @@ $$
 :::info
 ### Understanding the formula
 
-$:=$ means "assign." It computes the expression on the right using the current values, then updates the left side with the result. 
+$:=$ means "assign." It computes the expression on the right using the current values, then updates the left side with the result.
 
 This is gradient descent in its simplest form, adjust the weight by stepping in the opposite direction of the slope, using a small learning rate so we don't overshoot. If you want to learn more, check out [this post](https://blog.chinono.dev/blog/Artificial-Neural-Networks-and-Backpropagation#updating-output-layer-weights), but just note that it's the same update rule, just applied in a deeper context. Linear regression uses the simplest form of this update, back-propagation extends it to networks with multiple layers.
 :::
@@ -297,19 +297,25 @@ Here is what each piece is doing:
 1. **The Distance:** $(x^{(i)} - x)^2$
 
    This is the squared distance between a training example $x^{(i)}$ and the specific point you are trying to predict $x$.
+
    * If the training point is very close to your query point, this value is almost **0**.
+
    * If the training point is very far away, this value is **large**.
 
 2. **The Exponential & Negative Sign:** $\exp(- \dots)$
 
    Because of the negative sign, we are doing $e$ to the power of a negative number.
+
    * If the distance is roughly $0$ (the points are close), we get $e^0 = 1$. The weight is $1$. The model gives this point **maximum importance**.
+
    * If the distance is large (the points are far), we get $e^{-\text{large}}$, which approaches **0**. The weight becomes $0$. The model completely **ignores** this point.
 
 3. **The Bandwidth Parameter:** $\tau$ (Tau)
 
    $\tau$ dictates how "fat" or "thin" our bell curve is. It controls how quickly the weights fall off to zero as you move away from the query point $x$.
+
    * **Large** **$\tau$:** The weights fall off very slowly. The model looks at a very wide "neighborhood" of points. If $\tau$ is infinitely large, LWLR just becomes standard linear regression.
+
    * **Small** **$\tau$:** The weights fall off rapidly. The model only looks at a very tiny, strict neighborhood of points immediately next to $x$.
 
 ### Why is it called "Non-parametric"?
@@ -357,7 +363,9 @@ $h_\theta(x) = \frac{1}{1 + e^{-\theta^T x}}$
 Think of $\theta^T x$ as a **"raw confidence score"** (which can be any number from $-\infty$ to $+\infty$).
 
 * If the raw score is $0$, the sigmoid turns it into exactly $0.5$ (50% probability).
+
 * If the raw score is a huge positive number (like $100$), the sigmoid squashes it to $0.9999$ (99.99% probability it is Malignant).
+
 * If the raw score is a huge negative number (like $-100$), the sigmoid squashes it to $0.0001$ (0.01% probability it is Malignant).
 
 **Logistic Regression is just Linear Regression wrapped in a translator that turns "raw scores" into "probabilities."**
@@ -388,33 +396,46 @@ The form is identical, but remember that h(x) is now the sigmoid function, not a
 :::info
 ### The Log-Likelihood Cost Function
 
-In Linear Regression, we used the Least-Squares cost function (minimising the squared error).
+In Linear Regression, we used the Least-Squares cost function (minimising the squared error). Because the prediction is just a straight line, Least-Squares naturally creates a perfect "U-shaped" error graph (a parabola) $(\text{Prediction}−\text{Actual})^2$. Gradient Descent just acts like a marble rolling down the steep sides until it hits the single bottom. It never gets stuck because there are no flat surfaces.
 
-If we try to use Least-Squares with our new curvy Sigmoid function, the math breaks. It creates a "wavy" 3D landscape with lots of fake valleys (local minima). Gradient descent gets stuck and can't find the bottom.
+But if we try to use Least-Squares for Logistic Regression, we have to shove the complicated Sigmoid fraction $\frac{1}{1 + e^{-\theta x}}$ inside the squared formula.
 
-So, statisticians use a different way to measure error called **Maximum Likelihood**.
+The math breaks. The $\theta$ weight gets trapped in an exponent at the bottom of a fraction. This ruins the U-shape, stretching the arms out until they become completely flat, and crumpling the graph into a landscape with fake valleys (local minima). If the marble rolls onto a flat section (e.g., the model is confidently wrong), the slope becomes zero. Gradient Descent stops, and the model stops learning.
+
+#### Maximum Likelihood Estimation
+
+Because we are dealing with 0s and 1s, statisticians stopped measuring "distance" (Least Squares) and started measuring "probability".
+
+If you want to know the total chance that your model predicted Patient 1 correctly (90% sure) AND Patient 2 correctly (80% sure), you **multiply** the probabilities together: $0.9 \times 0.8 = 0.72$.
+
+This is called **Maximum Likelihood**. We want the model to adjust its weights to make the final multiplied success rate as high as absolutely possible.
+
+#### Summoning the Logarithm
+
+There is one problem: if you multiply 10,000 probabilities together ($0.9 \times 0.8 \times 0.99 \dots$), the number becomes incredibly tiny (e.g., $0.00000000001$). The computer can't handle decimals that small and will just round it to $0$ (a glitch called "underflow"), breaking the math.
+
+To stop the computer from crashing, we wrap the whole thing in a **logarithm**. A magical rule of math is that $\log(A \times B) = \log(A) + \log(B)$. The log turns a giant, computer-crashing string of multiplication into simple, safe addition.
+
+#### The Log-Likelihood Cost Function
+
+This brings us to the actual cost function:
 
 $\ell(\theta) = \sum \left[ y \log(h(x)) + (1 - y) \log(1 - h(x)) \right]$
 
-This equation looks terrifying, but it's actually an elegant logical "IF" statement:
+This terrifying equation is actually just an elegant logical "IF" statement:
 
 * **If the actual answer is** **$y=1$:** The second half of the equation $(1 - 1)$ becomes $0$ and disappears. We are just left with $\log(h(x))$. We want our prediction $h(x)$ to be as close to $1$ as possible.
-* **If the actual answer is** **$y=0$:** The first half of the equation $(0)$ becomes $0$ and disappears. We are just left with $\log(1 - h(x))$. We want our prediction $h(x)$ to be as close to $0$ as possible.
+* **If the actual answer is** **$y=0$:** The first half of the equation $(0)$ becomes $0$ and disappears. We are left with $\log(1 - h(x))$. We want our prediction $h(x)$ to be as close to $0$ as possible.
 
-It essentially **heavily punishes the model if it is very confident but wrong.** (e.g., If the model predicts a 99% probability of a tumor being Malignant, but it's actually Benign, the cost explodes to infinity).
+Because of the logarithm, the model is **heavily punished if it is confidently wrong.** (e.g., If it predicts a 99% probability of a tumor being Malignant, but it's actually Benign, the error slope becomes a massive cliff, screaming at the model to turn around).
 
-### The "Beautiful Symmetry"
+<br />
 
-Here is the craziest part of all of this.
+Statisticians didn't add the log to fix the bumpy error graph, they added it so computers wouldn't crash.
 
-If you take that terrifying Log-Likelihood equation, and you do the calculus chain rule to find the Gradient Descent update rule (just like we did for linear regression)... a bunch of math cancels out perfectly.
+However, because the Sigmoid formula relies on an exponential ($e^{-x}$), and logarithms are the mathematical "undo button" for exponents... wrapping the Sigmoid in a logarithm perfectly canceled out the messy fraction.
 
-You are left with this:
-$\theta_j := \theta_j + \alpha (y^{(i)} - h(x^{(i)})) x_j^{(i)}$
-
-**It is the EXACT same update rule as standard Linear Regression.**
-
-The computer code you write to update the weights for Logistic Regression is identical to the code for Linear Regression. The *only* difference is that in Logistic Regression, $h(x)$ calculates the Sigmoid formula instead of just $y = mx+c$.
+It magically ironed out the flat spots and local minima, turning the error graph **back into a perfect, smooth U-shape bowl.**
 :::
 
 ## Summary
