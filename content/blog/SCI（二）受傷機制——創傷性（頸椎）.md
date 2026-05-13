@@ -1,8 +1,8 @@
 ---
-title: SCI（二）受傷機制——創傷性（頸椎）
+title: SCI（二）受傷機制--i
 description: 說到了頸椎，下一章再寫胸腰椎
 date: 2026-05-09T14:40:07+08:00
-edited_at: 2026-05-12T01:49:18.982Z
+edited_at: 2026-05-13T08:07:13.983Z
 author: hibiki12141132
 featured_image: /images/uploads/1778470525801-119694510_p0_master1200.webp
 ---
