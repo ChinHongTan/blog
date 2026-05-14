@@ -1,7 +1,7 @@
 ---
 title: Stack
 date: 2026-05-14T00:27:35+08:00
-edited_at: 2026-05-14T03:44:08.865Z
+edited_at: 2026-05-14T08:40:47.069Z
 author: chinono
 path: /blog/Stack
 ---
@@ -305,13 +305,17 @@ There are two classic ways to *implement* a list under the hood:
 
 Keep this trade-off in your back pocket. It's going to come up again very soon.
 
-> **Quick mental model:** an array is like a row of numbered lockers — you can open locker #47 instantly, but rearranging them is a pain. A linked list is like a treasure hunt — each clue points to the next, so inserting a new clue is easy, but finding the 47th clue means following 46 others first.
+:::info
+**Quick mental model:** an array is like a row of numbered lockers — you can open locker #47 instantly, but rearranging them is a pain. A linked list is like a treasure hunt — each clue points to the next, so inserting a new clue is easy, but finding the 47th clue means following 46 others first.
+:::
 
 ## Introducing the Stack
 
 Here's the one-sentence definition you should remember forever:
 
-> **A stack is a list where elements are accessed, inserted, and deleted only from one end — called the** ***top***\*\*.\*\*
+:::info
+**A stack is a list where elements are accessed, inserted, and deleted only from one end — called the** ***top***.
+:::
 
 That's it. Everything else about stacks follows from this constraint.
 
@@ -1363,33 +1367,9 @@ Here's the magical part. Evaluating a postfix expression is shockingly simple wi
 
 That's the whole algorithm.
 
-### Worked Example: Evaluating `4 3 5 * +`
+### Try It Yourself
 
-Let me trace it step by step:
-
-```
-Token: 4         Token: 3         Token: 5
-Push 4           Push 3           Push 5
- 
-  |   |            | 3 |            | 5 |
-  | 4 |            | 4 |            | 3 |
-  +---+            +---+            | 4 |
-                                    +---+
- 
- 
-Token: *                          Token: +
-Pop 5 (right), Pop 3 (left)       Pop 15 (right), Pop 4 (left)
-Compute 3 * 5 = 15                Compute 4 + 15 = 19
-Push 15                           Push 19
- 
-  | 15 |                            | 19 |
-  |  4 |                            +----+
-  +----+
- 
-Final answer: 19
-```
-
-Sanity check: in infix, `4 3 5 * +` corresponds to `4 + (3 * 5) = 4 + 15 = 19`. ✓
+Below is a fully interactive postfix evaluator. Type any expression (with spaces between every token) or pick one of the presets, then step through it. The stack on the right updates with each step. The two red presets are intentionally malformed — see how the algorithm catches the errors.
 
 ```custom-html
 <!DOCTYPE html>
