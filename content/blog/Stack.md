@@ -1,7 +1,7 @@
 ---
 title: Stack
 date: 2026-05-14T00:27:35+08:00
-edited_at: 2026-05-14T03:32:23.293Z
+edited_at: 2026-05-14T03:34:47.722Z
 author: chinono
 path: /blog/Stack
 ---
@@ -371,19 +371,402 @@ Let's trace through what happens with the following operations:
 
 Here's what the stack looks like after each step:
 
-```
-Step 1: Push A     Step 2: Push B     Step 3: Push C
-                                          | C |  ← top
-                      | B |  ← top        | B |
-   | A |  ← top       | A |               | A |
-   +---+              +---+               +---+
+```custom-html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Stack Operations Walkthrough</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5efe4;
+    --paper: #fbf6ec;
+    --ink: #1a1612;
+    --ink-soft: #6b6258;
+    --rule: #d8cfc0;
+    --accent: #c44536;
+    --accent-soft: #e8b9b3;
+    --teal: #2c5f5d;
+    --gold: #b08e3c;
+    --green: #4a7c4d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    padding: 2rem 1rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .widget {
+    width: 100%;
+    max-width: 820px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 2rem 1.5rem 2.5rem;
+    position: relative;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 20px 40px -20px rgba(26,22,18,0.12);
+  }
+  .widget::before {
+    content: "FIG. 02 · INTERACTIVE";
+    position: absolute;
+    top: 1rem; right: 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    font-variation-settings: "opsz" 96;
+    margin-bottom: 0.25rem;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+  }
  
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    margin-bottom: 1.75rem;
+  }
+  .step {
+    padding: 0.5rem 0.4rem;
+    border: 1px solid var(--rule);
+    background: transparent;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    text-align: center;
+    color: var(--ink-soft);
+    transition: all 0.3s ease;
+  }
+  .step.done {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .step.active {
+    background: var(--accent);
+    color: var(--paper);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px -2px rgba(196,69,54,0.4);
+  }
+  .step-num {
+    display: block;
+    font-size: 0.6rem;
+    opacity: 0.6;
+    margin-bottom: 2px;
+  }
  
-Step 4: Pop (C)    Step 5: Pop (B)    Step 6: Push D
-                                          | D |  ← top
-   | B |  ← top                           | A |
-   | A |              | A |  ← top        +---+
-   +---+              +---+
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 2rem;
+    align-items: center;
+  }
+  @media (max-width: 600px) {
+    .main { grid-template-columns: 1fr; }
+  }
+ 
+  .stack-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 280px;
+    justify-content: flex-end;
+    position: relative;
+  }
+  .top-label {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+    height: 1.5em;
+    transition: opacity 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .top-label::after {
+    content: "↓";
+    font-size: 1.2rem;
+  }
+  .top-label.hidden { opacity: 0; }
+  .stack-container {
+    width: 100px;
+    border-left: 2px solid var(--ink);
+    border-right: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+    min-height: 200px;
+    display: flex;
+    flex-direction: column-reverse;
+    padding: 4px;
+    background: var(--bg);
+  }
+  .stack-cell {
+    height: 44px;
+    background: var(--ink);
+    color: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-top: 4px;
+    border-radius: 2px;
+    animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .stack-cell.popping {
+    animation: slideOut 0.4s ease-in forwards;
+  }
+  .stack-cell.top-cell {
+    background: var(--accent);
+  }
+  @keyframes slideIn {
+    from { transform: translateY(-60px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes slideOut {
+    to { transform: translateY(-60px); opacity: 0; }
+  }
+  .empty-msg {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--ink-soft);
+    align-self: center;
+    margin: auto;
+  }
+ 
+  .narration {
+    padding: 1.5rem;
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+  }
+  .narration-action {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.75rem;
+  }
+  .narration-action .verb {
+    color: var(--accent);
+  }
+  .narration-text {
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  .narration-text strong { color: var(--ink); font-weight: 600; }
+ 
+  .controls {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 1.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+    flex-wrap: wrap;
+  }
+  button {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.7rem 1.2rem;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-radius: 2px;
+  }
+  button:hover:not(:disabled) {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  button.primary {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  button.primary:hover:not(:disabled) {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .progress {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    align-self: center;
+  }
+</style>
+</head>
+<body>
+<div class="widget">
+  <h1>Stack Operations, Step by Step</h1>
+  <div class="subtitle">— Push A · B · C · Pop C · Pop B · Push D —</div>
+ 
+  <div class="timeline" id="timeline"></div>
+ 
+  <div class="main">
+    <div class="stack-zone">
+      <div class="top-label hidden" id="top-label">top</div>
+      <div class="stack-container" id="stack"></div>
+    </div>
+ 
+    <div class="narration">
+      <div class="narration-action" id="action">Ready to begin</div>
+      <div class="narration-text" id="explanation">
+        We'll trace through six operations on an initially empty stack. Click <strong>Next step</strong> to advance.
+      </div>
+    </div>
+  </div>
+ 
+  <div class="controls">
+    <button id="prev-btn" disabled>← Back</button>
+    <button id="next-btn" class="primary">Next step →</button>
+    <button id="reset-btn">Reset</button>
+    <span class="progress" id="progress">0 / 6</span>
+  </div>
+</div>
+ 
+<script>
+  const operations = [
+    { verb: 'push', value: 'A', text: 'We push <strong>A</strong> onto an empty stack. It sits at the bottom — but for now, it\'s also the top.' },
+    { verb: 'push', value: 'B', text: 'We push <strong>B</strong>. It goes on top of A. The "top" pointer now refers to B.' },
+    { verb: 'push', value: 'C', text: 'We push <strong>C</strong>. The stack now reads (bottom → top): A, B, C.' },
+    { verb: 'pop',  value: 'C', text: 'We pop. Out comes <strong>C</strong> — the most recent arrival. This is LIFO: the last one in is the first one out.' },
+    { verb: 'pop',  value: 'B', text: 'Another pop. <strong>B</strong> leaves. A is now alone at the bottom, and also the top.' },
+    { verb: 'push', value: 'D', text: 'Finally we push <strong>D</strong>. The stack now holds A at the bottom and D at the top. B and C are gone forever.' }
+  ];
+ 
+  let step = 0; // 0 = before any operation; 1-6 = after operations[step-1]
+  let stack = [];
+ 
+  const stackEl = document.getElementById('stack');
+  const topLabel = document.getElementById('top-label');
+  const actionEl = document.getElementById('action');
+  const explainEl = document.getElementById('explanation');
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const resetBtn = document.getElementById('reset-btn');
+  const progressEl = document.getElementById('progress');
+  const timeline = document.getElementById('timeline');
+ 
+  // Build timeline
+  operations.forEach((op, i) => {
+    const div = document.createElement('div');
+    div.className = 'step';
+    div.dataset.index = i;
+    div.innerHTML = `<span class="step-num">STEP ${i+1}</span>${op.verb === 'push' ? 'Push' : 'Pop'} ${op.value}`;
+    timeline.appendChild(div);
+  });
+ 
+  function render(animate = true) {
+    // Render stack
+    stackEl.innerHTML = '';
+    if (stack.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-msg';
+      empty.textContent = '(empty)';
+      stackEl.appendChild(empty);
+      topLabel.classList.add('hidden');
+    } else {
+      stack.forEach((v, i) => {
+        const cell = document.createElement('div');
+        cell.className = 'stack-cell';
+        if (i === stack.length - 1) cell.classList.add('top-cell');
+        if (!animate) cell.style.animation = 'none';
+        cell.textContent = v;
+        stackEl.appendChild(cell);
+      });
+      topLabel.classList.remove('hidden');
+    }
+ 
+    // Narration
+    if (step === 0) {
+      actionEl.innerHTML = 'Ready to begin';
+      explainEl.innerHTML = 'We\'ll trace through six operations on an initially empty stack. Click <strong>Next step</strong> to advance.';
+    } else {
+      const op = operations[step - 1];
+      actionEl.innerHTML = `<span class="verb">${op.verb === 'push' ? 'PUSH' : 'POP'}</span> ${op.value}`;
+      explainEl.innerHTML = op.text;
+    }
+ 
+    // Timeline
+    document.querySelectorAll('.step').forEach((el, i) => {
+      el.classList.remove('done', 'active');
+      if (i < step - 1) el.classList.add('done');
+      if (i === step - 1) el.classList.add('active');
+    });
+ 
+    // Controls
+    prevBtn.disabled = step === 0;
+    nextBtn.disabled = step === operations.length;
+    progressEl.textContent = `${step} / ${operations.length}`;
+  }
+ 
+  function next() {
+    if (step >= operations.length) return;
+    const op = operations[step];
+    if (op.verb === 'push') stack.push(op.value);
+    else stack.pop();
+    step++;
+    render();
+  }
+ 
+  function prev() {
+    if (step === 0) return;
+    step--;
+    // Replay from scratch
+    stack = [];
+    for (let i = 0; i < step; i++) {
+      const op = operations[i];
+      if (op.verb === 'push') stack.push(op.value);
+      else stack.pop();
+    }
+    render(false);
+  }
+ 
+  function reset() {
+    step = 0;
+    stack = [];
+    render(false);
+  }
+ 
+  nextBtn.addEventListener('click', next);
+  prevBtn.addEventListener('click', prev);
+  resetBtn.addEventListener('click', reset);
+ 
+  render(false);
+</script>
+</body>
+</html>
 ```
 
 After step 6, the stack contains `A` at the bottom and `D` at the top. Notice that `B` and `C` are gone — they were popped off and are no longer in the structure.
