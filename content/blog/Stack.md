@@ -1,7 +1,7 @@
 ---
 title: Stack
 date: 2026-05-14T00:27:35+08:00
-edited_at: 2026-05-14T03:30:19.568Z
+edited_at: 2026-05-14T03:32:23.293Z
 author: chinono
 path: /blog/Stack
 ---
@@ -302,7 +302,8 @@ There are two classic ways to *implement* a list under the hood:
 
 1. **Using an array** — fast random access by index, but inserting/removing from the middle is slow (you have to shift everything).
 2. **Using a linked list** — fast insertion/deletion anywhere, but slower to jump to a specific index.
-   Keep this trade-off in your back pocket. It's going to come up again very soon.
+
+Keep this trade-off in your back pocket. It's going to come up again very soon.
 
 > **Quick mental model:** an array is like a row of numbered lockers — you can open locker #47 instantly, but rearranging them is a pain. A linked list is like a treasure hunt — each clue points to the next, so inserting a new clue is easy, but finding the 47th clue means following 46 others first.
 
