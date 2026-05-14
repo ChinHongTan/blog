@@ -1,7 +1,7 @@
 ---
 title: Stack
 date: 2026-05-14T00:27:35+08:00
-edited_at: 2026-05-13T16:41:51.639Z
+edited_at: 2026-05-14T03:30:19.568Z
 author: chinono
 path: /blog/Stack
 ---
@@ -12,18 +12,264 @@ Before we get to stacks, let's place them on the map. In Java, almost every data
 
 Here's a simplified view of the hierarchy:
 
-```
-                       Iterable
-                          |
-                      Collection
-            ______________|______________
-           |              |              |
-          List          Queue           Set
-        /  |  \           |            /  |  \
-ArrayList LinkedList    Deque      HashSet ...
-Vector                ArrayDeque
-  |
-Stack
+```custom-html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Java Collection Framework Hierarchy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5efe4;
+    --paper: #fbf6ec;
+    --ink: #1a1612;
+    --ink-soft: #6b6258;
+    --rule: #d8cfc0;
+    --accent: #c44536;
+    --accent-soft: #e8b9b3;
+    --teal: #2c5f5d;
+    --gold: #b08e3c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    padding: 2rem 1rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .widget {
+    width: 100%;
+    max-width: 820px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 2rem 1.5rem 2.5rem;
+    position: relative;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 20px 40px -20px rgba(26,22,18,0.12);
+  }
+  .widget::before {
+    content: "FIG. 01";
+    position: absolute;
+    top: 1rem; right: 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    font-variation-settings: "opsz" 96;
+    margin-bottom: 0.25rem;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+  }
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+  .legend-swatch {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--ink);
+  }
+  .swatch-interface { background: var(--paper); }
+  .swatch-class { background: var(--ink); }
+  .swatch-stack { background: var(--accent); border-color: var(--accent); }
+ 
+  svg { width: 100%; height: auto; display: block; }
+  .node-bg-interface { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; }
+  .node-bg-class { fill: var(--ink); stroke: var(--ink); stroke-width: 1.5; }
+  .node-bg-stack { fill: var(--accent); stroke: var(--accent); stroke-width: 1.5; }
+  .node-label-dark { fill: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; }
+  .node-label-light { fill: var(--paper); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; }
+  .connector { stroke: var(--ink-soft); stroke-width: 1; fill: none; }
+  .connector-accent { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+ 
+  .annotation {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 13px;
+    fill: var(--accent);
+  }
+  .caption {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+  .caption strong { color: var(--ink); font-style: normal; font-weight: 600; }
+  @keyframes pulse-stack {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  #stack-node {
+    transform-origin: center;
+    transform-box: fill-box;
+    animation: pulse-stack 2.5s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+<div class="widget">
+  <h1>Java Collection Framework</h1>
+  <div class="subtitle">— Where Stack Lives —</div>
+ 
+  <div class="legend">
+    <span class="legend-item"><span class="legend-swatch swatch-interface"></span> Interface</span>
+    <span class="legend-item"><span class="legend-swatch swatch-class"></span> Class</span>
+    <span class="legend-item"><span class="legend-swatch swatch-stack"></span> Our subject</span>
+  </div>
+ 
+  <svg viewBox="0 0 800 560" xmlns="http://www.w3.org/2000/svg">
+    <!-- Iterable -->
+    <g transform="translate(340, 10)">
+      <rect class="node-bg-interface" width="120" height="34" rx="2"/>
+      <text class="node-label-dark" x="60" y="22" text-anchor="middle">Iterable</text>
+    </g>
+    <!-- arrow Iterable -> Collection -->
+    <path class="connector" d="M 400 44 L 400 70"/>
+    <polygon points="396,68 400,76 404,68" fill="#6b6258"/>
+ 
+    <!-- Collection -->
+    <g transform="translate(340, 76)">
+      <rect class="node-bg-interface" width="120" height="34" rx="2"/>
+      <text class="node-label-dark" x="60" y="22" text-anchor="middle">Collection</text>
+    </g>
+ 
+    <!-- Branches from Collection -->
+    <path class="connector" d="M 400 110 L 400 130 L 160 130 L 160 150"/>
+    <path class="connector" d="M 400 130 L 400 150"/>
+    <path class="connector" d="M 400 130 L 640 130 L 640 150"/>
+    <polygon points="156,148 160,156 164,148" fill="#6b6258"/>
+    <polygon points="396,148 400,156 404,148" fill="#6b6258"/>
+    <polygon points="636,148 640,156 644,148" fill="#6b6258"/>
+ 
+    <!-- List -->
+    <g transform="translate(100, 156)">
+      <rect class="node-bg-interface" width="120" height="34" rx="2"/>
+      <text class="node-label-dark" x="60" y="22" text-anchor="middle">List</text>
+    </g>
+    <!-- Queue -->
+    <g transform="translate(340, 156)">
+      <rect class="node-bg-interface" width="120" height="34" rx="2"/>
+      <text class="node-label-dark" x="60" y="22" text-anchor="middle">Queue</text>
+    </g>
+    <!-- Set -->
+    <g transform="translate(580, 156)">
+      <rect class="node-bg-interface" width="120" height="34" rx="2"/>
+      <text class="node-label-dark" x="60" y="22" text-anchor="middle">Set</text>
+    </g>
+ 
+    <!-- LIST CHILDREN -->
+    <path class="connector" d="M 160 190 L 160 210"/>
+    <polygon points="156,208 160,216 164,208" fill="#6b6258"/>
+    <g transform="translate(100, 216)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">ArrayList</text>
+    </g>
+    <path class="connector" d="M 160 250 L 160 270"/>
+    <polygon points="156,268 160,276 164,268" fill="#6b6258"/>
+    <g transform="translate(100, 276)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">LinkedList</text>
+    </g>
+    <path class="connector" d="M 160 310 L 160 330"/>
+    <polygon points="156,328 160,336 164,328" fill="#6b6258"/>
+    <g transform="translate(100, 336)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">Vector</text>
+    </g>
+    <!-- Vector -> Stack with accent -->
+    <path class="connector-accent" d="M 160 370 L 160 396"/>
+    <polygon points="155,394 160,404 165,394" fill="#c44536"/>
+    
+    <!-- Fix: Group handles translation, inner #stack-node handles CSS scale transform -->
+    <g transform="translate(100, 404)">
+      <g id="stack-node">
+        <rect class="node-bg-stack" width="120" height="34" rx="2"/>
+        <text class="node-label-light" x="60" y="22" text-anchor="middle">Stack</text>
+      </g>
+    </g>
+    
+    <text class="annotation" x="232" y="426">← you are here</text>
+ 
+    <!-- QUEUE CHILDREN -->
+    <path class="connector" d="M 400 190 L 400 210"/>
+    <polygon points="396,208 400,216 404,208" fill="#6b6258"/>
+    <g transform="translate(340, 216)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">PriorityQueue</text>
+    </g>
+    <path class="connector" d="M 400 250 L 400 276"/>
+    <polygon points="396,274 400,282 404,274" fill="#6b6258"/>
+    <g transform="translate(340, 282)">
+      <rect class="node-bg-interface" width="120" height="34" rx="2"/>
+      <text class="node-label-dark" x="60" y="22" text-anchor="middle">Deque</text>
+    </g>
+    <path class="connector" d="M 400 316 L 400 336"/>
+    <polygon points="396,334 400,342 404,334" fill="#6b6258"/>
+    <g transform="translate(340, 342)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">ArrayDeque</text>
+    </g>
+ 
+    <!-- SET CHILDREN -->
+    <path class="connector" d="M 640 190 L 640 210"/>
+    <polygon points="636,208 640,216 644,208" fill="#6b6258"/>
+    <g transform="translate(580, 216)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">HashSet</text>
+    </g>
+    <path class="connector" d="M 640 250 L 640 270"/>
+    <polygon points="636,268 640,276 644,268" fill="#6b6258"/>
+    <g transform="translate(580, 276)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">LinkedHashSet</text>
+    </g>
+    <path class="connector" d="M 640 310 L 640 336"/>
+    <polygon points="636,334 640,342 644,334" fill="#6b6258"/>
+    <g transform="translate(580, 342)">
+      <rect class="node-bg-interface" width="120" height="34" rx="2"/>
+      <text class="node-label-dark" x="60" y="22" text-anchor="middle">SortedSet</text>
+    </g>
+    <path class="connector" d="M 640 376 L 640 396"/>
+    <polygon points="636,394 640,402 644,394" fill="#6b6258"/>
+    <g transform="translate(580, 402)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">TreeSet</text>
+    </g>
+  </svg>
+ 
+  <div class="caption">
+    Notice how <strong>Stack</strong> lives under <strong>Vector</strong>, which lives under <strong>List</strong>. That's because a stack is, fundamentally, a kind of list — just one with strict rules about where you can poke at it.
+  </div>
+</div>
+</body>
+</html>
 ```
 
 The piece I want you to notice: **`Stack`** **lives under** **`Vector`, which lives under** **`List`**. That's a hint about what a stack actually is.
@@ -64,7 +310,7 @@ There are two classic ways to *implement* a list under the hood:
 
 Here's the one-sentence definition you should remember forever:
 
-> **A stack is a list where elements are accessed, inserted, and deleted only from one end — called the** ***top*****.**
+> **A stack is a list where elements are accessed, inserted, and deleted only from one end — called the** ***top***\*\*.\*\*
 
 That's it. Everything else about stacks follows from this constraint.
 
