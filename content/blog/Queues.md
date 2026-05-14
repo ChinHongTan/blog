@@ -1,7 +1,7 @@
 ---
 title: Queues
 date: 2026-05-14T17:10:50+08:00
-edited_at: 2026-05-14T10:20:37.215Z
+edited_at: 2026-05-14T13:06:16.448Z
 author: chinono
 ---
 
@@ -26,7 +26,8 @@ Two rules govern this line:
 * **New people join at the rear.**
 
 * **The cashier always serves whoever is at the front.**
-  That's it. That's a queue. And the rule it follows has a famous three-letter name: **FIFO — First In, First Out.** The first person in line is the first person out.
+
+That's it. That's a queue. And the rule it follows has a famous three-letter name: **FIFO — First In, First Out.** The first person in line is the first person out.
 
 Compare this to a **stack**, which is LIFO (Last In, First Out) — like a stack of plates where you only take the top one. Same family of "linear" structures, different access rule.
 
@@ -34,17 +35,275 @@ Compare this to a **stack**, which is LIFO (Last In, First Out) — like a stack
 
 Before we build one, let's see where `Queue` sits in Java's official **Collections Framework**:
 
-```
-                  Iterable
-                     │
-                 Collection
-                ┌────┼─────┐
-              List   Queue   Set
-               │      │       │
-        ArrayList   PriorityQueue   HashSet
-        LinkedList     Deque       LinkedHashSet
-        Vector       ArrayDeque    TreeSet
-        Stack
+```custom-html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Java Collection Framework Hierarchy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5efe4;
+    --paper: #fbf6ec;
+    --ink: #1a1612;
+    --ink-soft: #6b6258;
+    --rule: #d8cfc0;
+    --accent: #c44536;
+    --accent-soft: #e8b9b3;
+    --teal: #2c5f5d;
+    --gold: #b08e3c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    padding: 2rem 1rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .widget {
+    width: 100%;
+    max-width: 820px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 2rem 1.5rem 2.5rem;
+    position: relative;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 20px 40px -20px rgba(26,22,18,0.12);
+  }
+  .widget::before {
+    content: "FIG. 01";
+    position: absolute;
+    top: 1rem; right: 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    font-variation-settings: "opsz" 96;
+    margin-bottom: 0.25rem;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+  }
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+  .legend-swatch {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--ink);
+  }
+  .swatch-interface { background: var(--paper); }
+  .swatch-class { background: var(--ink); }
+  .swatch-subject { background: var(--accent); border-color: var(--accent); }
+ 
+  svg { width: 100%; height: auto; display: block; }
+  .node-bg-interface { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; }
+  .node-bg-class { fill: var(--ink); stroke: var(--ink); stroke-width: 1.5; }
+  .node-bg-subject { fill: var(--accent); stroke: var(--accent); stroke-width: 1.5; }
+  .node-label-dark { fill: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; }
+  .node-label-light { fill: var(--paper); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; }
+  .connector { stroke: var(--ink-soft); stroke-width: 1; fill: none; }
+  .connector-accent { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+ 
+  .annotation {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 13px;
+    fill: var(--accent);
+  }
+  .caption {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+  .caption strong { color: var(--ink); font-style: normal; font-weight: 600; }
+  
+  @keyframes pulse-subject {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  #subject-node {
+    transform-origin: center;
+    transform-box: fill-box;
+    animation: pulse-subject 2.5s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+<div class="widget">
+  <h1>Java Collection Framework</h1>
+  <div class="subtitle">— Where Queue Lives —</div>
+ 
+  <div class="legend">
+    <span class="legend-item"><span class="legend-swatch swatch-interface"></span> Interface</span>
+    <span class="legend-item"><span class="legend-swatch swatch-class"></span> Class</span>
+    <span class="legend-item"><span class="legend-swatch swatch-subject"></span> Our subject</span>
+  </div>
+ 
+  <svg viewBox="0 0 800 560" xmlns="http://www.w3.org/2000/svg">
+    <!-- Iterable -->
+    <g transform="translate(340, 10)">
+      <rect class="node-bg-interface" width="120" height="34" rx="2"/>
+      <text class="node-label-dark" x="60" y="22" text-anchor="middle">Iterable</text>
+    </g>
+    <!-- arrow Iterable -> Collection -->
+    <path class="connector" d="M 400 44 L 400 70"/>
+    <polygon points="396,68 400,76 404,68" fill="#6b6258"/>
+ 
+    <!-- Collection -->
+    <g transform="translate(340, 76)">
+      <rect class="node-bg-interface" width="120" height="34" rx="2"/>
+      <text class="node-label-dark" x="60" y="22" text-anchor="middle">Collection</text>
+    </g>
+ 
+    <!-- Branches from Collection -->
+    <path class="connector" d="M 400 110 L 400 130 L 160 130 L 160 150"/>
+    
+    <!-- Accent connector for Queue -->
+    <path class="connector-accent" d="M 400 130 L 400 146"/>
+    <polygon points="395,144 400,156 405,144" fill="#c44536"/>
+    
+    <path class="connector" d="M 400 130 L 640 130 L 640 150"/>
+    <polygon points="156,148 160,156 164,148" fill="#6b6258"/>
+    <polygon points="636,148 640,156 644,148" fill="#6b6258"/>
+ 
+    <!-- List -->
+    <g transform="translate(100, 156)">
+      <rect class="node-bg-interface" width="120" height="34" rx="2"/>
+      <text class="node-label-dark" x="60" y="22" text-anchor="middle">List</text>
+    </g>
+    
+    <!-- Queue (Highlighted & Wrapped to protect translate from scale animation) -->
+    <g transform="translate(340, 156)">
+      <g id="subject-node">
+        <rect class="node-bg-subject" width="120" height="34" rx="2"/>
+        <text class="node-label-light" x="60" y="22" text-anchor="middle">Queue</text>
+      </g>
+    </g>
+    <text class="annotation" x="472" y="178">← you are here</text>
+
+    <!-- Set -->
+    <g transform="translate(580, 156)">
+      <rect class="node-bg-interface" width="120" height="34" rx="2"/>
+      <text class="node-label-dark" x="60" y="22" text-anchor="middle">Set</text>
+    </g>
+ 
+    <!-- LIST CHILDREN -->
+    <path class="connector" d="M 160 190 L 160 210"/>
+    <polygon points="156,208 160,216 164,208" fill="#6b6258"/>
+    <g transform="translate(100, 216)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">ArrayList</text>
+    </g>
+    
+    <path class="connector" d="M 160 250 L 160 270"/>
+    <polygon points="156,268 160,276 164,268" fill="#6b6258"/>
+    <g transform="translate(100, 276)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">LinkedList</text>
+    </g>
+    
+    <path class="connector" d="M 160 310 L 160 330"/>
+    <polygon points="156,328 160,336 164,328" fill="#6b6258"/>
+    <g transform="translate(100, 336)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">Vector</text>
+    </g>
+    
+    <!-- Vector -> Stack (Restored to standard class) -->
+    <path class="connector" d="M 160 370 L 160 390"/>
+    <polygon points="156,388 160,396 164,388" fill="#6b6258"/>
+    <g transform="translate(100, 396)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">Stack</text>
+    </g>
+ 
+    <!-- QUEUE CHILDREN -->
+    <path class="connector" d="M 400 190 L 400 210"/>
+    <polygon points="396,208 400,216 404,208" fill="#6b6258"/>
+    <g transform="translate(340, 216)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">PriorityQueue</text>
+    </g>
+    
+    <path class="connector" d="M 400 250 L 400 276"/>
+    <polygon points="396,274 400,282 404,274" fill="#6b6258"/>
+    <g transform="translate(340, 282)">
+      <rect class="node-bg-interface" width="120" height="34" rx="2"/>
+      <text class="node-label-dark" x="60" y="22" text-anchor="middle">Deque</text>
+    </g>
+    
+    <path class="connector" d="M 400 316 L 400 336"/>
+    <polygon points="396,334 400,342 404,334" fill="#6b6258"/>
+    <g transform="translate(340, 342)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">ArrayDeque</text>
+    </g>
+ 
+    <!-- SET CHILDREN -->
+    <path class="connector" d="M 640 190 L 640 210"/>
+    <polygon points="636,208 640,216 644,208" fill="#6b6258"/>
+    <g transform="translate(580, 216)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">HashSet</text>
+    </g>
+    
+    <path class="connector" d="M 640 250 L 640 270"/>
+    <polygon points="636,268 640,276 644,268" fill="#6b6258"/>
+    <g transform="translate(580, 276)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">LinkedHashSet</text>
+    </g>
+    
+    <path class="connector" d="M 640 310 L 640 336"/>
+    <polygon points="636,334 640,342 644,334" fill="#6b6258"/>
+    <g transform="translate(580, 342)">
+      <rect class="node-bg-interface" width="120" height="34" rx="2"/>
+      <text class="node-label-dark" x="60" y="22" text-anchor="middle">SortedSet</text>
+    </g>
+    
+    <path class="connector" d="M 640 376 L 640 396"/>
+    <polygon points="636,394 640,402 644,394" fill="#6b6258"/>
+    <g transform="translate(580, 402)">
+      <rect class="node-bg-class" width="120" height="34" rx="2"/>
+      <text class="node-label-light" x="60" y="22" text-anchor="middle">TreeSet</text>
+    </g>
+  </svg>
+ 
+  <div class="caption">
+    Notice how <strong>Queue</strong> lives directly under <strong>Collection</strong>. It represents a fundamental collection designed for holding elements prior to processing, typically enforcing strict First-In-First-Out (FIFO) rules.
+  </div>
+</div>
+</body>
+</html>
 ```
 
 A few takeaways:
@@ -408,12 +667,14 @@ Let's think about what each operation costs.
 * `enqueue` (add at end) → cheap, just appends. ✅
 
 * `dequeue` (remove from index 0) → ⚠️ expensive! Every other element has to shift left by one. That's an O(n) hit on every removal.
-  **With a** **`LinkedList`:**
+
+**With a** **`LinkedList`:**
 
 * `enqueue` (add at tail) → O(1). ✅
 
 * `dequeue` (remove from head) → O(1). ✅
-  Both queue operations are constant-time with a linked list. That's why the textbook recommends a linked list as the backing structure for a queue.
+
+Both queue operations are constant-time with a linked list. That's why the textbook recommends a linked list as the backing structure for a queue.
 
 ```
    Queue conceptually          Queue implemented as a LinkedList
@@ -436,7 +697,9 @@ Your queue **is-a** linked list, and inherits all of its methods.
 
 * ✅ Easy to write.
 
-* ❌ But… your queue now exposes *every* `LinkedList` method (like `add(int index, E e)`, `get(i)`, etc.). That breaks the queue's contract — users can sneakily insert in the middle, peek at index 5, all sorts of things a real queue shouldn't allow.
+* ❌ But… your queue now exposes *every* `LinkedList` method (like `add(int index, E e)`, `get(i)`, etc.). 
+
+That breaks the queue's contract — users can sneakily insert in the middle, peek at index 5, all sorts of things a real queue shouldn't allow.
 
 ### Option B: Composition — `GenericQueue` *has-a* `LinkedList`
 
@@ -446,7 +709,7 @@ Your queue **owns** a private linked list and only exposes `enqueue`, `dequeue`,
 
 * ✅ You could swap the internal `LinkedList` for something else later without breaking callers.
 
-* This is the preferred design.
+This is the preferred design.
 
 ```
    (a) Inheritance                    (b) Composition
