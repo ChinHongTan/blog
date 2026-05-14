@@ -1,11 +1,9 @@
 ---
 title: Queues
 date: 2026-05-14T17:10:50+08:00
-edited_at: 2026-05-14T10:20:23.860Z
+edited_at: 2026-05-14T10:20:37.215Z
 author: chinono
 ---
-
-#
 
 If you've ever stood in line at a bubble tea shop, you already understand a **queue**. That's basically the whole idea — but in code, this simple concept turns into one of the most useful data structures you'll meet. In this post we'll walk through what a queue is, how to implement one in Java, and then level it up into a **priority queue**.
 
