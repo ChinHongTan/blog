@@ -298,7 +298,7 @@ const authors = computed(() => {
 					type="text"
 					placeholder="搜尋文章..."
 					class="search-input"
-				/>
+				>
 			</div>
 		</div>
 

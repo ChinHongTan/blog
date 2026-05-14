@@ -24,7 +24,6 @@ import {
 	clearTextInCurrentBlockCommand,
 } from "@milkdown/kit/preset/commonmark";
 import { blockConfig } from "@milkdown/kit/plugin/block";
-import type { Node as ProseNode } from "@milkdown/prose/model";
 import type { EditorView, NodeView } from "@milkdown/prose/view";
 import { $nodeAttr, $nodeSchema, $view } from "@milkdown/utils";
 import { visit } from "unist-util-visit";
@@ -56,7 +55,11 @@ function isCustomHtmlMdastNode(node: unknown): node is CustomHtmlMdastNode {
 function remarkRenameCustomHtml() {
 	return (tree: import("mdast").Root) => {
 		visit(tree, "code", (node) => {
-			const n = node as { type: string; lang?: string | null; value?: string };
+			const n = node as {
+				type: string;
+				lang?: string | null;
+				value?: string;
+			};
 			if (n.lang !== "custom-html") return;
 			n.type = CUSTOM_HTML_MDAST_TYPE;
 			delete n.lang;
@@ -72,7 +75,10 @@ function remarkCustomHtmlParse(): MilkdownPlugin {
 		options: {} as Record<string, unknown>,
 	};
 	return (ctx: Ctx) => {
-		ctx.update(schemaTimerCtx, (timers) => [...timers, RemarkCustomHtmlParseReady]);
+		ctx.update(schemaTimerCtx, (timers) => [
+			...timers,
+			RemarkCustomHtmlParseReady,
+		]);
 		ctx.record(RemarkCustomHtmlParseReady);
 		return async () => {
 			await ctx.wait(InitReady);
@@ -192,20 +198,31 @@ img, svg, video, canvas { max-width: 100%; height: auto; }
 </style>
 </head>
 <body>
+<div id="__sbox" style="display: flow-root;">
 ${code}
+</div>
 <script>
 (function(){
+  var box = document.getElementById('__sbox');
   function postHeight(){
     try {
-      var h = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
-      parent.postMessage({ __customHtml: true, type: 'height', height: h }, '*');
+      var h = box.getBoundingClientRect().height;
+      var style = window.getComputedStyle(document.body);
+      var mt = parseInt(style.marginTop, 10) || 0;
+      var mb = parseInt(style.marginBottom, 10) || 0;
+      var pt = parseInt(style.paddingTop, 10) || 0;
+      var pb = parseInt(style.paddingBottom, 10) || 0;
+      parent.postMessage({ __customHtml: true, type: 'height', height: Math.ceil(h + mt + mb + pt + pb) }, '*');
     } catch(e){}
   }
   window.addEventListener('error', function(e){
     parent.postMessage({ __customHtml: true, type: 'error', message: e.message || String(e.error) }, '*');
   });
   window.addEventListener('load', postHeight);
-  try { new ResizeObserver(postHeight).observe(document.body); } catch(e){}
+  try {
+    var ro = new ResizeObserver(postHeight);
+    ro.observe(box);
+  } catch(e){}
   setTimeout(postHeight, 50);
   setTimeout(postHeight, 250);
   setTimeout(postHeight, 1000);
@@ -231,7 +248,11 @@ class CustomHtmlNodeView implements NodeView {
 	private view: import("@milkdown/prose/view").EditorView;
 	private getPos: () => number | undefined;
 
-	constructor(node: import("@milkdown/prose/model").Node, view: import("@milkdown/prose/view").EditorView, getPos: () => number | undefined) {
+	constructor(
+		node: import("@milkdown/prose/model").Node,
+		view: import("@milkdown/prose/view").EditorView,
+		getPos: () => number | undefined,
+	) {
 		this.node = node;
 		this.view = view;
 		this.getPos = getPos;
@@ -273,13 +294,13 @@ class CustomHtmlNodeView implements NodeView {
 			this.setCollapsed(!this.collapsed);
 		});
 		actions.appendChild(this.toggleBtn);
-		
+
 		header.appendChild(actions);
 		this.dom.appendChild(header);
 
 		const codeWrap = document.createElement("div");
 		codeWrap.className = "custom-html-editor-code";
-		
+
 		const isDark = document.documentElement.classList.contains("dark");
 		const extensions = [
 			basicSetup,
@@ -292,19 +313,19 @@ class CustomHtmlNodeView implements NodeView {
 			CMEditorView.domEventHandlers({
 				keydown: (e) => e.stopPropagation(),
 				mousedown: (e) => e.stopPropagation(),
-				paste: (e) => e.stopPropagation()
-			})
+				paste: (e) => e.stopPropagation(),
+			}),
 		];
 		if (isDark) extensions.push(oneDark);
 
 		this.cm = new CMEditorView({
 			state: EditorState.create({
 				doc: String(node.attrs.code || ""),
-				extensions
+				extensions,
 			}),
 			parent: codeWrap,
 		});
-		
+
 		this.dom.appendChild(codeWrap);
 
 		const previewWrap = document.createElement("div");
@@ -332,7 +353,8 @@ class CustomHtmlNodeView implements NodeView {
 				const h = Math.max(60, Math.min(data.height + 4, 8000));
 				this.iframe.style.height = h + "px";
 			} else if (data.type === "error") {
-				this.errorEl.textContent = "⚠ " + String(data.message || "Error");
+				this.errorEl.textContent =
+					"⚠ " + String(data.message || "Error");
 				this.errorEl.style.display = "block";
 			}
 		};
@@ -340,10 +362,9 @@ class CustomHtmlNodeView implements NodeView {
 
 		if (typeof MutationObserver !== "undefined") {
 			this.themeObserver = new MutationObserver(() => {
-                const nowDark = document.documentElement.classList.contains("dark");
-                // basic handling, but ideally reconfigure CodeMirror extensions
-                this.scheduleRebuild(0);
-            });
+				// basic handling, but ideally reconfigure CodeMirror extensions
+				this.scheduleRebuild(0);
+			});
 			this.themeObserver.observe(document.documentElement, {
 				attributes: true,
 				attributeFilter: ["class", "data-theme"],
@@ -401,7 +422,7 @@ class CustomHtmlNodeView implements NodeView {
 		if (nextCode !== currentCode) {
 			// external update (undo/redo, setMarkdown) — sync codemirror and rebuild
 			this.cm.dispatch({
-				changes: { from: 0, to: currentCode.length, insert: nextCode }
+				changes: { from: 0, to: currentCode.length, insert: nextCode },
 			});
 			this.scheduleRebuild(0);
 		}
@@ -410,7 +431,9 @@ class CustomHtmlNodeView implements NodeView {
 
 	stopEvent(event: Event): boolean {
 		// Keep all events inside CodeMirror from bubbling to ProseMirror
-		return event.target instanceof Node && this.cm.dom.contains(event.target);
+		return (
+			event.target instanceof Node && this.cm.dom.contains(event.target)
+		);
 	}
 
 	ignoreMutation(): boolean {
