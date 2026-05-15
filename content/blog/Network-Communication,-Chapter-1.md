@@ -1,7 +1,7 @@
 ---
 title: Introduction to Networking Infrastructure
 date: 2026-04-09T11:56
-edited_at: 2026-04-19T03:10:50.006Z
+edited_at: 2026-05-15T13:34:30.427Z
 author: chinono
 path: /blog/Network-Communication,-Chapter-1
 ---
@@ -132,13 +132,11 @@ Imagine an office building in the 1990s. The IT and facilities teams literally h
 2. Coaxial cables to conference rooms and lobbies just for video/television.
 3. Ethernet cables to the computers just for data and internet access.
 
-   <br />
+Eventually, engineers realised that a voice call and a video stream could just be chopped up into digital 1s and 0s, exactly like an email or a webpage.
 
-   Eventually, engineers realised that a voice call and a video stream could just be chopped up into digital 1s and 0s, exactly like an email or a webpage.
+<br />
 
-   <br />
-
-   Once voice and video became digital data, businesses could rip out the old phone lines and TV cables. Now, they just run one single, robust Ethernet/Wi-Fi network. That single infrastructure carries the data, the video (like Zoom), and the voice (VoIP—Voice over Internet Protocol).
+Once voice and video became digital data, businesses could rip out the old phone lines and TV cables. Now, they just run one single, robust Ethernet/Wi-Fi network. That single infrastructure carries the data, the video (like Zoom), and the voice (VoIP—Voice over Internet Protocol).
 :::
 
 ## What Makes a Network "Reliable"?
