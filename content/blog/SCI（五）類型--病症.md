@@ -1,8 +1,8 @@
 ---
-title: SCI（五）類型--病症
+title: SCI（五）分類--病症
 description: 損傷的部位跟病症差別
 date: 2026-05-15T14:39:23+08:00
-edited_at: 2026-05-16T02:19:24.384Z
+edited_at: 2026-05-16T02:20:30.445Z
 author: hibiki12141132
 featured_image: /images/uploads/1778897957991-121218399_p0_master1200.webp
 ---
