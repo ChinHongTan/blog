@@ -11,7 +11,7 @@ import type { Ctx, MilkdownPlugin } from "@milkdown/ctx";
 import { createTimer } from "@milkdown/ctx";
 import { initTimerCtx, remarkPluginsCtx, remarkStringifyOptionsCtx } from "@milkdown/kit/core";
 import { $command, $markSchema } from "@milkdown/utils";
-import { visit, SKIP } from "unist-util-visit";
+import { visit } from "unist-util-visit";
 
 const SPAN_CLASS_MARK_ID = "spanClass";
 
@@ -140,21 +140,48 @@ function replaceTextWithSpanClassNodes(
   return parts;
 }
 
-/** Remark plugin: turn text matching [x]{.y} into spanClass nodes in mdast. */
+/**
+ * Remark plugin: turn text matching [x]{.y} into spanClass nodes in mdast.
+ * Joins runs of adjacent text-node siblings before matching so the pattern
+ * survives splits caused by backslash escapes (e.g. `\[text]{.cls}` produced
+ * by remark-stringify is re-parsed into multiple adjacent text nodes).
+ */
 function remarkSpanClassParse(): (tree: import("mdast").Root) => void {
-  return (tree) => {
-    visit(tree, (node, index, parent) => {
-      if (index == null || !parent || !("children" in parent)) return;
-      const children = (parent as { children: unknown[] }).children;
-      if (!Array.isArray(children)) return;
-      const textNode = node as { type?: string; value?: string };
-      if (textNode.type !== "text" || typeof textNode.value !== "string") return;
+  type TextNode = { type: "text"; value: string };
+  type ChildNode = TextNode | { type: string; [k: string]: unknown };
 
-      const replacement = replaceTextWithSpanClassNodes(textNode.value);
-      if (replacement) {
-        children.splice(index, 1, ...replacement);
-        return [SKIP, index + replacement.length];
+  return (tree) => {
+    visit(tree, (node) => {
+      const parent = node as { children?: unknown[] };
+      if (!Array.isArray(parent.children) || parent.children.length === 0) return;
+      const children = parent.children as ChildNode[];
+
+      const newChildren: ChildNode[] = [];
+      let run: TextNode[] = [];
+
+      const flushRun = () => {
+        if (run.length === 0) return;
+        const combined = run.map((n) => n.value).join("");
+        const replacement = replaceTextWithSpanClassNodes(combined);
+        if (replacement && replacement.length > 0) {
+          newChildren.push(...(replacement as ChildNode[]));
+        } else {
+          newChildren.push(...run);
+        }
+        run = [];
+      };
+
+      for (const child of children) {
+        if (child.type === "text" && typeof (child as TextNode).value === "string") {
+          run.push(child as TextNode);
+        } else {
+          flushRun();
+          newChildren.push(child);
+        }
       }
+      flushRun();
+
+      parent.children = newChildren;
     });
   };
 }
