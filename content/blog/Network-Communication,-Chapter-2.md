@@ -1,7 +1,7 @@
 ---
 title: "How Data is Packaged: The TCP/IP Model"
 date: 2026-04-09T12:59
-edited_at: 2026-04-19T03:10:30.160Z
+edited_at: 2026-05-19T10:11:52.915Z
 author: chinono
 path: /blog/Network-Communication,-Chapter-2
 ---
@@ -106,6 +106,8 @@ Getting data from point A to point B actually involves **two different addressin
 * **Data link layer (MAC) addresses** — These handle delivery between one network interface card (NIC) and the next, on the *same local network*. Think of this as the "hand it to the next person in the chain" step.
 
 :::info
+## Deep dive: Why VPNs work but MAC bans are weird
+
 ### MAC address vs IP address
 
 **MAC Address = Who you are** (Like your DNA). It is permanently burned into your device at the factory.
@@ -146,6 +148,8 @@ When they're on **different networks**, things get more interesting. The IP addr
 This is a fundamental concept: **IP addresses stay the same end-to-end, but MAC addresses change at every hop.**
 
 :::info
+## NAT / Port walkthrough
+
 Let's say, you want to connect to Google (`8.8.8.8`) from your computer (`192.168.0.15`). So, it builds an IP Packet (the cardboard shipping box).
 
 * **Source IP:** 192.168.0.15 (You)
@@ -219,8 +223,6 @@ The Cisco IOS CLI is organised in a hierarchy of modes, each with different leve
 3. **Global configuration mode** (`(config)#`) — Used to make device-wide configuration changes. Enter with `configure terminal`.
 4. **Specific configuration modes** — Sub-modes like interface configuration (`(config-if)#`) or line configuration (`(config-line)#`) for configuring specific components.
 
-***
-
 ## Basic Commands: Securing Your Device
 
 Once you're in the CLI, some of the first things you'll want to do are give your device a name and lock it down with passwords.
@@ -240,8 +242,6 @@ Passwords are the first line of defence against unauthorised access:
 * **Console password** — Protects the physical console port.
 
 * **VTY password** — Protects remote access via Telnet/SSH.
-
-***
 
 ## Key Takeaways
 
