@@ -130,6 +130,14 @@
       "Data-Preprocessing-&-Regression-Analysis",
       "Artificial-Neural-Networks-and-Backpropagation",
       "Decision-Trees"
+    ],
+    "Data Structure": [
+      "Data-Structure-Concept-Revision",
+      "Java-Generics",
+      "Abstract-Data-Types-&-The-Bag",
+      "Stack",
+      "Linked-Lists-&-Doubly-Linked-Lists",
+      "Queues"
     ]
   }
 }
