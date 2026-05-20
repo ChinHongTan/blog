@@ -2,7 +2,7 @@
 title: SCI（七）感覺和運動檢查
 description: 感覺跟運動檢查
 date: 2026-05-18T09:07:35+08:00
-edited_at: 2026-05-19T04:23:28.863Z
+edited_at: 2026-05-20T01:15:09.786Z
 author: hibiki12141132
 featured_image: /images/uploads/1779164485654-107860162_p0_master1200.webp
 ---
@@ -46,8 +46,11 @@ featured_image: /images/uploads/1779164485654-107860162_p0_master1200.webp
 得分標準為
 
 * 0分——無法在相應的key point感覺到任何東西
+
 * 1分——在相應的key point有感覺到甚麼但跟臉部比起來有差異
+
 * 2分——在相應key point感覺到的跟臉部感覺到的一致
+
 * NT——臉部本身就有受損，無法作為標準評測
 
 ***
@@ -61,50 +64,86 @@ featured_image: /images/uploads/1779164485654-107860162_p0_master1200.webp
 也標上28個Key point來好了
 
 * C2——耳後3cm
+
 * C3——鎖骨中線上窩
+
 * C4——AC Joint（肩鎖關節）
+
 * C5——肘窩橈側
+
 * C6——背側的大拇指近端指骨
+
 * C7——背側的中指近端指骨
+
 * C8——背側的小指近端指骨
+
 * T1——肘窩尺側
+
 * T2——腋窩最中間
+
 * T3——在鎖骨中線找到第三肋間
+
 * T4——在鎖骨中線找到第四肋間（與乳頭同一水平線上）
+
 * T5——T4與T6中間
+
 * T6——劍突水平線的鎖骨中線上
+
 * T7——劍突到T8中間的鎖骨中線上
+
 * T8——劍突與肚臍的中間的鎖骨中線上
+
 * T9——T8跟肚臍的鎖骨中線上
+
 * T10——肚臍水平線的鎖骨中線上
+
 * T11——T10跟T12中間
+
 * T12——在腹股溝韌帶中點
+
 * L1——在T12跟L2中間
+
 * L2——大腿前內側中間，在膝蓋內側垂直線上/T12跟L3中間（？）
+
 * L3——在膝蓋內側
+
 * L4——在內踝
+
 * L5——在足背第三蹠趾關節
+
 * S1——在足跟外側
+
 * S2——在膝窩正中央
+
 * S3——在坐骨結節
+
 * S4/S5——肛門周邊區域
 
 ***
 
-最後是十條Key muscle，而這個測試不允許評分有+跟-這兩個表示，直接標出012345分，而且必須強制在supine位置（？）\
+最後是十條Key muscle，而這個測試[不允許評分有+跟-]{.underline .bg-red-3}這兩個表示，直接標出012345分，[而且必須強制在supine位置]{.underline .bg-red-3}\
 是MMT的測試方法跟評分標準\
 而還有另外兩個得分\
 5\*是代表，假如不存在某些會抑制肌力干擾因素，肌肉本身能正常展現抗阻力能力\
 NT是代表，目前患者沒辦法可靠地用力而做出肌肉相應的動作，例如打石膏的限制狀態中，或已截肢
 
 * C5——Elbow flexors，肱二頭肌和肱肌
+
 * C6——Wrist extensors，橈側伸腕長肌和橈側伸腕短肌
+
 * C7——Elbow extensors，肱三頭肌
+
 * C8——Long finger flexors，屈指深肌
+
 * T1——Small finger abductor，外展小指肌
+
 * L2——Hip flexors，髂腰肌
+
 * L3——Knee Extensors，股四頭肌
+
 * L4——Ankle dorsiflexors，脛前肌
+
 * L5——Long toe extensors，伸拇趾長肌
+
 * S1——Ankle planterflexors，腓腸肌和比目魚肌
 
