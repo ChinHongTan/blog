@@ -1,8 +1,8 @@
 ---
-title: SCI（十二）墊上運動
+title: SCI（十二）墊上運動-i
 description: 1~20
 date: 2026-05-26T15:09:52+08:00
-edited_at: 2026-06-03T08:05:40.243Z
+edited_at: 2026-06-03T08:05:50.770Z
 author: hibiki12141132
 featured_image: /images/uploads/1780473923434-97639202_p0_master1200.webp
 ---
