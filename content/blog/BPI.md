@@ -2,7 +2,7 @@
 title: BPI
 description: BPI，斜頸等下再寫
 date: 2026-05-29T09:19:58+08:00
-edited_at: 2026-06-01T04:18:28.562Z
+edited_at: 2026-06-21T14:55:53.256Z
 author: hibiki12141132
 featured_image: /images/uploads/1780287451942-138768698_p0_master1200.webp
 ---
@@ -37,22 +37,29 @@ BPI，臂叢傷害，在1768年在英國第一次被提出來\
 按照神經受傷類型分成
 
 * Avulsion撕脫——神經跟脊髓連接斷開，無法靠再生或開刀修復
+
 * Rupture斷裂——斷裂處不在脊髓，可靠開刀修復
+
 * Neuroma神經瘤——神經再生時會長出疤痕組織，會阻斷傳導，需開刀移除疤痕組織
+
 * Axonotmesis軸突斷裂——傷到了fiber，但nerve covering還在，能再生，但速度慢慢的長回支配的肌肉
+
 * Neuropraxis神經失用症——輕度傷害，沒有撕裂，在出生後三個月後才能看出明顯不同
 
 按照傷到的哪一條神經又分成
 
-* Erb’s Palsy or upper-plexus type（[最常見]{.red-3 .underline}）——傷到C5和C6
+* Erb’s Palsy or upper-plexus type（\[最常見]{.red-3 .underline}）——傷到C5和C6
 
-  * 功能喪失包括：肩外展，肩屈曲，肘屈曲，腕伸展；手臂無法從身側抬高
+  * 功能喪失包括：肩外展，肩屈曲，肘伸直，腕伸展；手臂無法從身側抬高
 
     * 呈現下垂姿勢，在肩內收，肩內旋，前臂旋前，手指屈曲的姿勢——類似小費手
-* Klumpke’s Palsy or lower-plexus type（[少見]{.underline .red-3}）——C7到T1
 
-  * 手部內在肌無力（特別是[尺側]{.green-3}）
+* Klumpke’s Palsy or lower-plexus type（\[少見]{.underline .red-3}）——C7到T1
+
+  * 手部內在肌無力（特別是\[尺側]{.green-3}）
+
 * Duchennes Palsy——C7
+
 * Whole arm type——C5到T1
 
 ***
@@ -67,14 +74,21 @@ BPI，臂叢傷害，在1768年在英國第一次被提出來\
 * 非抗重力
 
   * 0——沒有任何反應
+
   * 1——有肌肉收縮，無動作
+
   * 2——能活動範圍<1/2
+
   * 3——能活動範圍>1/2
+
   * 4——full range
+
 * 抗重力
 
   * 5——能活動範圍<1/2
+
   * 6——能活動範圍>1/2
+
   * 7——full range
 
 這一個是Mallet classification(Mallet Scale) 錄肩部和手臂功能變化的評分系統
@@ -86,12 +100,15 @@ BPI，臂叢傷害，在1768年在英國第一次被提出來\
 評估反射的內容包括
 
 * Moro
+
 * Galant
+
 * Neck righting, hand placing
+
 * Visual tracking
 
 那我們介入的時間，在出血跟水腫都消退後就可以開始了，當然是越早越好\
 提供對恢復有利的環境\
 將攣縮問題降到最低\
 以及著手運動訓練\
-[（那PT介入是無法使神經再生加快，目的是處理減少無力，攣縮等問題，還有動作訓練）]{.underline .red-3}
+\[（那PT介入是無法使神經再生加快，目的是處理減少無力，攣縮等問題，還有動作訓練）]{.underline .red-3}
