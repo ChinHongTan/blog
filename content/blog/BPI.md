@@ -2,7 +2,7 @@
 title: BPI
 description: BPI，斜頸等下再寫
 date: 2026-05-29T09:19:58+08:00
-edited_at: 2026-06-21T14:55:53.256Z
+edited_at: 2026-06-21T14:56:34.916Z
 author: hibiki12141132
 featured_image: /images/uploads/1780287451942-138768698_p0_master1200.webp
 ---
@@ -50,7 +50,7 @@ BPI，臂叢傷害，在1768年在英國第一次被提出來\
 
 * Erb’s Palsy or upper-plexus type（\[最常見]{.red-3 .underline}）——傷到C5和C6
 
-  * 功能喪失包括：肩外展，肩屈曲，肘伸直，腕伸展；手臂無法從身側抬高
+  * 功能喪失包括：肩外展，肩屈曲，肘屈曲，腕伸展；手臂無法從身側抬高
 
     * 呈現下垂姿勢，在肩內收，肩內旋，前臂旋前，手指屈曲的姿勢——類似小費手
 
